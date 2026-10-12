@@ -115,6 +115,21 @@ test('projects: empty state when a category has no projects', async ({ page }) =
   await expect(page.locator('[data-filter="all"]')).toBeFocused();
 });
 
+test('placeholder entries are never shown or counted', async ({ page }) => {
+  for (const path of ['/', '/projects']) {
+    await page.goto(path);
+    await expect(page.locator('.project-card.is-placeholder')).toHaveCount(0);
+    await expect(page.getByText('Something’s brewing')).toHaveCount(0);
+    await expect(page.locator('main')).not.toContainText(/\b(0|1) projects\b/);
+  }
+  await page.goto('/projects');
+  for (const count of await page.locator('.chip-filter__count').all()) {
+    await expect(count).not.toHaveText('0');
+  }
+  const cards = await page.locator('[data-project-grid] > li').count();
+  await expect(page.locator('[data-filter="all"] .chip-filter__count')).toHaveText(String(cards));
+});
+
 test('projects: unknown ?c= falls back to All', async ({ page }) => {
   await page.goto('/projects?c=nope');
   await expect(page.locator('[data-filter="all"]')).toHaveAttribute('aria-pressed', 'true');

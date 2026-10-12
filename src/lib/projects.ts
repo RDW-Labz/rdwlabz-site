@@ -100,15 +100,20 @@ export function displayProject(p: Project) {
 
 export type DisplayProject = ReturnType<typeof displayProject>;
 
+/** Entries whose name is still TODO are never shown or counted. */
+const realProjects = projects.filter((p) => !isTodo(p.name));
+
 export const featuredProjects = (): DisplayProject[] =>
-  projects.filter((p) => p.featured).map(displayProject);
+  realProjects.filter((p) => p.featured).map(displayProject);
 
-export const allProjects = (): DisplayProject[] => projects.map(displayProject);
+export const allProjects = (): DisplayProject[] => realProjects.map(displayProject);
 
-export const countIn = (id: CategoryId): number => projects.filter((p) => p.category === id).length;
+export const countIn = (id: CategoryId): number =>
+  realProjects.filter((p) => p.category === id).length;
 
-export const countLabel = (n: number): string =>
-  n === 0 ? 'Nothing here yet' : `${n} project${n === 1 ? '' : 's'}`;
+export const pluralProjects = (n: number): string => `${n} project${n === 1 ? '' : 's'}`;
+
+export const countLabel = (n: number): string => (n === 0 ? 'Coming soon' : pluralProjects(n));
 
 /** Category blurb from data, or null while it is still TODO (UI then shows only the count). */
 export const categoryBlurb = (c: Category): string | null => (isTodo(c.blurb) ? null : c.blurb);

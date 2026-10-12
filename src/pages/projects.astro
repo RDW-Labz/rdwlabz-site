@@ -5,7 +5,7 @@ import FilterChip from '../components/FilterChip.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import ContactButton from '../components/ContactButton.astro';
 import Icon from '../components/Icon.astro';
-import { allProjects, categories, categoryAccent, countIn } from '../lib/projects';
+import { allProjects, categories, categoryAccent, countIn, pluralProjects } from '../lib/projects';
 
 const items = allProjects();
 ---
@@ -38,12 +38,13 @@ const items = allProjects();
           href={`/projects?c=${c.id}`}
           icon={c.id}
           accent={categoryAccent[c.id]}
-          count={countIn(c.id)}
+          count={countIn(c.id) || undefined}
         />
       ))}
     </div>
     <p class="filters__status" role="status" aria-live="polite" data-filter-status>
-      Showing all {items.length} projects.
+      Showing {items.length === 1 ? '' : 'all '}
+      {pluralProjects(items.length)}.
     </p>
 
     <ul class="grid" data-project-grid>

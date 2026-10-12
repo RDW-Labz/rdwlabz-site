@@ -24,52 +24,16 @@
   ],
   "projects": [
     {
-      "slug": "todo-software",
-      "name": "TODO: Project name",
-      "oneLiner": "TODO: one line",
-      "category": "software",
-      "status": "coming-soon",
-      "platforms": [],
-      "url": null,
-      "accentColor": "TODO",
-      "image": null,
-      "featured": true
-    },
-    {
-      "slug": "todo-game",
-      "name": "TODO: Project name",
+      "slug": "putt-drop",
+      "name": "Putt Drop",
       "oneLiner": "TODO: one line",
       "category": "games",
-      "status": "coming-soon",
-      "platforms": [],
-      "url": null,
+      "status": "in-dev",
+      "platforms": ["Android"],
+      "url": "TODO: Putt Drop link",
       "accentColor": "TODO",
       "image": null,
       "featured": true
-    },
-    {
-      "slug": "todo-mod",
-      "name": "TODO: Project name",
-      "oneLiner": "TODO: one line",
-      "category": "mods",
-      "status": "coming-soon",
-      "platforms": [],
-      "url": null,
-      "accentColor": "TODO",
-      "image": null,
-      "featured": true
-    },
-    {
-      "slug": "todo-asset-pack",
-      "name": "TODO: Project name",
-      "oneLiner": "TODO: one line",
-      "category": "asset-packs",
-      "status": "coming-soon",
-      "platforms": [],
-      "url": null,
-      "accentColor": "TODO",
-      "image": null,
-      "featured": false
     }
   ],
   "site": {

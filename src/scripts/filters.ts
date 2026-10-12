@@ -37,7 +37,7 @@ export function initFilters() {
       const noun = `project${shown === 1 ? '' : 's'}`;
       status.textContent =
         id === 'all'
-          ? `Showing all ${shown} ${noun}.`
+          ? `Showing ${shown === 1 ? '' : 'all '}${shown} ${noun}.`
           : `Showing ${shown} ${noun} in ${chipLabel(id)}.`;
     }
   };
