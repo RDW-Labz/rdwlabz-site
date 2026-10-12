@@ -11,6 +11,7 @@
 | 2026-10-12 | 5. Pages + SEO + analytics | Done   | Home (hero/LabBench, What we build tiles, featured, Work with us, CTA band), Projects (URL-reflected filters, live status, empty state, no-JS links), 404, canonical/OG/favicons/manifest/robots/sitemap, CF Web Analytics snippet gated on `PUBLIC_CF_BEACON_TOKEN`. `npx playwright test --project=e2e`: 23/23 pass (run twice). |
 | 2026-10-12 | 6. Review passes 1–3       | Done   | See `docs/REVIEWS.md`. Pass 3: fixed the nav-label occlusion during the pill morph and the transition double exposure. Lighthouse medians 100/100/100/100 on `/` and `/projects` (404: 100/100/100, SEO 63 by design). JS ≤ 7.0 KB gz, fonts 60 KB / 2 families, CLS 0. e2e 29/29. |
 | 2026-10-12 | 7. Preflight + handoff     | Done   | Final screenshots in `docs/screenshots/` (home/projects/404 × desktop/tablet/mobile). `docs/PREFLIGHT.md` (overall: PARTIALLY VERIFIED, not launch-ready: content TODOs + screen reader, cross-browser, field checks not run), `docs/PATTERNS.md`, README rewritten. Final rerun: lint clean, build OK (0 errors), e2e 29/29. |
+| 2026-10-12 | Content update 1          | Done   | DNS confirmed on Cloudflare. Putt Drop added (Games, in-dev, Android, featured; link and one-liner TODO). Placeholder projects removed and never counted; empty categories show "Coming soon"; Home uses the filler card. Email, tagline and project 2 were blank in the request, so they stay TODO. Lint clean, build 0 errors, e2e 30/30, Lighthouse medians unchanged (100s; 404 SEO 63). |
 
 ## Baseline (step 1, run 2026-10-12)
 
@@ -38,4 +39,4 @@
 
 ## Blockers / needs from Braden
 
-- Content: tagline, real projects (names, blurbs, links, images, accents), category blurbs, work-with-us line, contact email, launch date, DNS host. See `docs/PREFLIGHT.md`.
+- Content: tagline, real projects (names, blurbs, links, images, accents), category blurbs, work-with-us line, contact email, launch date. (DNS is confirmed on Cloudflare.) See `docs/PREFLIGHT.md`.

@@ -1,15 +1,15 @@
 # Preflight
 
-**Overall: PARTIALLY VERIFIED. Not ready to launch.** Every check the agent could run passes. Launch is blocked on real content (the site currently shows only "coming soon" placeholders, and there's no contact email) and on checks that need a human or a deployed site (screen reader, real devices, other browsers, field metrics).
+**Overall: PARTIALLY VERIFIED. Not ready to launch.** Every check the agent could run passes. Launch is blocked on real content (there's no contact email yet, so the site has no working contact route; Putt Drop has no link or one-liner; the tagline is the fallback) and on checks that need a human or a deployed site (screen reader, real devices, other browsers, field metrics).
 
-Last updated 2026-10-12 at commit `292850b` (plus the step 7 docs commit). Unless noted, everything ran against the **production build** (`astro build && astro preview`) in Playwright Chromium.
+Last updated 2026-10-12 after the content update (Putt Drop added, placeholder projects removed). Unless noted, everything ran against the **production build** (`astro build && astro preview`) in Playwright Chromium.
 
 Status key: PASS · FAIL · BLOCKED · NOT RUN · N/A (with reason)
 
 | Criterion | Scope | Status | Evidence | Open issue |
 |---|---|---|---|---|
 | Scope matches v1 | Home, Projects, 404; footer mailto only; no forms, CMS, logins, store or blog | PASS | `dist/` contains only `index.html`, `projects.html`, `404.html` + assets. The e2e test "dev-only routes are not in the production build" passes | — |
-| No invented facts | All copy and data | PASS | Every unknown is a `TODO:` in `src/data/projects.json` and renders as "coming soon" UI. The hero eyebrow was changed from "Indie dev lab" to "Hello from the lab" (Review pass 1 #3) | Real content is needed (see the TODOs below) |
+| No invented facts | All copy and data | PASS | Every unknown is a `TODO:` in `src/data/projects.json` and renders as "coming soon" UI. Entries whose name is TODO are never shown or counted; categories with 0 real projects show "Coming soon" instead of a count, and their filter chip has no count badge (e2e "placeholder entries are never shown or counted"). The hero eyebrow was changed from "Indie dev lab" to "Hello from the lab" (Review pass 1 #3) | Real content is needed (see the TODOs below) |
 | Contact never points at a placeholder | Header, hero, CTA band, footer | PASS | e2e "contact: placeholder email never renders a mailto to a TODO address" | The contact email is still TODO, so there is currently **no working contact route** |
 | Design-system consistency | Tokens, primitives, all pages | PASS (manual review) | `/_gallery` (dev only) with screenshots in `docs/screenshots/gallery/`. Review pass 1 checked the pages against `docs/ART-DIRECTION.md` | — |
 | Journeys and states | 3 journeys from `docs/BRIEF.md`; filters; empty, coming-soon and 404 states; long and short content | PASS | e2e tile → filter journey, filters by click/Space/Enter/URL/reset, empty state, unknown `?c=`, 404 status and page. Fixture builds (`scripts/fixture-build.mjs twenty\|one`) reviewed in pass 2 | — |
@@ -22,10 +22,10 @@ Status key: PASS · FAIL · BLOCKED · NOT RUN · N/A (with reason)
 | Route-change motion | Header pill morph, room swap | PASS | Mid-transition frames in `docs/screenshots/motion/`. Two glitches fixed in Review pass 3 | — |
 | Cleanup and reliability | Listeners across repeated client navigation | PASS | `scripts/motion-check.mjs`: `document` listener count stays at 16 over 8 round trips; 0 page or console errors | — |
 | Budgets | JS ≤ 60 KB gz/page; fonts ≤ 2 families / ≤ 120 KB; hero media ≤ 200 KB; CLS ≈ 0 | PASS | `node scripts/budgets.mjs`: JS 6.4 / 7.0 / 6.4 KB gz; fonts 60.0 KB, 2 families; the hero has no raster media; CLS 0 (in-browser and Lighthouse) | — |
-| Lighthouse (lab) | Mobile profile, 3 runs, median: `/`, `/projects`, `/404` | PASS | `npm run lhci`: `/` and `/projects` scored 100/100/100/100; `/404` scored 100/100/100 with SEO 63 (intended `noindex`, not gated). LCP about 1.5 s, TBT 0 ms, CLS 0 | Lab numbers from localhost only |
+| Lighthouse (lab) | Mobile profile, 3 runs, median: `/`, `/projects`, `/404` | PASS (rerun after the content update) | `npm run lhci`: `/` and `/projects` scored 100/100/100/100; `/404` scored 100/100/100 with SEO 63 (intended `noindex`, not gated). LCP about 1.5 s, TBT 0 ms, CLS 0 | Lab numbers from localhost only |
 | Field performance (LCP / INP / CLS) | Real users | NOT RUN | — | Needs a deployed site + Web Analytics |
 | Cross-browser and real devices | Safari, Firefox, iOS, Android | NOT RUN | Only Playwright Chromium was used | Spot-check before launch |
-| Lint / types / tests / build | Whole repo | PASS | `npm run lint` clean; `astro check` 0 errors, 0 warnings, 0 hints; `astro build` OK; `npx playwright test --project=e2e` 29/29 | — |
+| Lint / types / tests / build | Whole repo | PASS | `npm run lint` clean; `astro check` 0 errors, 0 warnings, 0 hints; `astro build` OK; `npx playwright test --project=e2e` 30/30 | — |
 | Console and network errors | All 3 pages + client navigation | PASS | e2e collects `pageerror`, console errors and failed requests on every page; the motion probe reports 0 errors | — |
 | SEO basics | Titles, descriptions, canonical, OG/Twitter, favicons, manifest, sitemap, robots | PASS | e2e "SEO: canonical, OG tags, sitemap, robots, favicons" | `public/og.png` text is hard-coded in `scripts/make-icons.mjs` ("We build software, games, mods and asset packs."). To change it for a new tagline, edit the script and rerun it |
 | Analytics | Cloudflare Web Analytics | BLOCKED | The snippet renders only when `PUBLIC_CF_BEACON_TOKEN` is set at build time | Needs Braden to enable Web Analytics and set the token in Cloudflare Pages |
@@ -35,14 +35,16 @@ Status key: PASS · FAIL · BLOCKED · NOT RUN · N/A (with reason)
 | Review pass 1: art direction and craft | 1440 / 768 / 390 | PASS | `docs/REVIEWS.md`: 8 findings fixed | — |
 | Review pass 2: UX, states and a11y | 1440 / 768 / 390 + fixtures | PASS | `docs/REVIEWS.md`: 7 findings fixed | — |
 | Review pass 3: motion, perf and reliability | Production build | PASS | `docs/REVIEWS.md`: 4 findings fixed | — |
-| Deploy / DNS | Cloudflare Pages, rdwlabz.com | N/A | Out of the agent's permissions; Braden does this | See the go-live steps in the README |
+| DNS | rdwlabz.com | PASS (confirmed by Braden, 2026-10-12) | DNS is on Cloudflare | — |
+| Deploy | Cloudflare Pages | N/A | Out of the agent's permissions; Braden does this | See the go-live steps in the README |
 
-## Content still TODO (in `src/data/projects.json` unless noted)
+## Content still TODO (in `src/data/projects.json`)
 
-- `site.tagline` (the UI falls back to "We build software, games, mods and asset packs.")
-- `site.contactEmail` (currently `TODO@rdwlabz.com`; every contact CTA shows "Email coming soon")
-- `site.launchDate`
-- `site.workWithUs` (an optional line; hidden while TODO)
-- The real project list. The 4 entries are placeholders: name, one-liner, status, platforms, url, accentColor, image, featured.
-- Category blurbs (4, currently hidden while TODO)
-- The DNS host for rdwlabz.com (open question in `docs/PLAN.md`)
+- `site.contactEmail`: still `TODO@rdwlabz.com`. The update message had a blank (`____@rdwlabz.com`). Once it's set, every "Email coming soon" becomes a mailto automatically.
+- `site.tagline`: blank in the update message. The UI uses the fallback "We build software, games, mods and asset packs."
+- Putt Drop: `url` (blank in the update), `oneLiner`, `accentColor` (it uses the Games color for now) and `image`.
+- Project 2: blank in the update, so nothing was added.
+- `site.launchDate`, `site.workWithUs` (optional) and the 4 category blurbs.
+- `public/og.png` text, if the tagline changes (`scripts/make-icons.mjs`).
+
+DNS: done (Cloudflare).

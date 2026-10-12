@@ -46,6 +46,6 @@ rdwlabz.com is the studio hub for **RDW Labz**, a dev team that builds software,
 - Tagline (one sentence).
 - Project list: names, category, status, platforms, one-liners, links, images, accent colors.
 - Contact email (currently `TODO@rdwlabz.com`).
-- Where rdwlabz.com DNS lives (Cloudflare assumed).
+- ~~Where rdwlabz.com DNS lives~~ Confirmed: Cloudflare (2026-10-12).
 - Target launch date.
 - Is there anything to say in "Work with us" beyond "we build X, email us" (e.g. availability, kinds of work)?

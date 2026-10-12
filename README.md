@@ -66,7 +66,7 @@ Cloudflare Web Analytics is included only when `PUBLIC_CF_BEACON_TOKEN` is set a
 
 1. Push this repo to your Git host.
 2. Cloudflare dashboard → Workers & Pages → Create → Pages → connect the repo. Build command `npm run build`, output directory `dist`, Node 22.12+.
-3. Custom domains → add `rdwlabz.com` (and `www` if you want it), then follow the DNS prompts. If DNS isn't on Cloudflare, add the CNAME it shows at your DNS host.
+3. Custom domains → add `rdwlabz.com` (and `www` if you want it), DNS is already on Cloudflare, so the record is created for you when you confirm.
 4. Web Analytics → add the site → copy the token → set `PUBLIC_CF_BEACON_TOKEN` in the Pages project's environment variables → redeploy.
 5. Before launch, fill in the TODOs in `src/data/projects.json` (see `docs/PREFLIGHT.md`).
 

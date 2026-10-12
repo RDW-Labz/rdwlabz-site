@@ -33,5 +33,5 @@
 - Project list: names, category, status, platforms, one-liners, links, images
 - Tagline
 - Footer contact email
-- Where rdwlabz.com DNS is hosted (Cloudflare assumed)
+- ~~Where rdwlabz.com DNS is hosted~~ **Done (2026-10-12): Cloudflare.**
 - Target launch date
