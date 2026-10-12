@@ -1,10 +1,26 @@
 {
   "_note": "Single source of truth for Home + Projects. Replace every TODO with real content from Braden. Do not invent projects.",
   "categories": [
-    { "id": "software", "label": "Software" },
-    { "id": "games", "label": "Games" },
-    { "id": "mods", "label": "Mods" },
-    { "id": "asset-packs", "label": "Asset packs" }
+    {
+      "id": "software",
+      "label": "Software",
+      "blurb": "TODO: one line on what we make in this category"
+    },
+    {
+      "id": "games",
+      "label": "Games",
+      "blurb": "TODO: one line on what we make in this category"
+    },
+    {
+      "id": "mods",
+      "label": "Mods",
+      "blurb": "TODO: one line on what we make in this category"
+    },
+    {
+      "id": "asset-packs",
+      "label": "Asset packs",
+      "blurb": "TODO: one line on what we make in this category"
+    }
   ],
   "projects": [
     {
@@ -61,6 +77,7 @@
     "domain": "rdwlabz.com",
     "tagline": "TODO: one sentence on what RDW Labz builds",
     "contactEmail": "TODO@rdwlabz.com",
-    "launchDate": "TODO"
+    "launchDate": "TODO",
+    "workWithUs": "TODO: optional line on the kinds of client/collab work RDW Labz takes on (availability, scope)"
   }
 }

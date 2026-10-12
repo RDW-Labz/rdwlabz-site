@@ -1,0 +1,248 @@
+---
+import Icon from '../Icon.astro';
+import { categories, categoryAccent } from '../../lib/projects';
+---
+
+<div class="bench" data-loop>
+  <div class="bench__glow" aria-hidden="true"></div>
+  <svg class="bench__orbit" viewBox="0 0 100 100" aria-hidden="true" preserveAspectRatio="none">
+    <ellipse cx="50" cy="50" rx="38" ry="36"></ellipse>
+  </svg>
+  <div class="bench__core" aria-hidden="true">
+    <svg viewBox="0 0 120 120" width="120" height="120">
+      <path d="M40 66h40l8 13a6 6 0 0 1-5 9H37a6 6 0 0 1-5-9Z" fill="#ff4d2e"></path>
+      <path
+        d="M48 22h24M52 22v22L32 78a7 7 0 0 0 6 10.5h44A7 7 0 0 0 88 78L68 44V22"
+        fill="none"
+        stroke="#1e1433"
+        stroke-width="6"
+        stroke-linejoin="round"
+        stroke-linecap="round"
+      ></path>
+      <circle class="bench__bubble b1" cx="56" cy="74" r="4" fill="#ffc23d"></circle>
+      <circle class="bench__bubble b2" cx="67" cy="78" r="3" fill="#ffc23d"></circle>
+      <circle class="bench__bubble b3" cx="48" cy="80" r="2.5" fill="#fff6ea"></circle>
+    </svg>
+  </div>
+  <ul class="bench__tokens" aria-label="What we build">
+    {categories.map((c, i) => (
+      <li class={`token token--${i}`} style={`--tok:${categoryAccent[c.id]}; --i:${i}`}>
+        <a href={`/projects?c=${c.id}`} class="token__link">
+          <span class="token__icon">
+            <Icon name={c.id} size={22} />
+          </span>
+          {c.label}
+        </a>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .bench {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    aspect-ratio: 1;
+    justify-self: center;
+    border-radius: var(--radius-xl);
+    background: var(--grad-bench);
+    border: 2px solid var(--color-ink);
+    box-shadow: var(--shadow-pop-lg);
+    isolation: isolate;
+    container-type: size;
+  }
+  .bench__glow {
+    position: absolute;
+    inset: 16%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(255 255 255 / 0.45), transparent 70%);
+    z-index: -1;
+  }
+  .bench__orbit {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: rgb(30 20 51 / 0.35);
+    stroke-width: 0.4;
+    stroke-dasharray: 1.4 1.6;
+    vector-effect: non-scaling-stroke;
+  }
+  .bench__orbit ellipse {
+    stroke-width: 2px;
+  }
+  .bench__core {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 34%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 30%;
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: var(--shadow-pop);
+    animation: wobble 3.2s ease-in-out infinite;
+  }
+  .bench__core svg {
+    width: 70%;
+    height: auto;
+    overflow: visible;
+  }
+  .bench__bubble {
+    animation: rise 2.4s ease-in infinite;
+  }
+  .b2 {
+    animation-delay: 0.8s;
+  }
+  .b3 {
+    animation-delay: 1.6s;
+  }
+  .bench__tokens {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .token {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    translate: -50% -50%;
+    animation: spawn var(--dur-spawn) var(--ease-spring) both;
+    animation-delay: calc(150ms + var(--i) * 140ms);
+  }
+  .token .token__link {
+    animation: bob 4s ease-in-out infinite;
+    animation-delay: calc(1.2s + var(--i) * 400ms);
+  }
+  .token--0 {
+    --x: 24%;
+    --y: 17%;
+    --from-x: 26cqw;
+    --from-y: 33cqh;
+  }
+  .token--1 {
+    --x: 76%;
+    --y: 24%;
+    --from-x: -26cqw;
+    --from-y: 26cqh;
+  }
+  .token--2 {
+    --x: 22%;
+    --y: 80%;
+    --from-x: 28cqw;
+    --from-y: -30cqh;
+  }
+  .token--3 {
+    --x: 76%;
+    --y: 84%;
+    --from-x: -26cqw;
+    --from-y: -34cqh;
+  }
+  .token__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 6px 18px 6px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: var(--shadow-pop-sm);
+    color: var(--color-ink);
+    font-weight: 800;
+    white-space: nowrap;
+    text-decoration: none;
+    transition:
+      transform var(--dur-instant) var(--ease-spring),
+      box-shadow var(--dur-instant);
+  }
+  .token__link:hover,
+  .token__link:focus-visible {
+    transform: translateY(-3px) rotate(-3deg) scale(1.04);
+    box-shadow: 0 7px 0 var(--tok);
+  }
+  .token__link:focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 3px;
+  }
+  .token__link:active {
+    transform: translateY(2px) scale(0.98);
+    box-shadow: var(--shadow-pop-xs);
+  }
+  .token__icon {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--tok);
+    color: #fff;
+  }
+  .bench[data-paused='true'] *,
+  .bench[data-paused='true'] {
+    animation-play-state: paused !important;
+  }
+
+  @keyframes spawn {
+    from {
+      transform: translate(var(--from-x), var(--from-y)) scale(0.2) rotate(-24deg);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  @keyframes bob {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    50% {
+      translate: 0 -6px;
+    }
+  }
+  @keyframes wobble {
+    0%,
+    100% {
+      rotate: -3deg;
+    }
+    50% {
+      rotate: 3deg;
+    }
+  }
+  @keyframes rise {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(-42px);
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .token__link {
+      font-size: 0.9375rem;
+      padding-right: 14px;
+    }
+    .token__icon {
+      width: 28px;
+      height: 28px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .token,
+    .token .token__link,
+    .bench__core,
+    .bench__bubble {
+      animation: none !important;
+    }
+  }
+</style>

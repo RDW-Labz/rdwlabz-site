@@ -6,6 +6,7 @@ export type Status = 'released' | 'in-dev' | 'coming-soon';
 export interface Category {
   id: CategoryId;
   label: string;
+  blurb: string;
 }
 
 export interface Project {
@@ -27,6 +28,7 @@ export interface SiteInfo {
   tagline: string;
   contactEmail: string;
   launchDate: string;
+  workWithUs: string;
 }
 
 const CATEGORY_IDS: readonly CategoryId[] = ['software', 'games', 'mods', 'asset-packs'];
@@ -102,6 +104,14 @@ export const featuredProjects = (): DisplayProject[] =>
   projects.filter((p) => p.featured).map(displayProject);
 
 export const allProjects = (): DisplayProject[] => projects.map(displayProject);
+
+export const countIn = (id: CategoryId): number => projects.filter((p) => p.category === id).length;
+
+export const countLabel = (n: number): string =>
+  n === 0 ? 'Nothing here yet' : `${n} project${n === 1 ? '' : 's'}`;
+
+/** Category blurb from data, or null while it is still TODO (UI then shows only the count). */
+export const categoryBlurb = (c: Category): string | null => (isTodo(c.blurb) ? null : c.blurb);
 
 /** Verified fallback copy (BUILD-SPEC §0) until Braden supplies a tagline. */
 export const tagline = isTodo(site.tagline)

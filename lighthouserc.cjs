@@ -4,7 +4,11 @@ module.exports = {
     collect: {
       startServerCommand: 'npx astro preview --port 4393',
       startServerReadyPattern: 'localhost:4393',
-      url: ['http://localhost:4393/'],
+      url: [
+        'http://localhost:4393/',
+        'http://localhost:4393/projects',
+        'http://localhost:4393/does-not-exist',
+      ],
       numberOfRuns: 3,
     },
     assert: {

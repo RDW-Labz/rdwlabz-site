@@ -7,6 +7,7 @@ import Icon, { type IconName } from './Icon.astro';
  */
 interface Props {
   id: string;
+  label: string;
   href: string;
   selected?: boolean;
   count?: number;
@@ -17,7 +18,17 @@ interface Props {
   state?: 'hover' | 'focus' | 'active';
 }
 
-const { id, href, selected = false, count, icon, accent, disabled = false, state } = Astro.props;
+const {
+  id,
+  label,
+  href,
+  selected = false,
+  count,
+  icon,
+  accent,
+  disabled = false,
+  state,
+} = Astro.props;
 ---
 
 {disabled ? (
@@ -27,7 +38,7 @@ const { id, href, selected = false, count, icon, accent, disabled = false, state
     style={accent ? `--acc:${accent}` : undefined}
   >
     {icon && <Icon name={icon} size={18} class="chip-filter__icon" />}
-    <slot />
+    {label}
   </span>
 ) : (
   <a
@@ -36,10 +47,11 @@ const { id, href, selected = false, count, icon, accent, disabled = false, state
     aria-pressed={selected ? 'true' : 'false'}
     role="button"
     data-filter={id}
+    data-label={label}
     style={accent ? `--acc:${accent}` : undefined}
   >
     {icon && <Icon name={icon} size={18} class="chip-filter__icon" />}
-    <slot />
+    {label}
     {count !== undefined && (
       <span class="chip-filter__count" aria-hidden="true">
         {count}

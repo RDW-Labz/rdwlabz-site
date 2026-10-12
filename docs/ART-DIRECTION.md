@@ -75,7 +75,7 @@ Rule: never two adjacent trays with the same gradient; no purple-to-blue "AI" gr
 
 ## Type
 
-- Display: **Bricolage Grotesque** variable (wght 400–800, `wdth` axis via `font-variation-settings`), tight tracking (−0.02 to −0.045em).
+- Display: **Bricolage Grotesque** variable (wght 400–800 only; the `wdth` axis isn't loaded, to save bytes), tight tracking (−0.02 to −0.045em).
 - Body/UI: **Figtree** variable (400–700).
 - Two families total; both self-hosted woff2 via Astro Fonts API, `font-display: swap`, metric-matched fallbacks.
 

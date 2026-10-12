@@ -161,33 +161,48 @@ const swatches = [
       <Chip kind="tag">Windows</Chip>
     </div>
     <div class="mt-4 flex flex-wrap gap-3">
-      <FilterChip id="all" href="#" selected count={4}>
-        All
-      </FilterChip>
-      <FilterChip id="g1" href="#" icon="games" accent={categoryAccent.games} count={1}>
-        Default
-      </FilterChip>
-      <FilterChip id="g2" href="#" icon="mods" accent={categoryAccent.mods} state="hover">
-        Hover
-      </FilterChip>
-      <FilterChip id="g3" href="#" icon="software" accent={categoryAccent.software} state="focus">
-        Focus
-      </FilterChip>
+      <FilterChip id="all" href="#" selected count={4} label="All" />
+      <FilterChip
+        id="g1"
+        href="#"
+        icon="games"
+        accent={categoryAccent.games}
+        count={1}
+        label="Default"
+      />
+      <FilterChip
+        id="g2"
+        href="#"
+        icon="mods"
+        accent={categoryAccent.mods}
+        state="hover"
+        label="Hover"
+      />
+      <FilterChip
+        id="g3"
+        href="#"
+        icon="software"
+        accent={categoryAccent.software}
+        state="focus"
+        label="Focus"
+      />
       <FilterChip
         id="g4"
         href="#"
         icon="asset-packs"
         accent={categoryAccent['asset-packs']}
         state="active"
-      >
-        Active
-      </FilterChip>
-      <FilterChip id="g5" href="#" icon="games" accent={categoryAccent.games} selected>
-        Selected
-      </FilterChip>
-      <FilterChip id="g6" href="#" disabled>
-        Disabled
-      </FilterChip>
+        label="Active"
+      />
+      <FilterChip
+        id="g5"
+        href="#"
+        icon="games"
+        accent={categoryAccent.games}
+        selected
+        label="Selected"
+      />
+      <FilterChip id="g6" href="#" disabled label="Disabled" />
     </div>
 
     <h2 class="mt-12 text-h2">Links + icons</h2>

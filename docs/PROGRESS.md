@@ -8,6 +8,7 @@
 
 | 2026-10-12 | 3. Art direction            | Done   | 3 studies on `/_studies` (Workbench / Arcade cartridge / Blueprint), screenshots in `docs/screenshots/studies/`. Picked **A — Workbench** (27/20/23). Spec in `docs/ART-DIRECTION.md`. |
 | 2026-10-12 | 4. Tokens + primitives     | Done   | Tokens in `src/styles/global.css` (`@theme` + CSS vars). Primitives: Button, ContactButton, Chip, FilterChip, ProjectCard, ProjectArt, Section (tray), Header (+ mobile menu w/ focus trap), Footer, Logo, Icon, BaseLayout (ClientRouter, SEO, fonts). `/_gallery` screenshots in `docs/screenshots/gallery/`. |
+| 2026-10-12 | 5. Pages + SEO + analytics | Done   | Home (hero/LabBench, What we build tiles, featured, Work with us, CTA band), Projects (URL-reflected filters, live status, empty state, no-JS links), 404, canonical/OG/favicons/manifest/robots/sitemap, CF Web Analytics snippet gated on `PUBLIC_CF_BEACON_TOKEN`. `npx playwright test --project=e2e`: 23/23 pass (run twice). |
 
 ## Baseline (step 1, run 2026-10-12)
 
@@ -31,7 +32,7 @@
 
 ## Next
 
-- Step 5: Home → Projects → 404, SEO, analytics.
+- Step 6: three review passes (1440 / 768 / 390).
 
 ## Blockers / needs from Braden
 

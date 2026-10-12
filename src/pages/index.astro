@@ -1,18 +1,446 @@
 ---
-import '../styles/global.css';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Section from '../components/Section.astro';
+import Button from '../components/Button.astro';
+import ContactButton from '../components/ContactButton.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import Icon from '../components/Icon.astro';
+import LabBench from '../components/home/LabBench.astro';
+import {
+  categories,
+  categoryAccent,
+  categoryBlurb,
+  countIn,
+  countLabel,
+  featuredProjects,
+  isTodo,
+  site,
+  tagline,
+} from '../lib/projects';
+
+const featured = featuredProjects();
+const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>RDW Labz</title>
-    <meta name="description" content="RDW Labz builds software, games, mods and asset packs." />
-  </head>
-  <body>
-    <main>
-      <h1>RDW Labz</h1>
-      <p>Scaffold baseline.</p>
-    </main>
-  </body>
-</html>
+<BaseLayout description={tagline} current="home">
+  <!-- 1. Hero: who we are -->
+  <section class="hero container-lab" aria-labelledby="hero-title">
+    <div class="hero__copy">
+      <p class="eyebrow">
+        <Icon name="sparkle" size={16} /> Indie dev lab
+      </p>
+      <h1 id="hero-title" class="hero__title">
+        <span class="hero__name">RDW Labz</span>
+        <span class="hero__tag">{tagline}</span>
+      </h1>
+      <div class="hero__ctas">
+        <Button href="/projects" variant="primary" iconEnd="arrow-right">
+          See our projects
+        </Button>
+        <ContactButton variant="secondary" />
+      </div>
+    </div>
+    <LabBench />
+  </section>
+
+  <!-- 2. What we build -->
+  <Section tone="peach" id="what-we-build" labelledby="wwb-title">
+    <div class="section-head" data-reveal>
+      <h2 id="wwb-title" class="text-h2">
+        What we build
+      </h2>
+      <p class="section-head__lead">
+        Four kinds of things come out of the lab. Pick one to browse.
+      </p>
+    </div>
+    <ul class="tiles">
+      {categories.map((c, i) => {
+        const n = countIn(c.id);
+        const blurb = categoryBlurb(c);
+        return (
+          <li data-reveal style={`--reveal-i:${i}`}>
+            <a href={`/projects?c=${c.id}`} class="tile" style={`--acc:${categoryAccent[c.id]}`}>
+              <span class="tile__no" aria-hidden="true">
+                0{i + 1}
+              </span>
+              <span class="tile__icon" aria-hidden="true">
+                <Icon name={c.id} size={36} strokeWidth={1.8} />
+              </span>
+              <span class="tile__label">{c.label}</span>
+              {blurb && <span class="tile__blurb">{blurb}</span>}
+              <span class="tile__meta">
+                {countLabel(n)}
+                <Icon name="arrow-right" size={18} class="tile__arrow" />
+              </span>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </Section>
+
+  <!-- 3. Featured projects -->
+  <Section tone="mint" id="featured" labelledby="featured-title">
+    <div class="section-head section-head--split" data-reveal>
+      <div>
+        <h2 id="featured-title" class="text-h2">
+          Fresh from the lab
+        </h2>
+        <p class="section-head__lead">A few things we're working on.</p>
+      </div>
+      <Button href="/projects" variant="secondary" size="sm" iconEnd="arrow-right">
+        All projects
+      </Button>
+    </div>
+    {featured.length > 0 ? (
+      <ul class="featured-grid">
+        {featured.map((p, i) => (
+          <li data-reveal style={`--reveal-i:${i}`}>
+            <ProjectCard project={p} />
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="empty-note" data-reveal>
+        Featured projects are on their way.{' '}
+        <a class="link" href="/projects">
+          Browse everything
+        </a>
+      </p>
+    )}
+  </Section>
+
+  <!-- 4. Work with us -->
+  <Section tone="paper" id="work-with-us" labelledby="wwu-title">
+    <div class="wwu" data-reveal>
+      <div class="wwu__intro">
+        <p class="eyebrow eyebrow--mint">For clients &amp; collaborators</p>
+        <h2 id="wwu-title" class="text-h2">
+          Work with us
+        </h2>
+        <p class="wwu__lead">
+          Have an idea for software, a game, a mod or an asset pack? Tell us about it.
+        </p>
+        {workWithUs && <p class="wwu__extra">{workWithUs}</p>}
+      </div>
+      <div class="wwu__note sticker">
+        <h3 class="wwu__note-title">Handy things to include in your email</h3>
+        <ol class="wwu__list">
+          <li>
+            <span>1</span>What you want to build, in a sentence or two
+          </li>
+          <li>
+            <span>2</span>Links or references that show the vibe
+          </li>
+          <li>
+            <span>3</span>Rough timing, if you have one
+          </li>
+        </ol>
+      </div>
+    </div>
+  </Section>
+
+  <!-- 5. CTA band -->
+  <Section tone="ink" id="say-hi" labelledby="cta-title" class="cta-band">
+    <div class="cta" data-reveal>
+      <h2 id="cta-title" class="cta__title">
+        Say hi to the lab.
+      </h2>
+      <p class="cta__lead">Questions, ideas or collabs. One email away.</p>
+      <div class="cta__actions">
+        <ContactButton variant="sun" />
+        <a href="/projects" class="link">
+          Or browse our projects
+        </a>
+      </div>
+    </div>
+  </Section>
+</BaseLayout>
+
+<style>
+  .hero {
+    display: grid;
+    gap: 40px;
+    align-items: center;
+    padding-top: clamp(40px, 7vw, 88px);
+    padding-bottom: calc(var(--tray-r) + clamp(48px, 7vw, 96px));
+  }
+  .hero__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .hero__title {
+    margin: 20px 0 0;
+  }
+  .hero__name {
+    display: block;
+    font-size: var(--text-display);
+    line-height: var(--text-display--line-height);
+    letter-spacing: -0.045em;
+  }
+  .hero__tag {
+    display: block;
+    margin-top: 20px;
+    max-width: 22ch;
+    font-size: var(--text-lead);
+    line-height: var(--text-lead--line-height);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+  .hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 32px;
+  }
+  @media (min-width: 60rem) {
+    .hero {
+      grid-template-columns: 1.1fr 1fr;
+      gap: 48px;
+    }
+  }
+
+  .section-head {
+    max-width: 46rem;
+    margin-bottom: clamp(28px, 4vw, 44px);
+  }
+  .section-head--split {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 20px;
+    max-width: none;
+  }
+  .section-head__lead {
+    margin: 12px 0 0;
+    font-size: 1.1875rem;
+    color: var(--color-ink-soft);
+  }
+
+  .tiles {
+    display: grid;
+    gap: 18px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  }
+  .tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 100%;
+    min-height: 15rem;
+    padding: 22px;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: 0 6px 0 var(--color-ink);
+    color: var(--color-ink);
+    text-decoration: none;
+    overflow: hidden;
+    transition:
+      transform 160ms var(--ease-spring),
+      box-shadow 160ms,
+      background-color 160ms;
+  }
+  .tile::after {
+    content: '';
+    position: absolute;
+    right: -40px;
+    bottom: -40px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: color-mix(in oklab, var(--acc), #fff 70%);
+    z-index: 0;
+    transition: transform var(--dur-base) var(--ease-spring);
+  }
+  .tile > * {
+    position: relative;
+    z-index: 1;
+  }
+  .tile:hover,
+  .tile:focus-visible {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 0 var(--acc);
+  }
+  .tile:hover::after,
+  .tile:focus-visible::after {
+    transform: scale(1.5);
+  }
+  .tile:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--acc);
+  }
+  .tile__no {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 0.875rem;
+    color: var(--color-ink-soft);
+  }
+  .tile__icon {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    margin: 8px 0 auto;
+    border-radius: 22px;
+    background: var(--acc);
+    color: #fff;
+    border: 2px solid var(--color-ink);
+    transition: transform var(--dur-fast) var(--ease-spring);
+  }
+  .tile:hover .tile__icon,
+  .tile:focus-visible .tile__icon {
+    transform: rotate(-8deg) scale(1.06);
+  }
+  .tile__label {
+    margin-top: 20px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .tile__blurb {
+    color: var(--color-ink-soft);
+  }
+  .tile__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-weight: 700;
+    font-size: var(--text-small);
+  }
+  .tile :global(.tile__arrow) {
+    transition: transform var(--dur-instant) var(--ease-out-soft);
+  }
+  .tile:hover :global(.tile__arrow) {
+    transform: translateX(4px);
+  }
+
+  .featured-grid {
+    display: grid;
+    gap: 24px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 40rem) {
+    .featured-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 64rem) {
+    .featured-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .empty-note {
+    font-size: 1.125rem;
+  }
+
+  .wwu {
+    display: grid;
+    gap: 32px;
+    align-items: center;
+  }
+  @media (min-width: 56rem) {
+    .wwu {
+      grid-template-columns: 1.1fr 1fr;
+      gap: 56px;
+    }
+  }
+  .eyebrow--mint {
+    background: var(--color-mint-tint);
+  }
+  .wwu h2 {
+    margin: 16px 0 0;
+  }
+  .wwu__lead {
+    margin: 16px 0 0;
+    max-width: 30ch;
+    font-size: var(--text-lead);
+    line-height: 1.25;
+    font-weight: 600;
+  }
+  .wwu__extra {
+    margin: 14px 0 0;
+    color: var(--color-ink-soft);
+  }
+  .wwu__note {
+    padding: clamp(22px, 3vw, 32px);
+    border-radius: var(--radius-lg);
+    rotate: 1.2deg;
+    background:
+      linear-gradient(transparent 31px, rgb(30 20 51 / 0.08) 32px) 0 12px / 100% 32px,
+      #fffdf7;
+  }
+  .wwu__note-title {
+    margin: 0;
+    font-size: var(--text-h3);
+    line-height: var(--text-h3--line-height);
+    font-weight: 700;
+  }
+  .wwu__list {
+    display: grid;
+    gap: 14px;
+    margin: 20px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .wwu__list li {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    font-weight: 600;
+  }
+  .wwu__list span {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--color-sun);
+    border: 2px solid var(--color-ink);
+    font-weight: 800;
+    font-size: 0.875rem;
+    translate: 0 -2px;
+  }
+
+  .cta {
+    text-align: center;
+    padding: clamp(8px, 2vw, 24px) 0;
+  }
+  .cta__title {
+    margin: 0;
+    font-size: clamp(2.75rem, 1.4rem + 5.6vw, 6rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    color: #fff;
+  }
+  .cta__lead {
+    margin: 18px auto 0;
+    max-width: 34ch;
+    font-size: 1.25rem;
+    color: var(--color-muted-on-ink);
+  }
+  .cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 16px 28px;
+    margin-top: 32px;
+  }
+  :global(.cta-band) {
+    padding-bottom: clamp(56px, 7vw, 96px) !important;
+  }
+</style>

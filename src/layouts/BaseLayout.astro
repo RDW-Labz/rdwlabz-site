@@ -17,7 +17,8 @@ const { title, description, current, noindex = false } = Astro.props;
 const fullTitle = title
   ? `${title} · ${site.name}`
   : `${site.name} — software, games, mods & asset packs`;
-const canonical = new URL(Astro.url.pathname, Astro.site);
+const cleanPath = Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '/') || '/';
+const canonical = new URL(cleanPath, Astro.site);
 const ogImage = new URL('/og.png', Astro.site);
 const cfBeaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN as string | undefined;
 

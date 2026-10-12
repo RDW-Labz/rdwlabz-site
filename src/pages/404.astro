@@ -1,0 +1,130 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+---
+
+<BaseLayout
+  title="Page not found"
+  description="This page wandered out of the lab."
+  current={null}
+  noindex
+>
+  <section class="nf container-lab" aria-labelledby="nf-title">
+    <div class="nf__art" aria-hidden="true">
+      <svg viewBox="0 0 240 200" width="240" height="200">
+        <ellipse cx="128" cy="176" rx="96" ry="14" fill="#ff4d2e" opacity="0.9"></ellipse>
+        <circle class="nf__drop d1" cx="196" cy="166" r="6" fill="#ffc23d"></circle>
+        <circle class="nf__drop d2" cx="60" cy="170" r="4" fill="#ffc23d"></circle>
+        <g class="nf__flask">
+          <path
+            d="M70 46h40M76 46v34L44 136a11 11 0 0 0 9.5 16.5h73A11 11 0 0 0 136 136L104 80V46"
+            fill="#fff"
+            stroke="#1e1433"
+            stroke-width="7"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+          ></path>
+          <path d="M60 116h60l12 20a9 9 0 0 1-8 13.5H56a9 9 0 0 1-8-13.5Z" fill="#ff4d2e"></path>
+        </g>
+      </svg>
+    </div>
+    <p class="nf__code">404</p>
+    <h1 id="nf-title" class="nf__title">
+      This experiment didn’t make it.
+    </h1>
+    <p class="nf__lead">
+      The page you’re looking for isn’t here. It may have moved, or the link has a typo.
+    </p>
+    <div class="nf__actions">
+      <Button href="/" variant="primary" icon="flask">
+        Back to the lab
+      </Button>
+      <Button href="/projects" variant="secondary" iconEnd="arrow-right">
+        See our projects
+      </Button>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-top: clamp(40px, 6vw, 72px);
+    padding-bottom: clamp(64px, 9vw, 120px);
+  }
+  .nf__art svg {
+    width: min(240px, 60vw);
+    height: auto;
+    overflow: visible;
+  }
+  .nf__flask {
+    transform-origin: 90px 150px;
+    animation: tip 900ms var(--ease-spring) 200ms both;
+  }
+  .nf__drop {
+    animation: drop 2.6s ease-in-out infinite;
+  }
+  .d2 {
+    animation-delay: 1.3s;
+  }
+  .nf__code {
+    margin: 8px 0 0;
+    padding: 4px 18px;
+    border-radius: var(--radius-pill);
+    background: var(--color-sun);
+    border: 2px solid var(--color-ink);
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.125rem;
+    letter-spacing: 0.04em;
+  }
+  .nf__title {
+    margin: 18px 0 0;
+    max-width: 16ch;
+    font-size: var(--text-h1);
+    line-height: var(--text-h1--line-height);
+    letter-spacing: -0.04em;
+  }
+  .nf__lead {
+    margin: 18px 0 0;
+    max-width: 40ch;
+    font-size: 1.1875rem;
+    color: var(--color-ink-soft);
+  }
+  .nf__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 32px;
+  }
+  @keyframes tip {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(-58deg) translate(-6px, 18px);
+    }
+  }
+  @keyframes drop {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf__flask {
+      animation: none;
+      transform: rotate(-58deg) translate(-6px, 18px);
+    }
+    .nf__drop {
+      animation: none;
+    }
+  }
+</style>

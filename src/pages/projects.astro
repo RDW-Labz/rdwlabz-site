@@ -1,0 +1,169 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Section from '../components/Section.astro';
+import FilterChip from '../components/FilterChip.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import ContactButton from '../components/ContactButton.astro';
+import Icon from '../components/Icon.astro';
+import { allProjects, categories, categoryAccent, countIn } from '../lib/projects';
+
+const items = allProjects();
+---
+
+<BaseLayout
+  title="Projects"
+  description="Software, games, mods and asset packs from RDW Labz. Filter by category."
+  current="projects"
+>
+  <section class="intro container-lab" aria-labelledby="projects-title">
+    <p class="eyebrow">
+      <Icon name="flask" size={16} /> The shelf
+    </p>
+    <h1 id="projects-title" class="intro__title">
+      Projects
+    </h1>
+    <p class="intro__lead">Everything we’ve made or are making. Filter by what you’re after.</p>
+  </section>
+
+  <Section tone="mint" labelledby="grid-title" class="projects-tray">
+    <h2 id="grid-title" class="sr-only">
+      Project list
+    </h2>
+    <div class="filters" role="group" aria-label="Filter projects by category" data-filters>
+      <FilterChip id="all" label="All" href="/projects" selected count={items.length} />
+      {categories.map((c) => (
+        <FilterChip
+          id={c.id}
+          label={c.label}
+          href={`/projects?c=${c.id}`}
+          icon={c.id}
+          accent={categoryAccent[c.id]}
+          count={countIn(c.id)}
+        />
+      ))}
+    </div>
+    <p class="filters__status" role="status" aria-live="polite" data-filter-status>
+      Showing all {items.length} projects.
+    </p>
+
+    <ul class="grid" data-project-grid>
+      {items.map((p) => (
+        <li data-category={p.category}>
+          <ProjectCard project={p} headingLevel="h3" />
+        </li>
+      ))}
+    </ul>
+
+    <div class="empty sticker" data-empty hidden>
+      <div class="empty__art" aria-hidden="true">
+        <Icon name="flask" size={48} strokeWidth={1.6} />
+      </div>
+      <h3 class="empty__title">Nothing on this shelf yet.</h3>
+      <p class="empty__text">
+        We haven’t published any <strong data-empty-label>projects</strong> here so far. Check back
+        soon, or see everything else we’re building.
+      </p>
+      <div class="empty__actions">
+        <a href="/projects" class="btn btn--primary" data-filter-reset>
+          Show all projects
+        </a>
+        <ContactButton variant="secondary" />
+      </div>
+    </div>
+  </Section>
+</BaseLayout>
+
+<script>
+  import { initFilters } from '../scripts/filters';
+  document.addEventListener('astro:page-load', initFilters);
+</script>
+
+<style>
+  .intro {
+    padding-top: clamp(40px, 6vw, 72px);
+    padding-bottom: calc(var(--tray-r) + clamp(32px, 5vw, 56px));
+  }
+  .intro__title {
+    margin: 18px 0 0;
+    font-size: var(--text-h1);
+    line-height: var(--text-h1--line-height);
+    font-size: clamp(3.5rem, 1.8rem + 7vw, 7rem);
+    letter-spacing: -0.045em;
+  }
+  .intro__lead {
+    margin: 16px 0 0;
+    max-width: 34ch;
+    font-size: var(--text-lead);
+    line-height: var(--text-lead--line-height);
+    font-weight: 600;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .filters__status {
+    margin: 16px 0 28px;
+    font-weight: 600;
+    color: var(--color-ink-soft);
+  }
+  .grid {
+    display: grid;
+    gap: 24px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    grid-template-columns: 1fr;
+  }
+  .grid > li[hidden] {
+    display: none;
+  }
+  @media (min-width: 40rem) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 64rem) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .empty {
+    display: grid;
+    justify-items: center;
+    max-width: 36rem;
+    margin: 8px auto 0;
+    padding: clamp(28px, 5vw, 48px);
+    border-radius: var(--radius-lg);
+    text-align: center;
+  }
+  .empty__art {
+    display: grid;
+    place-items: center;
+    width: 88px;
+    height: 88px;
+    border-radius: 30px;
+    background: var(--color-cream);
+    border: 2px solid var(--color-ink);
+    rotate: -6deg;
+  }
+  .empty__title {
+    margin: 20px 0 0;
+    font-size: var(--text-h3);
+    font-weight: 800;
+  }
+  .empty__text {
+    margin: 10px 0 0;
+    color: var(--color-ink-soft);
+  }
+  .empty__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  :global(.projects-tray) {
+    min-height: 60vh;
+  }
+</style>

@@ -79,7 +79,9 @@ const studyFonts = [
 
 export default defineConfig({
   site: 'https://rdwlabz.com',
-  trailingSlash: 'ignore',
+  // `/projects` (no slash) everywhere: emits projects.html, which Cloudflare Pages serves at /projects.
+  trailingSlash: 'never',
+  build: { format: 'file' },
   devToolbar: { enabled: false },
   integrations: [
     devRoutes(),
