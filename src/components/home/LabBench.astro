@@ -5,9 +5,7 @@ import { categories, categoryAccent } from '../../lib/projects';
 
 <div class="bench" data-loop>
   <div class="bench__glow" aria-hidden="true"></div>
-  <svg class="bench__orbit" viewBox="0 0 100 100" aria-hidden="true" preserveAspectRatio="none">
-    <ellipse cx="50" cy="50" rx="38" ry="36"></ellipse>
-  </svg>
+  <div class="bench__orbit" aria-hidden="true"></div>
   <div class="bench__core" aria-hidden="true">
     <svg viewBox="0 0 120 120" width="120" height="120">
       <path d="M40 66h40l8 13a6 6 0 0 1-5 9H37a6 6 0 0 1-5-9Z" fill="#ff4d2e"></path>
@@ -42,7 +40,7 @@ import { categories, categoryAccent } from '../../lib/projects';
   .bench {
     position: relative;
     width: 100%;
-    max-width: 520px;
+    max-width: min(520px, 100%);
     aspect-ratio: 1;
     justify-self: center;
     border-radius: var(--radius-xl);
@@ -61,17 +59,15 @@ import { categories, categoryAccent } from '../../lib/projects';
   }
   .bench__orbit {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    fill: none;
-    stroke: rgb(30 20 51 / 0.35);
-    stroke-width: 0.4;
-    stroke-dasharray: 1.4 1.6;
-    vector-effect: non-scaling-stroke;
+    inset: 13%;
+    border-radius: 50%;
+    border: 2px dashed rgb(30 20 51 / 0.28);
+    animation: spin 60s linear infinite;
   }
-  .bench__orbit ellipse {
-    stroke-width: 2px;
+  @keyframes spin {
+    to {
+      rotate: 1turn;
+    }
   }
   .bench__core {
     position: absolute;
@@ -227,6 +223,11 @@ import { categories, categoryAccent } from '../../lib/projects';
     }
   }
 
+  @media (min-width: 30rem) and (max-width: 59.99rem) {
+    .bench {
+      max-width: 440px;
+    }
+  }
   @media (max-width: 30rem) {
     .token__link {
       font-size: 0.9375rem;
@@ -240,6 +241,7 @@ import { categories, categoryAccent } from '../../lib/projects';
   @media (prefers-reduced-motion: reduce) {
     .token,
     .token .token__link,
+    .bench__orbit,
     .bench__core,
     .bench__bubble {
       animation: none !important;

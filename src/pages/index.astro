@@ -27,10 +27,12 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
   <section class="hero container-lab" aria-labelledby="hero-title">
     <div class="hero__copy">
       <p class="eyebrow">
-        <Icon name="sparkle" size={16} /> Indie dev lab
+        <Icon name="sparkle" size={16} /> Hello from the lab
       </p>
       <h1 id="hero-title" class="hero__title">
-        <span class="hero__name">RDW Labz</span>
+        <span class="hero__name">
+          RDW <span class="hero__labz">Labz</span>
+        </span>
         <span class="hero__tag">{tagline}</span>
       </h1>
       <div class="hero__ctas">
@@ -179,6 +181,9 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
     line-height: var(--text-display--line-height);
     letter-spacing: -0.045em;
   }
+  .hero__labz {
+    color: var(--color-tomato-700);
+  }
   .hero__tag {
     display: block;
     margin-top: 20px;
@@ -225,7 +230,12 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
     margin: 0;
     padding: 0;
     list-style: none;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (min-width: 64rem) {
+    .tiles {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
   }
   .tile {
     position: relative;
@@ -233,8 +243,8 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
     flex-direction: column;
     gap: 6px;
     height: 100%;
-    min-height: 15rem;
-    padding: 22px;
+    min-height: clamp(12rem, 9rem + 8vw, 15rem);
+    padding: clamp(16px, 2vw, 22px);
     border-radius: var(--radius-lg);
     background: var(--color-surface);
     border: 2px solid var(--color-ink);
@@ -285,8 +295,8 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
   .tile__icon {
     display: grid;
     place-items: center;
-    width: 64px;
-    height: 64px;
+    width: clamp(52px, 4vw + 36px, 64px);
+    height: clamp(52px, 4vw + 36px, 64px);
     margin: 8px 0 auto;
     border-radius: 22px;
     background: var(--acc);
@@ -302,8 +312,9 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
     margin-top: 20px;
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem);
+    font-size: clamp(1.375rem, 1rem + 1.4vw, 2.25rem);
     line-height: 1;
+    overflow-wrap: anywhere;
     letter-spacing: -0.03em;
   }
   .tile__blurb {
