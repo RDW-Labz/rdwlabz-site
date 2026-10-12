@@ -343,6 +343,12 @@
     color: #fff;
     box-shadow: 0 2px 0 var(--acc, var(--color-tomato));
   }
+  .chip-filter[aria-pressed='true']:focus-visible,
+  .chip-filter.is-selected.is-focus {
+    box-shadow:
+      0 2px 0 var(--acc, var(--color-tomato)),
+      var(--focus-ring);
+  }
   .chip-filter[aria-pressed='true'] .chip-filter__icon,
   .chip-filter.is-selected .chip-filter__icon {
     color: var(--acc, var(--color-sun));

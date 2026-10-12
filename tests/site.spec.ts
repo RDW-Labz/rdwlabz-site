@@ -203,6 +203,39 @@ test('SEO: canonical, OG tags, sitemap, robots, favicons', async ({ page, reques
   expect(sitemap).not.toContain('_gallery');
 });
 
+for (const path of PAGES) {
+  test(`${path}: reflows at 320px with no horizontal scrolling (WCAG 1.4.10)`, async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto(path);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+
+  test(`${path}: every tab stop shows a visible focus indicator`, async ({ page }) => {
+    await page.goto(path);
+    const seen = new Set<string>();
+    for (let i = 0; i < 40; i++) {
+      await page.keyboard.press('Tab');
+      const info = await page.evaluate(() => {
+        const el = document.activeElement as HTMLElement | null;
+        if (!el || el === document.body) return null;
+        const cs = getComputedStyle(el);
+        const ring =
+          (cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) >= 2) ||
+          // Focus ring shadows are added on top of the resting shadow, so there are ≥ 2.
+          (cs.boxShadow.match(/rgba?\(/g) ?? []).length >= 2;
+        return { key: el.outerHTML.slice(0, 80), ring };
+      });
+      if (!info || seen.has(info.key)) break;
+      seen.add(info.key);
+      expect(info.ring, info.key).toBe(true);
+    }
+    expect(seen.size).toBeGreaterThan(2);
+  });
+}
+
 test.describe('no JavaScript', () => {
   test.use({ javaScriptEnabled: false });
   test('content is readable and filters degrade to links', async ({ page }) => {

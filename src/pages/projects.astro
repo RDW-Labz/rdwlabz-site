@@ -102,6 +102,16 @@ const items = allProjects();
     flex-wrap: wrap;
     gap: 10px;
   }
+  @media (max-width: 30rem) {
+    .filters {
+      gap: 8px;
+    }
+    .filters :global(.chip-filter) {
+      padding: 0 12px 0 10px;
+      gap: 6px;
+      font-size: 0.875rem;
+    }
+  }
   .filters__status {
     margin: 16px 0 28px;
     font-weight: 600;

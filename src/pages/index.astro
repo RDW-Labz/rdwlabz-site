@@ -18,7 +18,8 @@ import {
   tagline,
 } from '../lib/projects';
 
-const featured = featuredProjects();
+const featured = featuredProjects().slice(0, 6);
+const fillerSpan = featured.length > 0 && featured.length < 3 ? 3 - featured.length : 0;
 const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
 ---
 
@@ -101,6 +102,19 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
             <ProjectCard project={p} />
           </li>
         ))}
+        {fillerSpan > 0 && (
+          <li data-reveal class="filler-slot" style={`--span:${fillerSpan}`}>
+            <a href="/projects" class="filler">
+              <span class="filler__icon" aria-hidden="true">
+                <Icon name="flask" size={32} strokeWidth={1.8} />
+              </span>
+              <span class="filler__title">More on the shelf</span>
+              <span class="filler__text">
+                See everything we’re building <Icon name="arrow-right" size={18} />
+              </span>
+            </a>
+          </li>
+        )}
       </ul>
     ) : (
       <p class="empty-note" data-reveal>
@@ -352,6 +366,59 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
     .featured-grid {
       grid-template-columns: repeat(3, 1fr);
     }
+  }
+  @media (min-width: 64rem) {
+    .filler-slot {
+      grid-column: span var(--span);
+    }
+  }
+  .filler {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 100%;
+    min-height: 14rem;
+    padding: 28px;
+    border-radius: var(--radius-lg);
+    border: 2px dashed color-mix(in oklab, var(--color-ink), transparent 45%);
+    background: rgb(255 255 255 / 0.55);
+    color: var(--color-ink);
+    text-align: center;
+    text-decoration: none;
+    transition:
+      background-color var(--dur-instant),
+      border-color var(--dur-instant),
+      transform 160ms var(--ease-spring);
+  }
+  .filler:hover,
+  .filler:focus-visible {
+    background: var(--color-surface);
+    border-color: var(--color-ink);
+    transform: translateY(-4px);
+  }
+  .filler__icon {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 22px;
+    background: var(--color-sun);
+    border: 2px solid var(--color-ink);
+    rotate: -6deg;
+  }
+  .filler__title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--text-h3);
+  }
+  .filler__text {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    color: var(--color-ink-soft);
   }
   .empty-note {
     font-size: 1.125rem;
