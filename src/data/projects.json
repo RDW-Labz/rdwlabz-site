@@ -22,21 +22,7 @@
       "blurb": "TODO: one line on what we make in this category"
     }
   ],
-  "projects": [
-    {
-      "slug": "putt-drop",
-      "name": "Putt Drop",
-      "oneLiner": "TODO: one line",
-      "category": "games",
-      "status": "in-dev",
-      "platforms": ["Android"],
-      "url": "TODO: Putt Drop link",
-      "accentColor": "TODO",
-      "image": null,
-      "featured": true,
-      "addedAt": "2026-10-12"
-    }
-  ],
+  "projects": [],
   "site": {
     "name": "RDW Labz",
     "domain": "rdwlabz.com",

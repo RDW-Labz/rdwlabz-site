@@ -17,6 +17,7 @@
 | 2026-10-12 | Round 2: project tracker  | Done   | `scripts/sync-projects.mjs` (opt-in via `rdwlabz.json`, validation, private-repo guard, merge, auto-`released`), `.github/workflows/sync-projects.yml` (daily + manual, PR only), templates, README how-to. Not run on GitHub yet: needs the `RDWLABZ_SYNC_TOKEN` secret. PR step later switched to `RDWLABZ_PR_TOKEN` (the enterprise blocks `GITHUB_TOKEN` from creating PRs); `GITHUB_TOKEN` is now read-only. |
 | 2026-10-12 | Round 2: checks           | Done   | Lint clean; build 0 errors; e2e 36/36 + sync 7/7 + screenshots 9/9; budgets OK (JS ≤ 7.3 KB gz); motion-check CLS 0, no leaks; Lighthouse medians 100s (404 SEO 63 by design). See `docs/REVIEWS.md` Round 2. Not pushed or deployed. |
 | 2026-10-12 | Contact email             | Done   | `site.contactEmail` = `devops@therdw.com`; all contact spots are real mailto links (header pill, mobile menu, hero, new Work with us button, CTA band, footer, new 404 button). e2e 40/40 + sync 7/7 + screenshots 9/9. |
+| 2026-10-12 | Putt Drop moves to sync   | Done   | Opened [RDW-Labz/putt-drop#1](https://github.com/RDW-Labz/putt-drop/pull/1) adding `rdwlabz.json` (not merged). Removed the hand-written entry; the shelf is empty until the first sync PR merges. Added a proper empty-shelf state (no "0" badges, no self-link) and made tests data-agnostic. e2e 56 pass, 1 skipped (the shelf-has-projects variant). |
 
 ## Baseline (step 1, run 2026-10-12)
 

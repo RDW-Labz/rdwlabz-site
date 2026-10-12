@@ -73,7 +73,9 @@ test('journey: tile → filtered projects (client-side nav)', async ({ page }) =
   await expect(page.locator('[data-project-grid] > li:not([hidden])')).toHaveCount(
     await page.locator('[data-project-grid] > li[data-category="mods"]').count(),
   );
-  await expect(page.locator('[data-filter-status]')).toContainText('in Mods');
+  await expect(page.locator('[data-filter-status]')).toContainText(
+    /in Mods|No projects on the shelf yet/,
+  );
   await expect(page.locator('a[aria-current="page"]').first()).toHaveText(/Projects/);
 });
 
@@ -100,6 +102,10 @@ test('projects: filters by click and keyboard, reflect URL, and reset', async ({
 
 test('projects: empty state when a category has no projects', async ({ page }) => {
   await page.goto('/projects');
+  test.skip(
+    (await page.locator('[data-project-grid] > li').count()) === 0,
+    'shelf is empty; covered by the empty-shelf test',
+  );
   // Simulate a category with zero projects by removing its cards, then filtering.
   await page.evaluate(() =>
     document
@@ -127,7 +133,20 @@ test('placeholder entries are never shown or counted', async ({ page }) => {
     await expect(count).not.toHaveText('0');
   }
   const cards = await page.locator('[data-project-grid] > li').count();
-  await expect(page.locator('[data-filter="all"] .chip-filter__count')).toHaveText(String(cards));
+  const allCount = page.locator('[data-filter="all"] .chip-filter__count');
+  if (cards === 0) await expect(allCount).toHaveCount(0);
+  else await expect(allCount).toHaveText(String(cards));
+});
+
+test('projects: an empty shelf says so and never links back to itself', async ({ page }) => {
+  await page.goto('/projects');
+  test.skip((await page.locator('[data-project-grid] > li').count()) > 0, 'shelf has projects');
+  await expect(page.locator('[data-filter-status]')).toHaveText('No projects on the shelf yet.');
+  await expect(page.locator('[data-empty]')).toBeVisible();
+  await expect(page.locator('[data-filter-reset]')).toHaveCount(0);
+  await expect(page.locator('[data-empty] a[href^="mailto:"]')).toHaveCount(1);
+  await page.locator('[data-filter="games"]').click();
+  await expect(page.locator('[data-filter-status]')).toHaveText('No projects on the shelf yet.');
 });
 
 test('projects: unknown ?c= falls back to All', async ({ page }) => {
@@ -273,7 +292,8 @@ test.describe('no JavaScript', () => {
   test.use({ javaScriptEnabled: false });
   test('content is readable and filters degrade to links', async ({ page }) => {
     await page.goto('/projects?c=mods');
-    await expect(page.locator('.project-card').first()).toBeVisible();
+    const hasCards = (await page.locator('.project-card').count()) > 0;
+    await expect(page.locator(hasCards ? '.project-card' : '[data-empty]').first()).toBeVisible();
     await expect(page.locator('[data-filter="mods"]')).toHaveAttribute('href', '/projects?c=mods');
     await page.goto('/');
     await expect(page.locator('#what-we-build .tile').first()).toBeVisible();
@@ -343,7 +363,11 @@ test.describe('round 2 motion', () => {
   test('lab activity lists build-time updates linking to the shelf', async ({ page }) => {
     await page.goto('/');
     const items = page.locator('.activity li');
-    expect(await items.count()).toBeGreaterThan(0);
+    // Built from real projects only: no projects, no strip.
+    if ((await items.count()) === 0) {
+      await expect(page.locator('.activity')).toHaveCount(0);
+      return;
+    }
     expect(await items.count()).toBeLessThanOrEqual(3);
     await expect(items.first().locator('a')).toHaveAttribute('href', /^\/projects\?c=/);
     await expect(items.first().locator('time')).toHaveAttribute('datetime', /^\d{4}-\d{2}-\d{2}$/);

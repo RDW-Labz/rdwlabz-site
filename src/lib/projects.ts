@@ -47,7 +47,9 @@ export const isTodo = (value: string | null | undefined): boolean =>
 
 function validate(raw: typeof data): { projects: Project[]; categories: Category[] } {
   const slugs = new Set<string>();
-  const projects = raw.projects.map((p) => {
+  // Typed loosely: an empty `projects` array in the JSON would otherwise infer as never[].
+  const list = raw.projects as unknown as Record<keyof Project, string>[];
+  const projects = list.map((p) => {
     if (!CATEGORY_IDS.includes(p.category as CategoryId)) {
       throw new Error(`projects.json: "${p.slug}" has unknown category "${p.category}"`);
     }
@@ -57,12 +59,12 @@ function validate(raw: typeof data): { projects: Project[]; categories: Category
     if (slugs.has(p.slug)) throw new Error(`projects.json: duplicate slug "${p.slug}"`);
     slugs.add(p.slug);
     for (const key of ['addedAt', 'releasedAt'] as const) {
-      const v = (p as Partial<Project>)[key];
+      const v = p[key] as string | undefined;
       if (v !== undefined && !DATE.test(v)) {
         throw new Error(`projects.json: "${p.slug}" ${key} must be YYYY-MM-DD, got "${v}"`);
       }
     }
-    return p as Project;
+    return p as unknown as Project;
   });
   return { projects, categories: raw.categories as Category[] };
 }

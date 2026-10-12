@@ -35,8 +35,9 @@ export function initFilters() {
       emptyLabel.textContent = id === 'all' ? 'projects' : chipLabel(id).toLowerCase();
     if (status && announce) {
       const noun = `project${shown === 1 ? '' : 's'}`;
-      status.textContent =
-        id === 'all'
+      status.textContent = !items().length
+        ? 'No projects on the shelf yet.'
+        : id === 'all'
           ? `Showing ${shown === 1 ? '' : 'all '}${shown} ${noun}.`
           : `Showing ${shown} ${noun} in ${chipLabel(id)}.`;
     }

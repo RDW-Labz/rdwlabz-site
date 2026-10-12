@@ -9,6 +9,7 @@ import PopHeading from '../components/PopHeading.astro';
 import { allProjects, categories, categoryAccent, countIn, pluralProjects } from '../lib/projects';
 
 const items = allProjects();
+const shelfEmpty = items.length === 0;
 ---
 
 <BaseLayout
@@ -29,7 +30,13 @@ const items = allProjects();
       Project list
     </h2>
     <div class="filters" role="group" aria-label="Filter projects by category" data-filters>
-      <FilterChip id="all" label="All" href="/projects" selected count={items.length} />
+      <FilterChip
+        id="all"
+        label="All"
+        href="/projects"
+        selected
+        count={items.length || undefined}
+      />
       {categories.map((c) => (
         <FilterChip
           id={c.id}
@@ -42,8 +49,9 @@ const items = allProjects();
       ))}
     </div>
     <p class="filters__status" role="status" aria-live="polite" data-filter-status>
-      Showing {items.length === 1 ? '' : 'all '}
-      {pluralProjects(items.length)}.
+      {shelfEmpty
+        ? 'No projects on the shelf yet.'
+        : `Showing ${items.length === 1 ? '' : 'all '}${pluralProjects(items.length)}.`}
     </p>
 
     <ul class="grid" data-project-grid>
@@ -54,20 +62,29 @@ const items = allProjects();
       ))}
     </ul>
 
-    <div class="empty sticker" data-empty hidden>
+    <div class="empty sticker" data-empty hidden={!shelfEmpty}>
       <div class="empty__art" aria-hidden="true">
         <Icon name="flask" size={48} strokeWidth={1.6} />
       </div>
       <h3 class="empty__title">Nothing on this shelf yet.</h3>
-      <p class="empty__text">
-        We haven’t published any <strong data-empty-label>projects</strong> here so far. Check back
-        soon, or see everything else we’re building.
-      </p>
+      {shelfEmpty ? (
+        <p class="empty__text">
+          We’re still building. The first projects land here soon, so check back, or say hi in the
+          meantime.
+        </p>
+      ) : (
+        <p class="empty__text">
+          We haven’t published any <strong data-empty-label>projects</strong> here so far. Check
+          back soon, or see everything else we’re building.
+        </p>
+      )}
       <div class="empty__actions">
-        <a href="/projects" class="btn btn--primary" data-filter-reset>
-          Show all projects
-        </a>
-        <ContactButton variant="secondary" />
+        {!shelfEmpty && (
+          <a href="/projects" class="btn btn--primary" data-filter-reset>
+            Show all projects
+          </a>
+        )}
+        <ContactButton variant={shelfEmpty ? 'primary' : 'secondary'} />
       </div>
     </div>
   </Section>

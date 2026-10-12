@@ -44,10 +44,10 @@ Status key: PASS · FAIL · BLOCKED · NOT RUN · N/A (with reason)
 ## Content still TODO (in `src/data/projects.json`)
 
 - `site.tagline`: blank in the update message. The UI uses the fallback "We build software, games, mods and asset packs."
-- Putt Drop: `url` (blank in the update), `oneLiner`, `accentColor` (it uses the Games color for now) and `image`.
+- Putt Drop (now in its repo's `rdwlabz.json`): `url`, `oneLiner`, `accentColor` and `image`.
 - Project 2: blank in the update, so nothing was added.
 - `site.launchDate`, `site.workWithUs` (optional) and the 4 category blurbs.
 - `public/og.png` text, if the tagline changes (`scripts/make-icons.mjs`). The OG image still uses the Round 1 heading font (Bricolage); regenerating it in Bagel Fat One is optional.
-- Add `templates/putt-drop.rdwlabz.json` to the Putt Drop repo as `rdwlabz.json`, then delete the hand-written Putt Drop entry so the repo manages it.
+- Putt Drop now comes from its repo: merge [RDW-Labz/putt-drop#1](https://github.com/RDW-Labz/putt-drop/pull/1), set the sync secrets, run **Sync projects**, then merge the sync PR. Until then the shelf is empty (Projects shows a "still building" state; Home hides the Lab activity strip).
 
 DNS: done (Cloudflare).
