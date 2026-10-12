@@ -9,8 +9,9 @@
 | 2026-10-12 | 3. Art direction            | Done   | 3 studies on `/_studies` (Workbench / Arcade cartridge / Blueprint), screenshots in `docs/screenshots/studies/`. Picked **A — Workbench** (27/20/23). Spec in `docs/ART-DIRECTION.md`. |
 | 2026-10-12 | 4. Tokens + primitives     | Done   | Tokens in `src/styles/global.css` (`@theme` + CSS vars). Primitives: Button, ContactButton, Chip, FilterChip, ProjectCard, ProjectArt, Section (tray), Header (+ mobile menu w/ focus trap), Footer, Logo, Icon, BaseLayout (ClientRouter, SEO, fonts). `/_gallery` screenshots in `docs/screenshots/gallery/`. |
 | 2026-10-12 | 5. Pages + SEO + analytics | Done   | Home (hero/LabBench, What we build tiles, featured, Work with us, CTA band), Projects (URL-reflected filters, live status, empty state, no-JS links), 404, canonical/OG/favicons/manifest/robots/sitemap, CF Web Analytics snippet gated on `PUBLIC_CF_BEACON_TOKEN`. `npx playwright test --project=e2e`: 23/23 pass (run twice). |
-
 | 2026-10-12 | 6. Review passes 1–3       | Done   | See `docs/REVIEWS.md`. Pass 3: fixed the nav-label occlusion during the pill morph and the transition double exposure. Lighthouse medians 100/100/100/100 on `/` and `/projects` (404: 100/100/100, SEO 63 by design). JS ≤ 7.0 KB gz, fonts 60 KB / 2 families, CLS 0. e2e 29/29. |
+| 2026-10-12 | 7. Preflight + handoff     | Done   | Final screenshots in `docs/screenshots/` (home/projects/404 × desktop/tablet/mobile). `docs/PREFLIGHT.md` (overall: PARTIALLY VERIFIED, not launch-ready: content TODOs + screen reader, cross-browser, field checks not run), `docs/PATTERNS.md`, README rewritten. Final rerun: lint clean, build OK (0 errors), e2e 29/29. |
+
 ## Baseline (step 1, run 2026-10-12)
 
 - `npm run lint`: pass (0 ESLint problems, Prettier clean).
@@ -33,8 +34,8 @@
 
 ## Next
 
-- Step 7: final screenshots, PREFLIGHT.md, PATTERNS.md, README, handoff.
+- Braden: fill in the content TODOs, run a screen-reader and Safari/iOS spot-check, then follow the go-live steps in the README.
 
 ## Blockers / needs from Braden
 
-- See "Open questions" in PLAN.md (tagline, project list, contact email, DNS host, launch date).
+- Content: tagline, real projects (names, blurbs, links, images, accents), category blurbs, work-with-us line, contact email, launch date, DNS host. See `docs/PREFLIGHT.md`.
