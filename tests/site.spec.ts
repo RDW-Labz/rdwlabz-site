@@ -346,6 +346,19 @@ test('privacy: RDW, LLC policy with the right contact, no leftovers, no motion',
   await expect(main.locator('address')).toContainText('1301 N Main St');
   await expect(main.locator('address')).toContainText('Harrison, AR 72601, United States');
   await expect(main).not.toContainText(/Cluer|operations@|601 US 62|\[DATE\]|TODO|GoDaddy|Draft/);
+  await expect(main.locator('.policy__date')).toHaveText('Effective date: October 12, 2026');
+  // Only stores we ship on; no clauses for features no product has.
+  await expect(main).not.toContainText(
+    /Steam|Valve|Roblox|Mojang|Microsoft|username|your account/i,
+  );
+  await expect(main).toContainText('itch.io, Google Play and Apple’s App Store');
+  await expect(main).toContainText(`personal information, email ${shelf.site.contactEmail} and`);
+  await expect(main).toContainText(`information by emailing ${shelf.site.contactEmail}.`);
+  const analytics = page.getByRole('heading', { level: 2, name: 'Website analytics' });
+  await expect(analytics).toHaveCount(1);
+  await expect(analytics.locator('xpath=following-sibling::p[1]')).toContainText(
+    'rdwlabz.com uses Cloudflare Web Analytics',
+  );
   for (const a of await main.locator('a[href^="mailto:"]').all()) {
     await expect(a).toHaveAttribute('href', MAILTO);
   }

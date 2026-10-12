@@ -115,14 +115,14 @@ The `site` block holds the tagline, contact email, launch date and an optional "
 
 ## Analytics
 
-Cloudflare Web Analytics is included only when `PUBLIC_CF_BEACON_TOKEN` is set at build time (as a Cloudflare Pages environment variable). Without it, no analytics script ships.
+Cloudflare Web Analytics is on for the Pages project and Cloudflare injects the beacon automatically (cookie-free, aggregate page views). The privacy policy says so in "Website analytics". Leave `PUBLIC_CF_BEACON_TOKEN` unset while automatic injection is on, or every page view counts twice; it's only for hosting without auto-injection.
 
 ## Go live (Braden only; the agent doesn't push, deploy or touch DNS)
 
 1. Push this repo to your Git host.
 2. Cloudflare dashboard → Workers & Pages → Create → Pages → connect the repo. Build command `npm run build`, output directory `dist`, Node 22.12+.
 3. Custom domains → add `rdwlabz.com` (and `www` if you want it), DNS is already on Cloudflare, so the record is created for you when you confirm.
-4. Web Analytics → add the site → copy the token → set `PUBLIC_CF_BEACON_TOKEN` in the Pages project's environment variables → redeploy.
+4. Web Analytics: enabled on the Pages project (automatic injection). No token needed.
 5. Before launch, fill in the TODOs in `src/data/projects.json` (see `docs/PREFLIGHT.md`).
 
 ## Docs
