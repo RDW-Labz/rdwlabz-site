@@ -101,7 +101,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -C "$BRANCH"
-          git add -A -- src/data/projects.json public/projects
+          # public/projects/ may not exist yet (no synced images); git add fails on an unmatched path.
+          paths="src/data/projects.json"
+          if [ -n "$(git ls-files -co --exclude-standard -- public/projects)" ]; then
+            paths="$paths public/projects"
+          fi
+          git add -A -- $paths
           git commit -m "Sync projects (store listings + rdwlabz topic)"
           git push --force "https://x-access-token:${PR_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
             "HEAD:refs/heads/$BRANCH"
