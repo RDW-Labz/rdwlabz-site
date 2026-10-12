@@ -28,6 +28,10 @@ No text or controls are baked into images, except the OG image, which is a link 
 
 No AI-generated images, stock photos or third-party game art, logos or trademarks are used. Higgsfield and other generators were not used.
 
+## Synced project icons and art (`public/projects/*-icon.webp`, `*-art.webp`)
+
+Written by `scripts/sync-projects.mjs`. They come only from RDW-Labz's own repos (the app icon in the repo) or from those apps' own public store listings (Google Play, App Store, Steam, Modrinth, CurseForge), so they're RDW Labz's own app art. Icons are re-encoded to 256 px WebP and Steam headers to 800×500 WebP. The sync deletes files no project references any more. If a repo ever ships third-party art as its icon, set `"hidden": true` or override `image` in its `rdwlabz.json`.
+
 ## Adding real project images
 
 Put the files in `public/projects/<slug>.webp` (or `.avif`), 1600×1000 (16:10), at most about 120 KB each, then set `"image": "/projects/<slug>.webp"` in `src/data/projects.json`. Only use images RDW Labz owns or has rights to, and log each one here.

@@ -1,16 +1,23 @@
-# Daily: collect rdwlabz.json from RDW-Labz repos and open a PR if the project list changed.
-# Never pushes to main and never deploys. Two secrets, each with the least access it needs:
-# - RDWLABZ_SYNC_TOKEN: read-only (Contents) across RDW-Labz repos, used only to read rdwlabz.json.
-# - RDWLABZ_PR_TOKEN: rdwlabz-site only (Contents + Pull requests write), used only to push the
-#   bot branch and open the PR (the enterprise policy blocks GITHUB_TOKEN from creating PRs).
+# Automatic project tracker: every 6 hours, on demand, or when another repo / the publishing
+# pipeline sends a `rdwlabz-sync` repository_dispatch. Lists RDW-Labz repos that have a public
+# store listing or the `rdwlabz` topic, then opens a PR. The PR auto-merges only if the build
+# and e2e tests pass AND it touches nothing but src/data/projects.json and public/projects/*.
+# Never pushes to main directly and never deploys.
+#
+# Secrets (least access each):
+# - RDWLABZ_SYNC_TOKEN: read-only Contents on all RDW-Labz repos (reads files, topics, releases).
+# - RDWLABZ_PR_TOKEN: rdwlabz-site only, Contents + Pull requests write (push bot branch, PR, merge).
+#   The enterprise policy blocks GITHUB_TOKEN from creating PRs, so it stays read-only here.
+# - CURSEFORGE_API_KEY (optional): enables CurseForge checks.
 name: Sync projects
 
 on:
   schedule:
-    - cron: '17 9 * * *'
+    - cron: '23 */6 * * *'
   workflow_dispatch:
+  repository_dispatch:
+    types: [rdwlabz-sync]
 
-# The built-in token only needs to read this repo; all writes go through RDWLABZ_PR_TOKEN.
 permissions:
   contents: read
 
@@ -21,10 +28,11 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 40
     env:
       BRANCH: bot/sync-projects
       ASTRO_TELEMETRY_DISABLED: '1'
+      ALLOWED: '^(src/data/projects\.json|public/projects/[^/]+)$'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,9 +46,17 @@ jobs:
 
       - run: npm ci
 
-      - name: Collect rdwlabz.json files
+      - name: Restore sync cache
+        uses: actions/cache@v4
+        with:
+          path: .sync-cache
+          key: sync-cache-${{ github.run_id }}
+          restore-keys: sync-cache-
+
+      - name: Sync projects
         env:
           RDWLABZ_SYNC_TOKEN: ${{ secrets.RDWLABZ_SYNC_TOKEN }}
+          CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
         run: |
           node scripts/sync-projects.mjs --summary "$RUNNER_TEMP/summary.md"
           cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY"
@@ -49,17 +65,29 @@ jobs:
         id: diff
         run: |
           npx prettier --write src/data/projects.json
-          if git diff --quiet -- src/data/projects.json; then
+          if [ -z "$(git status --porcelain -- src/data/projects.json public/projects)" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
+            git status --porcelain -- src/data/projects.json public/projects
           fi
 
-      - name: Build must pass before a PR is opened
+      - name: Build
+        id: build
         if: steps.diff.outputs.changed == 'true'
+        continue-on-error: true
         run: npm run build
 
+      - name: E2E tests
+        id: test
+        if: steps.diff.outputs.changed == 'true' && steps.build.outcome == 'success'
+        continue-on-error: true
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test --project=e2e
+
       - name: Open or update the sync PR
+        id: pr
         if: steps.diff.outputs.changed == 'true'
         env:
           PR_TOKEN: ${{ secrets.RDWLABZ_PR_TOKEN }}
@@ -73,13 +101,36 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -C "$BRANCH"
-          git add src/data/projects.json
-          git commit -m "Sync projects from rdwlabz.json files"
+          git add -A -- src/data/projects.json public/projects
+          git commit -m "Sync projects (store listings + rdwlabz topic)"
           git push --force "https://x-access-token:${PR_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
             "HEAD:refs/heads/$BRANCH"
           if [ "$(gh pr list --head "$BRANCH" --state open --json number --jq length)" = "0" ]; then
             gh pr create --base main --head "$BRANCH" \
-              --title "Sync projects from rdwlabz.json" --body-file "$RUNNER_TEMP/summary.md"
+              --title "Sync projects" --body-file "$RUNNER_TEMP/summary.md"
           else
             gh pr edit "$BRANCH" --body-file "$RUNNER_TEMP/summary.md"
           fi
+
+      - name: Auto-merge when green and data-only
+        if: steps.pr.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.RDWLABZ_PR_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          BUILD: ${{ steps.build.outcome }}
+          TESTS: ${{ steps.test.outcome }}
+        run: |
+          leave() {
+            echo "::warning::Left the sync PR open for review: $1"
+            gh pr comment "$BRANCH" --body "Not auto-merged: $1. Review and merge by hand."
+            exit 0
+          }
+          [ "$BUILD" = "success" ] || leave "the build failed"
+          [ "$TESTS" = "success" ] || leave "the e2e tests failed"
+          other=$(gh pr diff "$BRANCH" --name-only | grep -Ev "$ALLOWED" || true)
+          [ -z "$other" ] || leave "it changes files other than projects.json and public/projects/* ($(echo $other))"
+          # Wait for any checks other workflows run on the PR; none is fine.
+          if ! out=$(gh pr checks "$BRANCH" --watch --interval 20 2>&1); then
+            echo "$out" | grep -qi "no checks reported" || leave "a PR check failed"
+          fi
+          gh pr merge "$BRANCH" --squash --delete-branch || leave "GitHub refused the merge (branch protection?)"

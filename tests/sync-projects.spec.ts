@@ -1,25 +1,430 @@
 import { test, expect } from '@playwright/test';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative } from 'node:path';
+import sharp from 'sharp';
 import {
-  validateEntry,
+  androidAppId,
+  iosBundleId,
+  steamAppId,
+  modrinthId,
+  curseforgeId,
+  guessCategory,
+  categoryFromTopics,
+  findRepoIcon,
+  pickFiles,
+} from '../scripts/sync/detect.mjs';
+import {
+  checkPlay,
+  checkAppStore,
+  checkSteam,
+  checkModrinth,
+  checkCurseForge,
+} from '../scripts/sync/stores.mjs';
+import { accessibleAccent, contrast, dominantColor, processIcon } from '../scripts/sync/images.mjs';
+import {
+  validateOverrides,
+  resolveEntry,
   mergeProjects,
   renderSummary,
+  prettifyName,
   syncId,
   slugify,
-} from '../scripts/sync-projects.mjs';
+} from '../scripts/sync/build.mjs';
 
-const pub = { isPrivate: false, repoName: 'putt-drop' };
-const priv = { isPrivate: true, repoName: 'secret-thing' };
-const good = {
-  name: 'Putt Drop',
-  oneLiner: 'TODO: one line',
-  category: 'Games',
-  status: 'in-dev',
-  platforms: ['Android'],
-  url: 'TODO',
-  accentColor: 'TODO',
-  image: null,
-  featured: true,
+const FIX = 'tests/fixtures/sync';
+
+/** Load a fixture folder as { repoPath: text }, dropping the `.fixture` suffix. */
+function repo(dir: string): Record<string, string> {
+  const root = join(FIX, dir);
+  const out: Record<string, string> = {};
+  const walk = (d: string) => {
+    for (const f of readdirSync(d)) {
+      const p = join(d, f);
+      if (statSync(p).isDirectory()) walk(p);
+      else out[relative(root, p).replace(/\.fixture$/, '')] = readFileSync(p, 'utf8');
+    }
+  };
+  walk(root);
+  return out;
+}
+const store = (f: string) => readFileSync(join(FIX, 'stores', f), 'utf8');
+
+/** fetch-compatible fake: maps a URL substring to [status, body]. */
+function fakeHttp(routes: Record<string, [number, string]>) {
+  const calls: { url: string; headers: Record<string, string> }[] = [];
+  const http = async (url: string, init?: { headers?: Record<string, string> }) => {
+    calls.push({ url, headers: init?.headers ?? {} });
+    const hit = Object.entries(routes).find(([k]) => url.includes(k));
+    const [status, body] = hit ? hit[1] : [404, ''];
+    return {
+      status,
+      ok: status >= 200 && status < 300,
+      text: async () => body,
+      json: async () => JSON.parse(body),
+    };
+  };
+  return { http, calls };
+}
+
+test.describe('sync detectors: repo files', () => {
+  test('Android applicationId from Groovy and Kotlin Gradle', () => {
+    expect(androidAppId(repo('gradle-groovy'))).toBe('com.rdwlabz.fixture.groovy');
+    expect(androidAppId(repo('gradle-kts'))).toBe('com.rdwlabz.fixture.kts');
+  });
+
+  test('Capacitor and Expo configs give Android + iOS ids', () => {
+    expect(androidAppId(repo('capacitor'))).toBe('com.rdwlabz.fixture.cap');
+    expect(iosBundleId(repo('capacitor'))).toBe('com.rdwlabz.fixture.cap');
+    expect(androidAppId(repo('expo-json'))).toBe('com.rdwlabz.fixture.expo');
+    expect(iosBundleId(repo('expo-json'))).toBe('com.rdwlabz.fixture.expoios');
+    expect(androidAppId(repo('expo-ts'))).toBe('com.rdwlabz.fixture.expots');
+    expect(iosBundleId(repo('expo-ts'))).toBe('com.rdwlabz.fixture.expotsios');
+  });
+
+  test('iOS bundle id from the Xcode project skips test targets and variables', () => {
+    const files = repo('ios');
+    expect(iosBundleId(files)).toBe('com.rdwlabz.fixture.ios');
+    const plistOnly = { 'ios/App/App/Info.plist': files['App/App/Info.plist'] };
+    expect(iosBundleId(plistOnly)).toBe('com.rdwlabz.fixture.plist');
+  });
+
+  test('Steam, Modrinth and CurseForge ids', () => {
+    expect(steamAppId(repo('steam'))).toBe('1234560');
+    expect(modrinthId(repo('mod-props'))).toBe('AbCd1234');
+    expect(curseforgeId(repo('mod-props'))).toBe('987654');
+    expect(modrinthId(repo('mod-gradle'))).toBe('fixture-mod');
+    expect(curseforgeId(repo('mod-gradle'))).toBe('123456');
+    expect(steamAppId(repo('gradle-kts'))).toBeNull();
+  });
+
+  test('pickFiles fetches only small config files and skips vendored folders', () => {
+    const tree = [
+      { path: 'android/app/build.gradle', type: 'blob', size: 900 },
+      { path: 'node_modules/x/app.json', type: 'blob', size: 10 },
+      { path: 'ios/App/App/Info.plist', type: 'blob', size: 400 },
+      { path: 'ios/AppTests/Info.plist', type: 'blob', size: 400 },
+      { path: 'package.json', type: 'blob', size: 300 },
+      { path: 'web/package.json', type: 'blob', size: 300 },
+      { path: 'huge/build.gradle', type: 'blob', size: 900_000 },
+      { path: 'src/main.ts', type: 'blob', size: 300 },
+    ];
+    expect(pickFiles(tree).sort()).toEqual(
+      ['android/app/build.gradle', 'ios/App/App/Info.plist', 'package.json'].sort(),
+    );
+  });
+
+  test('category: topics first, then files, default software', () => {
+    expect(categoryFromTopics(['rdwlabz', 'game'])).toBe('games');
+    expect(categoryFromTopics(['rdwlabz'])).toBeNull();
+    expect(guessCategory({ paths: ['src/main/resources/fabric.mod.json'] })).toBe('mods');
+    expect(guessCategory({ paths: ['project.godot'] })).toBe('games');
+    expect(
+      guessCategory({
+        paths: ['package.json'],
+        files: { 'package.json': '{"dependencies":{"phaser":"4"}}' },
+      }),
+    ).toBe('games');
+    expect(guessCategory({ paths: ['a.png', 'b.png', 'c.wav', 'd.fbx', 'e.png', 'LICENSE'] })).toBe(
+      'asset-packs',
+    );
+    expect(guessCategory({ paths: ['src/index.ts', 'README.md'] })).toBe('software');
+  });
+
+  test('repo icon: launcher icons beat generic files; Expo icon path is honoured', () => {
+    const tree = [
+      { path: 'icon.png', type: 'blob', size: 100 },
+      { path: 'android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png', type: 'blob', size: 50 },
+    ];
+    expect(findRepoIcon(tree)).toBe('android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png');
+    const expo = [{ path: 'assets/icon.png', type: 'blob', size: 1 }];
+    expect(findRepoIcon(expo, repo('expo-json'))).toBe('assets/icon.png');
+    expect(findRepoIcon([{ path: 'src/a.ts', type: 'blob' }])).toBeNull();
+  });
+});
+
+test.describe('sync detectors: stores', () => {
+  test('Google Play: 200 = live, title and icon from the page; 404 = not listed', async () => {
+    const { http } = fakeHttp({ 'id=com.ok': [200, store('play.html')] });
+    const l = await checkPlay('com.ok', http);
+    expect(l).toMatchObject({
+      store: 'play',
+      platforms: ['Android'],
+      url: 'https://play.google.com/store/apps/details?id=com.ok',
+      title: 'Fixture Golf & Friends',
+      iconUrl: 'https://play-lh.googleusercontent.com/fixture-icon',
+      live: true,
+    });
+    expect(await checkPlay('com.missing', http)).toBeNull();
+    const { http: down } = fakeHttp({ 'id=': [503, ''] });
+    await expect(checkPlay('com.ok', down)).rejects.toThrow('HTTP 503');
+  });
+
+  test('App Store lookup: trackViewUrl, artwork and release date', async () => {
+    const { http } = fakeHttp({
+      'bundleId=com.ok': [200, store('itunes.json')],
+      'bundleId=': [200, store('itunes-empty.json')],
+    });
+    expect(await checkAppStore('com.ok', http)).toMatchObject({
+      url: 'https://apps.apple.com/us/app/fixture-ios/id100',
+      title: 'Fixture iOS',
+      iconUrl: 'https://is1-ssl.mzstatic.com/fixture/512x512bb.jpg',
+      releasedAt: '2026-03-04',
+      platforms: ['iOS'],
+    });
+    expect(await checkAppStore('com.none', http)).toBeNull();
+  });
+
+  test('Steam: released vs coming soon vs missing', async () => {
+    const live = await checkSteam('1234560', fakeHttp({ appids: [200, store('steam.json')] }).http);
+    expect(live).toMatchObject({
+      url: 'https://store.steampowered.com/app/1234560',
+      platforms: ['Windows', 'Linux'],
+      releasedAt: '2026-02-05',
+      live: true,
+      kind: 'games',
+    });
+    const soon = await checkSteam(
+      '1234560',
+      fakeHttp({ appids: [200, store('steam-soon.json')] }).http,
+    );
+    expect(soon).toMatchObject({ live: false, releasedAt: undefined });
+    expect(
+      await checkSteam('1234560', fakeHttp({ appids: [200, store('steam-missing.json')] }).http),
+    ).toBeNull();
+  });
+
+  test('Modrinth: approved projects only; project type sets the category', async () => {
+    const ok = await checkModrinth(
+      'AbCd1234',
+      fakeHttp({ modrinth: [200, store('modrinth.json')] }).http,
+    );
+    expect(ok).toMatchObject({
+      url: 'https://modrinth.com/resourcepack/fixture-pack',
+      kind: 'asset-packs',
+      releasedAt: '2025-11-20',
+    });
+    expect(
+      await checkModrinth('x', fakeHttp({ modrinth: [200, store('modrinth-draft.json')] }).http),
+    ).toBeNull();
+  });
+
+  test('CurseForge: skipped without an API key, checked with one', async () => {
+    const { http, calls } = fakeHttp({ 'mods/987654': [200, store('curseforge.json')] });
+    expect(await checkCurseForge('987654', http, undefined)).toBeNull();
+    expect(calls).toHaveLength(0);
+    expect(await checkCurseForge('987654', http, 'k')).toMatchObject({
+      url: 'https://www.curseforge.com/minecraft/mc-mods/fixture-cf',
+      platforms: ['Minecraft'],
+      releasedAt: '2026-01-09',
+    });
+    expect(calls[0].headers['x-api-key']).toBe('k');
+  });
+});
+
+test.describe('sync images', () => {
+  test('dominant color ignores transparent and white background pixels', () => {
+    const px = [];
+    for (let i = 0; i < 60; i++) px.push(255, 255, 255, 255);
+    for (let i = 0; i < 20; i++) px.push(20, 180, 90, 255);
+    for (let i = 0; i < 40; i++) px.push(255, 0, 0, 0);
+    const hex = dominantColor(new Uint8Array(px));
+    expect(hex).toBe('#14b45a');
+    expect(dominantColor(new Uint8Array([0, 0, 0, 0]))).toBeNull();
+    // A bright logo on a big dark background wins; a tiny speck of color doesn't.
+    const logo: number[] = [];
+    for (let i = 0; i < 70; i++) logo.push(14, 26, 58, 255);
+    for (let i = 0; i < 25; i++) logo.push(60, 242, 160, 255);
+    for (let i = 0; i < 5; i++) logo.push(255, 62, 200, 255);
+    expect(dominantColor(new Uint8Array(logo))).toBe('#3cf2a0');
+    const grey = Array.from({ length: 10 }, () => [128, 128, 128, 255]).flat();
+    expect(dominantColor(new Uint8Array(grey))).toBe('#808080');
+  });
+
+  test('accent is darkened until white text on it passes AA', () => {
+    for (const c of ['#ffe14d', '#14b45a', '#3d7bff', '#ffffff']) {
+      expect(contrast(accessibleAccent(c)!, '#ffffff')).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(accessibleAccent('#1e1433')).toBe('#1e1433');
+  });
+
+  test('processIcon outputs a 256px WebP and an AA accent', async () => {
+    const png = await sharp({
+      create: { width: 600, height: 600, channels: 4, background: '#ff8a00' },
+    })
+      .png()
+      .toBuffer();
+    const { webp, accent } = await processIcon(png);
+    const meta = await sharp(webp).metadata();
+    expect([meta.format, meta.width, meta.height]).toEqual(['webp', 256, 256]);
+    expect(contrast(accent!, '#ffffff')).toBeGreaterThanOrEqual(4.5);
+    await expect(processIcon(Buffer.from('not an image'))).rejects.toThrow();
+  });
+});
+
+const pub = {
+  name: 'fixture-golf',
+  private: false,
+  description: 'A neon golf game.',
+  topics: [] as string[],
 };
+const priv = { ...pub, name: 'secret-thing', private: true, description: 'Secret Thing: internal' };
+const playLive = {
+  store: 'play',
+  platforms: ['Android'],
+  url: 'https://play.google.com/store/apps/details?id=com.x',
+  title: 'Fixture Golf',
+  iconUrl: 'https://play-lh.googleusercontent.com/i',
+  live: true,
+};
+
+test.describe('sync listing rules and fields', () => {
+  test('never lists a repo without a store listing or the rdwlabz topic', () => {
+    expect(resolveEntry({ repo: pub })).toBeNull();
+    expect(resolveEntry({ repo: pub, overrides: { name: 'X' } })).toBeNull();
+    expect(resolveEntry({ repo: { ...pub, topics: ['rdwlabz'] } })).toMatchObject({
+      entry: { name: 'Fixture Golf', status: 'in-dev', url: null, oneLiner: 'A neon golf game.' },
+    });
+  });
+
+  test('a live store listing lists it automatically, released, with store title and link', () => {
+    const r = resolveEntry({
+      repo: pub,
+      detected: { androidId: 'com.x', iosBundleId: 'com.x' },
+      listings: [playLive],
+    });
+    expect(r).toMatchObject({
+      entry: {
+        name: 'Fixture Golf',
+        status: 'released',
+        url: playLive.url,
+        platforms: ['Android', 'iOS'],
+      },
+      iconSource: { kind: 'url', url: playLive.iconUrl },
+    });
+  });
+
+  test('overrides win over every detected value', () => {
+    const r = resolveEntry({
+      repo: { ...pub, topics: ['rdwlabz', 'game'] },
+      overrides: { name: 'Big Name', category: 'software', featured: true, status: 'coming-soon' },
+      detected: { topicCategory: 'games' },
+      listings: [playLive],
+    });
+    expect(r).toMatchObject({
+      entry: { name: 'Big Name', category: 'software', featured: true, status: 'coming-soon' },
+    });
+  });
+
+  test('private repos: no name, description or GitHub link leaks without a public store page', () => {
+    expect(resolveEntry({ repo: { ...priv, topics: ['rdwlabz'] } })).toEqual({
+      skip: expect.stringContaining('add "name"'),
+    });
+    const named = resolveEntry({
+      repo: { ...priv, topics: ['rdwlabz'] },
+      overrides: { name: 'Public Name' },
+      ghRelease: {
+        firstAt: '2026-01-01',
+        url: 'https://github.com/RDW-Labz/secret-thing/releases',
+      },
+    });
+    expect(named).toMatchObject({
+      entry: { name: 'Public Name', oneLiner: 'TODO: one line', status: 'in-dev', url: null },
+    });
+    expect(JSON.stringify(named)).not.toMatch(/secret/i);
+    const listed = resolveEntry({ repo: priv, listings: [playLive] });
+    expect(listed).toMatchObject({
+      entry: { name: 'Fixture Golf', oneLiner: 'Secret Thing: internal' },
+    });
+  });
+
+  test('released date: store date, else first GitHub Release (public repos only)', () => {
+    const r = resolveEntry({
+      repo: { ...pub, topics: ['rdwlabz'] },
+      ghRelease: {
+        firstAt: '2026-02-02',
+        url: 'https://github.com/RDW-Labz/fixture-golf/releases',
+      },
+    });
+    expect(r).toMatchObject({ entry: { status: 'released', releasedAt: '2026-02-02' } });
+    const s = resolveEntry({
+      repo: pub,
+      listings: [{ ...playLive, releasedAt: '2026-05-05' }],
+      ghRelease: { firstAt: '2026-02-02', url: 'x' },
+    });
+    expect(s).toMatchObject({ entry: { releasedAt: '2026-05-05' } });
+  });
+
+  test('Steam coming-soon page lists it, links it, but keeps it in-dev', () => {
+    const r = resolveEntry({
+      repo: priv,
+      listings: [
+        {
+          store: 'steam',
+          platforms: ['Windows'],
+          url: 'https://store.steampowered.com/app/1',
+          title: 'Soon',
+          live: false,
+          kind: 'games',
+          imageUrl: 'https://x/h.jpg',
+        },
+      ],
+    });
+    expect(r).toMatchObject({
+      entry: {
+        name: 'Soon',
+        status: 'in-dev',
+        category: 'games',
+        url: 'https://store.steampowered.com/app/1',
+      },
+      artSource: { kind: 'url', url: 'https://x/h.jpg' },
+    });
+  });
+
+  test('rdwlabz.json overrides: TODOs are ignored, bad fields dropped with warnings', () => {
+    const { overrides, warnings } = validateOverrides(
+      {
+        name: 'TODO',
+        oneLiner: 'TODO: one line',
+        category: 'Games',
+        url: 'http://x',
+        featured: 'yes',
+        accentColor: '#12ab34',
+        androidId: 'com.ok.app',
+      },
+      { isPrivate: false, repoName: 'r' },
+    );
+    expect(overrides).toEqual({
+      category: 'games',
+      accentColor: '#12ab34',
+      androidId: 'com.ok.app',
+    });
+    expect(warnings.join('|')).toMatch(/url.*featured/);
+    const p = validateOverrides(
+      { url: 'https://github.com/RDW-Labz/secret-thing' },
+      { isPrivate: true, repoName: 'secret-thing' },
+    );
+    expect(p.overrides).toEqual({});
+    expect(p.warnings[0]).toMatch(/private repo/);
+    expect(
+      validateOverrides({ hidden: true }, { isPrivate: false, repoName: 'r' }).overrides.hidden,
+    ).toBe(true);
+  });
+
+  test('hidden override removes a repo even with a store listing', () => {
+    expect(
+      resolveEntry({ repo: pub, overrides: { hidden: true }, listings: [playLive] }),
+    ).toBeNull();
+  });
+
+  test('names, ids and slugs', () => {
+    expect(prettifyName('putt-drop')).toBe('Putt Drop');
+    expect(prettifyName('myCoolApp')).toBe('My Cool App');
+    expect(prettifyName('RPG_ui-kit')).toBe('RPG Ui Kit');
+    expect(syncId(123)).toMatch(/^gh-[0-9a-f]{12}$/);
+    expect(slugify('Café Racer: 2!')).toBe('cafe-racer-2');
+  });
+});
+
 const manual = {
   slug: 'hand-made',
   name: 'Hand Made',
@@ -33,98 +438,59 @@ const manual = {
   featured: false,
 };
 
-test.describe('sync-projects', () => {
-  test('accepts a valid file and normalizes category + slug', () => {
-    const { entry, errors } = validateEntry(good, pub);
-    expect(errors).toBeUndefined();
-    expect(entry).toMatchObject({ slug: 'putt-drop', category: 'games', featured: true });
-  });
-
-  test('rejects missing/TODO names, bad enums, bad links and wrong types', () => {
-    const { errors } = validateEntry(
-      {
-        ...good,
-        name: 'TODO',
-        category: 'tools',
-        status: 'done',
-        url: 'http://x.dev',
-        accentColor: 'red',
-        featured: 'yes',
-        image: 'C:/a.png',
-      },
-      pub,
-    );
-    expect(errors?.join('|')).toMatch(/name.*category.*status.*url.*image.*accentColor.*featured/);
-    expect(validateEntry([], pub).errors).toBeTruthy();
-    expect(validateEntry(null, pub).errors).toBeTruthy();
-  });
-
-  test('private repos cannot leak their name or code links', () => {
-    expect(
-      validateEntry({ ...good, url: 'https://github.com/RDW-Labz/secret-thing' }, priv).errors,
-    ).toContain('url: would expose a private repo');
-    expect(
-      validateEntry({ ...good, image: 'https://raw.githubusercontent.com/x/y/main/a.png' }, priv)
-        .errors,
-    ).toContain('image: would expose a private repo');
-    expect(
-      validateEntry({ ...good, url: 'https://play.google.com/store' }, priv).entry,
-    ).toBeTruthy();
-  });
-
-  test('ids are hashes, never repo names', () => {
-    expect(syncId(123)).toMatch(/^gh-[0-9a-f]{12}$/);
-    expect(syncId(123)).toBe(syncId(123));
-    expect(slugify('Café Racer: 2!')).toBe('cafe-racer-2');
-  });
-
-  test('merge keeps manual entries, adds, releases, removes, and skips slug clashes', () => {
+test.describe('sync merge', () => {
+  test('keeps manual entries, adds, releases, keeps on error, removes, skips clashes', () => {
     const id = syncId(1);
-    const entry = validateEntry(good, pub).entry!;
-    const first = mergeProjects({ projects: [manual] }, [{ id, entry }], '2026-10-01');
-    expect(first.changed).toBe(true);
-    expect(first.changes.added).toEqual(['Putt Drop']);
+    const entry = resolveEntry({ repo: { ...pub, topics: ['rdwlabz'] } })!;
+    if (!('entry' in entry)) throw new Error('expected entry');
+    const first = mergeProjects({ projects: [manual] }, [{ id, entry: entry.entry }], '2026-10-01');
+    expect(first.changes.added).toEqual(['Fixture Golf']);
     expect(first.data.projects[0]).toEqual(manual);
     expect(first.data.projects[1]).toMatchObject({ addedAt: '2026-10-01', sync: { id } });
 
-    const same = mergeProjects(first.data, [{ id, entry }], '2026-10-09');
-    expect(same.changed).toBe(false);
+    expect(mergeProjects(first.data, [{ id, entry: entry.entry }], '2026-10-09').changed).toBe(
+      false,
+    );
 
-    const rel = mergeProjects(first.data, [{ id, entry, releasedAt: '2026-10-05' }], '2026-10-09');
-    expect(rel.changes.released).toEqual(['Putt Drop']);
-    expect(rel.data.projects[1]).toMatchObject({
-      status: 'released',
-      releasedAt: '2026-10-05',
-      addedAt: '2026-10-01',
-    });
+    const kept = mergeProjects(first.data, [{ id, keep: true }], '2026-10-09');
+    expect(kept.changed).toBe(false);
+    expect(kept.changes.kept).toEqual(['Fixture Golf']);
+
+    const rel = mergeProjects(
+      first.data,
+      [{ id, entry: { ...entry.entry, status: 'released', releasedAt: '2026-10-05' } }],
+      '2026-10-09',
+    );
+    expect(rel.changes.released).toEqual(['Fixture Golf']);
+    expect(rel.data.projects[1]).toMatchObject({ addedAt: '2026-10-01', releasedAt: '2026-10-05' });
 
     const clash = mergeProjects(
       first.data,
-      [{ id: syncId(2), entry: { ...entry, name: 'Other', slug: 'hand-made' } }],
+      [{ id: syncId(2), entry: { ...entry.entry, name: 'Other', slug: 'hand-made' } }],
       '2026-10-09',
     );
-    expect(clash.changes.removed).toEqual(['Putt Drop']);
+    expect(clash.changes.removed).toEqual(['Fixture Golf']);
     expect(clash.changes.skipped[0]).toMatch(/hand-written entry/);
     expect(clash.data.projects).toEqual([manual]);
   });
 
-  test('summary lists project names only', () => {
-    const md = renderSummary({
-      added: ['Putt Drop'],
-      updated: [],
-      released: [],
-      removed: [],
-      skipped: [],
-    });
+  test('summary lists public project names and the auto-merge rule', () => {
+    const md = renderSummary(
+      { added: ['Putt Drop'], updated: [], released: [], removed: [], skipped: [], kept: [] },
+      ['Putt Drop: icon skipped (image HTTP 404)'],
+    );
     expect(md).toContain('- Putt Drop');
-    expect(md).toContain('never pushes to main');
+    expect(md).toContain('Auto-merges only when');
+    expect(md).toContain('Warnings');
   });
 
-  test('templates pass validation', async () => {
-    const fs = await import('node:fs/promises');
+  test('templates are valid overrides', () => {
     for (const f of ['templates/rdwlabz.json', 'templates/putt-drop.rdwlabz.json']) {
-      const { errors } = validateEntry(JSON.parse(await fs.readFile(f, 'utf8')), pub);
-      expect(errors, f).toBeUndefined();
+      const { warnings } = validateOverrides(JSON.parse(readFileSync(f, 'utf8')), {
+        isPrivate: true,
+        repoName: 'putt-drop',
+      });
+      expect(warnings, f).toEqual([]);
     }
   });
 });

@@ -19,6 +19,8 @@ export interface Project {
   url: string | null;
   accentColor: string;
   image: string | null;
+  /** Square app icon (set by the sync from a store listing or the repo). Shown on the card art. */
+  icon?: string | null;
   featured: boolean;
   /** YYYY-MM-DD the project first appeared on the site. */
   addedAt?: string;

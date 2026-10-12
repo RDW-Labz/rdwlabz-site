@@ -1,0 +1,10 @@
+modrinth {
+    token = System.getenv("MODRINTH_TOKEN")
+    projectId = "fixture-mod"
+}
+curseforge {
+    apiKey = System.getenv("CF_KEY")
+    project {
+        id = '123456'
+    }
+}

@@ -1,11 +1,6 @@
 {
   "name": "Putt Drop",
-  "oneLiner": "TODO: one line",
   "category": "games",
-  "status": "in-dev",
   "platforms": ["Android"],
-  "url": "TODO: Putt Drop link",
-  "accentColor": "TODO",
-  "image": null,
   "featured": true
 }

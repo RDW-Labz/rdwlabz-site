@@ -1,0 +1,9 @@
+		buildSettings = {
+			PRODUCT_BUNDLE_IDENTIFIER = com.rdwlabz.fixture.ios;
+		};
+		buildSettings = {
+			PRODUCT_BUNDLE_IDENTIFIER = com.rdwlabz.fixture.ios.AppTests;
+		};
+		buildSettings = {
+			PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_IDENTIFIER_BASE).widget";
+		};

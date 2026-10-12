@@ -56,22 +56,50 @@ Everything lives in `src/data/projects.json`. Replace the `TODO` placeholders; d
 
 Images go in `public/projects/` (16:10, about 1600×1000, ≤ 120 KB, WebP or AVIF). Only use images RDW Labz has rights to; no third-party game art or logos. Log each one in `docs/ASSETS.md`.
 
-### Auto project tracker (opt-in per repo)
+### Auto project tracker (fully automatic)
 
-1. Copy `templates/rdwlabz.json` to the root of any RDW-Labz repo you want on the site (Putt Drop's is ready in `templates/putt-drop.rdwlabz.json`). Repos without that file are never listed.
-2. Fill it in with public facts only; leave unknowns as `TODO`. For a private repo, don't use a GitHub link for `url` or `image`, because it would expose the repo.
-3. Every day the **Sync projects** workflow (or Actions → Sync projects → Run workflow) reads those files, validates them, marks a project `released` when its repo has a GitHub Release, and opens a PR. It never pushes to main and never deploys.
-4. Hand-written entries in `projects.json` are kept as-is. If a repo uses the same slug as one of them, the repo is skipped until you delete the hand-written entry (do this for Putt Drop once its repo has the file).
-5. Run it locally with `RDWLABZ_SYNC_TOKEN=… npm run sync -- --dry-run`, and see `scripts/sync-projects.mjs` for the rules. The Home "Lab activity" strip is built from the same data at build time.
+**What gets listed** (RDW-Labz org only; nothing else, ever):
+- Any repo whose app has a **public store listing**, found from ids in the repo's default branch: Android `applicationId` (Gradle, Capacitor, Expo) on Google Play, iOS bundle id (Xcode project, Info.plist, Capacitor, Expo) on the App Store, `steam_appid.txt` on Steam, and Modrinth or CurseForge project ids (Gradle or `gradle.properties`).
+- Any repo with the GitHub topic **`rdwlabz`**, for in-dev work.
+
+**How fields are filled** (an optional `rdwlabz.json` at the repo root overrides any of them):
+
+| Field | Source |
+|---|---|
+| name | Store title once listed, otherwise the repo name prettified (`putt-drop` → "Putt Drop") |
+| oneLiner | Repo description |
+| category | Repo topics (`game`, `mod`, `asset-pack`, `software`), then the store type, then a guess from files (Godot/Unity/Phaser → games, Fabric/Forge/Paper → mods, assets-only → asset packs), else software |
+| status, url, platforms | A live store page means `released` with the store link and its platforms. A public repo with a GitHub Release is `released`, linked to its releases page. Otherwise `in-dev` with no link |
+| releasedAt | Store release date, otherwise the first GitHub Release |
+| icon | Store icon, or the app icon in the repo (Android mipmap, iOS AppIcon, `assets/icon.png`, ...), saved as a 256 px WebP in `public/projects/<slug>-icon.webp`. Steam header images become card art (`<slug>-art.webp`) |
+| accentColor | The icon's dominant color, darkened until white on it passes WCAG AA (4.5:1) |
+
+**Privacy:** for a private repo, its name, description and GitHub links are only used once the app has a public store page. Until then it needs `"name"` in `rdwlabz.json` (the run says so in the PR) and gets no description. Entries are keyed by a hash of the repo id, so repo names never appear in the data, logs or PR.
+
+**`rdwlabz.json` (optional):** any of `name`, `oneLiner`, `category`, `status`, `platforms`, `url`, `image`, `accentColor`, `featured`, `slug`, store ids (`androidId`, `iosBundleId`, `steamAppId`, `modrinthId`, `curseforgeId`), or `"hidden": true` to keep a repo off the site. `TODO` values are ignored. See `templates/`.
+
+**When it runs:** every 6 hours, from Actions → Sync projects → Run workflow, or instantly from another repo or a publishing pipeline:
+
+```bash
+gh api repos/RDW-Labz/rdwlabz-site/dispatches -f event_type=rdwlabz-sync
+```
+
+(The caller's token needs Contents write on rdwlabz-site; `RDWLABZ_PR_TOKEN` works.)
+
+**What happens next:** the run opens or updates one PR from `bot/sync-projects`. If the build and e2e tests pass **and** the PR only touches `src/data/projects.json` and `public/projects/*`, it merges itself. Otherwise it stays open with a comment saying why. It never pushes to main directly and never deploys. Hand-written entries in `projects.json` are left alone.
+
+**Reliability:** store lookups and repo scans are cached between runs (`.sync-cache/`, via the Actions cache). A repo or store that errors keeps its previous entry and is retried next run. Only "can't list the org" fails the run.
+
+Local dry run (writes nothing): `RDWLABZ_SYNC_TOKEN=$(gh auth token) npm run sync -- --dry-run`. Code: `scripts/sync-projects.mjs` + `scripts/sync/`; tests with fixtures: `tests/sync-projects.spec.ts`.
 
 The workflow needs two repository secrets (in rdwlabz-site → Settings → Secrets and variables → Actions). Both are fine-grained personal access tokens with resource owner **RDW-Labz**:
 
 | Secret | Repository access | Permissions | Used for |
 |---|---|---|---|
-| `RDWLABZ_SYNC_TOKEN` | All repositories | Contents: **Read-only** (Metadata read is automatic) | Reading `rdwlabz.json` and releases |
-| `RDWLABZ_PR_TOKEN` | Only `rdwlabz-site` | Contents: **Read and write**, Pull requests: **Read and write** | Pushing the `bot/sync-projects` branch and opening the PR |
+| `RDWLABZ_SYNC_TOKEN` | All repositories | Contents: **Read-only** (Metadata read is automatic) | Reading repo files, topics, `rdwlabz.json` and releases |
+| `RDWLABZ_PR_TOKEN` | Only `rdwlabz-site` | Contents: **Read and write**, Pull requests: **Read and write** | Pushing the `bot/sync-projects` branch, opening the PR and auto-merging it |
 
-The built-in `GITHUB_TOKEN` is read-only here, because the enterprise policy doesn't let it create PRs. PRs therefore appear as opened by the owner of `RDWLABZ_PR_TOKEN`. Set an expiry on both tokens and renew them before it hits; when one expires, the run fails with a clear error.
+The built-in `GITHUB_TOKEN` is read-only here, because the enterprise policy doesn't let it create PRs. PRs therefore appear as opened by the owner of `RDWLABZ_PR_TOKEN`. Set an expiry on both tokens and renew them before it hits; when one expires, the run fails with a clear error. Optional third secret: `CURSEFORGE_API_KEY` (CurseForge's API needs a key from a CurseForge account); without it, CurseForge ids are noted in the PR but not checked.
 
 The `site` block holds the tagline, contact email, launch date and an optional "work with us" line. Any value starting with `TODO` is hidden or replaced with a "coming soon" state. Build-time validation fails on an unknown category or status, or a duplicate slug.
 
