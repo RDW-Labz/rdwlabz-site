@@ -79,6 +79,17 @@ export async function processIcon(buf) {
   return { webp, accent: accessibleAccent(dominantColor(raw)) };
 }
 
+/** Screenshot as WebP, aspect kept, fit inside 960×960. Returns its final size for the page. */
+export async function processShot(buf) {
+  const img = sharp(buf, { limitInputPixels: 40_000_000 }).rotate();
+  const { data, info } = await img
+    .clone()
+    .resize(960, 960, { fit: 'inside', withoutEnlargement: true })
+    .webp({ quality: 80, effort: 5 })
+    .toBuffer({ resolveWithObject: true });
+  return { webp: data, width: info.width, height: info.height, accent: null };
+}
+
 /** 800×500 (16:10) WebP card art, e.g. a Steam header image. */
 export async function processArt(buf) {
   const img = sharp(buf, { limitInputPixels: 40_000_000 }).rotate();

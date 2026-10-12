@@ -1,6 +1,6 @@
 // Pure core of the project tracker: listing rules, field resolution, privacy, merge, summary.
 import { createHash } from 'node:crypto';
-import { STORE_ORDER } from './stores.mjs';
+import { STORE_ORDER, itchUrl } from './stores.mjs';
 
 export const CATEGORIES = ['software', 'games', 'mods', 'asset-packs'];
 export const STATUSES = ['released', 'in-dev', 'coming-soon'];
@@ -55,6 +55,8 @@ export function leaksRepo(value, repoName) {
   return githubHost || pathname.toLowerCase().includes(repoName.toLowerCase());
 }
 
+const REPO_IMAGE = /^[\w][\w ./-]*\.(png|jpe?g|webp)$/i;
+
 const ID_FIELDS = {
   androidId: /^[A-Za-z][\w]*(\.[A-Za-z][\w-]*)+$/,
   iosBundleId: /^[A-Za-z][\w]*(\.[A-Za-z][\w-]*)+$/,
@@ -89,7 +91,8 @@ export function validateOverrides(raw, repo) {
     );
   };
   text('name', 80);
-  text('oneLiner', 160);
+  text('oneLiner', 240);
+  text('statusLabel', 40);
   const cat = normCategory(raw.category);
   set('category', CATEGORIES.includes(cat), cat, `one of ${CATEGORIES.join(', ')}`);
   set('status', STATUSES.includes(raw.status), raw.status, `one of ${STATUSES.join(', ')}`);
@@ -126,9 +129,30 @@ export function validateOverrides(raw, repo) {
   );
   for (const [k, re] of Object.entries(ID_FIELDS))
     set(k, typeof raw[k] === 'string' && re.test(raw[k]), raw[k], 'not a valid id');
+  const shots = Array.isArray(raw.screenshots)
+    ? raw.screenshots.map((s) => (typeof s === 'string' ? { path: s } : s))
+    : raw.screenshots;
+  set(
+    'screenshots',
+    Array.isArray(shots) &&
+      shots.length >= 1 &&
+      shots.length <= 4 &&
+      shots.every(
+        (s) =>
+          s &&
+          typeof s.path === 'string' &&
+          REPO_IMAGE.test(s.path) &&
+          !s.path.split('/').includes('..') &&
+          (s.alt === undefined || (typeof s.alt === 'string' && s.alt.length <= 160)),
+      ),
+    shots?.map?.((s) => (s.alt ? { path: s.path, alt: s.alt.trim() } : { path: s.path })),
+    'list of up to 4 repo image paths (png/jpg/webp), optionally { "path", "alt" }',
+  );
 
   if (repo.isPrivate) {
     for (const k of ['url', 'image']) {
+      // A store page link is checked for being public before use (see resolveEntry).
+      if (k === 'url' && itchUrl(overrides.url)) continue;
       if (leaksRepo(overrides[k], repo.repoName)) {
         delete overrides[k];
         warnings.push(`${k}: would expose a private repo; ignored`);
@@ -183,6 +207,14 @@ export function resolveEntry({
   const description =
     isPublic && repo.description?.trim() ? repo.description.trim().slice(0, 160) : null;
 
+  // An itch link in rdwlabz.json only counts once the page is confirmed public.
+  const overrideUrl =
+    itchUrl(o.url) && !stores.some((l) => l.store === 'itch' && l.url === itchUrl(o.url))
+      ? undefined
+      : o.url;
+  const url = overrideUrl ?? primary?.url ?? (ghReleased ? ghRelease.url : null);
+  const ctaListing = live.find((l) => l.cta && l.url === (itchUrl(url) ?? url));
+
   const entry = {
     slug: o.slug ?? slugify(name),
     name,
@@ -197,11 +229,13 @@ export function resolveEntry({
         detected.androidId && 'Android',
         detected.iosBundleId && 'iOS',
       ]),
-    url: o.url ?? primary?.url ?? (ghReleased ? ghRelease.url : null),
+    url,
     accentColor: o.accentColor ?? 'TODO',
     image: o.image ?? null,
     featured: o.featured ?? false,
   };
+  if (o.statusLabel) entry.statusLabel = o.statusLabel;
+  if (ctaListing) entry.cta = ctaListing.cta;
   if (status === 'released') {
     const at = minDate(live.map((l) => l.releasedAt)) ?? ghRelease?.firstAt;
     if (at) entry.releasedAt = at;
@@ -212,19 +246,48 @@ export function resolveEntry({
     : detected.iconPath
       ? { kind: 'repo', path: detected.iconPath }
       : null;
-  const artListing = o.image ? null : stores.find((l) => l.imageUrl);
+  const shotSources = o.screenshots ?? [];
+  const artListing = o.image || shotSources.length ? null : stores.find((l) => l.imageUrl);
   const artSource = artListing ? { kind: 'url', url: artListing.imageUrl } : null;
-  return { entry, iconSource, artSource };
+  return { entry, iconSource, artSource, shotSources };
 }
 
 const comparable = (p) => {
   const rest = { ...p };
   delete rest.addedAt;
+  delete rest.sync;
   return JSON.stringify(rest);
 };
 
+/** Short fingerprint of a field value, so the next run can tell a hand edit from its own output. */
+export const fingerprint = (value) =>
+  createHash('sha256')
+    .update(JSON.stringify(value) ?? 'undefined')
+    .digest('hex')
+    .slice(0, 8);
+
 /**
- * Merge synced entries into projects.json. Pure. Hand-written entries (no `sync`) are untouched.
+ * Fields a person changed by hand in projects.json since the sync last wrote the entry.
+ * Explicit `sync.pinned` fields always count; otherwise a field counts when its value no longer
+ * matches the fingerprint the sync recorded (or it was added by hand). Entries written before
+ * fingerprints existed have no record, so only their pinned fields count.
+ */
+export function handEdited(prev) {
+  const pinned = new Set(prev?.sync?.pinned ?? []);
+  const written = prev?.sync?.written;
+  if (written) {
+    for (const [k, v] of Object.entries(prev)) {
+      if (k === 'sync' || k === 'addedAt') continue;
+      if (written[k] !== fingerprint(v)) pinned.add(k);
+    }
+    for (const k of Object.keys(written)) if (!(k in prev)) pinned.add(k);
+  }
+  return [...pinned].sort();
+}
+
+/**
+ * Merge synced entries into projects.json. Pure. Hand-written entries (no `sync`) are untouched,
+ * and hand-edited fields of synced entries are kept (see handEdited).
  * `found` items are { id, entry } for fresh data, or { id, keep: true } to keep the previous
  * entry as-is after a temporary error.
  */
@@ -232,8 +295,16 @@ export function mergeProjects(data, found, today) {
   const manual = data.projects.filter((p) => !p.sync);
   const previous = new Map(data.projects.filter((p) => p.sync).map((p) => [p.sync.id, p]));
   const taken = new Set(manual.map((p) => p.slug));
-  /** @type {Record<'added' | 'updated' | 'released' | 'removed' | 'skipped' | 'kept', string[]>} */
-  const changes = { added: [], updated: [], released: [], removed: [], skipped: [], kept: [] };
+  /** @type {Record<'added' | 'updated' | 'released' | 'removed' | 'skipped' | 'kept' | 'handEdits', string[]>} */
+  const changes = {
+    added: [],
+    updated: [],
+    released: [],
+    removed: [],
+    skipped: [],
+    kept: [],
+    handEdits: [],
+  };
   const synced = [];
   const removedEntries = [];
 
@@ -248,19 +319,31 @@ export function mergeProjects(data, found, today) {
       }
       continue;
     }
-    const { entry } = item;
-    if (taken.has(entry.slug)) {
+    // Hand edits in projects.json beat both the repo's overrides and detected values.
+    const fields = { ...item.entry };
+    const pinned = handEdited(prev);
+    for (const k of pinned) {
+      if (k in prev) fields[k] = prev[k];
+      else delete fields[k];
+    }
+    if (taken.has(fields.slug)) {
       changes.skipped.push(
-        `${entry.name}: slug "${entry.slug}" is already used${
-          manual.some((p) => p.slug === entry.slug)
+        `${fields.name}: slug "${fields.slug}" is already used${
+          manual.some((p) => p.slug === fields.slug)
             ? ' by a hand-written entry (delete that entry to let the repo manage it)'
             : ''
         }`,
       );
       continue;
     }
-    taken.add(entry.slug);
-    const next = { ...entry, addedAt: prev?.addedAt ?? today, sync: { id: item.id } };
+    taken.add(fields.slug);
+    if (pinned.length) changes.handEdits.push(`${fields.name}: ${pinned.join(', ')}`);
+    const written = Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, fingerprint(v)]));
+    const next = {
+      ...fields,
+      addedAt: prev?.addedAt ?? today,
+      sync: { id: item.id, ...(pinned.length ? { pinned } : {}), written },
+    };
     synced.push(next);
     if (!prev) changes.added.push(next.name);
     else if (comparable(prev) !== comparable(next)) changes.updated.push(next.name);
@@ -280,7 +363,10 @@ export function mergeProjects(data, found, today) {
 
 /** Markdown for the PR body. Public project names only; never repo names. */
 export function renderSummary(changes, warnings = []) {
-  const lines = ['Automated sync of RDW-Labz projects (store listings + `rdwlabz` topic).', ''];
+  const lines = [
+    'Automated sync of RDW-Labz projects (store listings, itch.io pages + `rdwlabz` topic).',
+    '',
+  ];
   const section = (title, items) => {
     if (!items?.length) return;
     lines.push(`**${title}**`, ...items.map((i) => `- ${i}`), '');
@@ -291,6 +377,7 @@ export function renderSummary(changes, warnings = []) {
   section('Removed (no store listing or topic any more)', changes.removed);
   section('Kept previous data (temporary error, will retry)', changes.kept);
   section('Skipped', changes.skipped);
+  section('Hand edits kept (remove from `sync.pinned` to hand back)', changes.handEdits);
   section('Warnings', warnings);
   lines.push(
     'Auto-merges only when the build and tests pass and only `src/data/projects.json` and `public/projects/*` changed. Never deploys.',

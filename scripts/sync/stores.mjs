@@ -1,5 +1,5 @@
 // Public store checks. Each returns a listing { store, platform(s), url, title, iconUrl?,
-// imageUrl?, releasedAt?, live, kind? } or null when there's no public listing.
+// imageUrl?, releasedAt?, live, kind?, cta? } or null when there's no public listing.
 // `http(url, init)` is fetch-compatible so tests can pass fixtures.
 
 const UA = 'RDW-Labz/rdwlabz-site project sync (devops@therdw.com)';
@@ -133,5 +133,68 @@ export async function checkCurseForge(id, http, apiKey) {
   };
 }
 
+const ITCH_URL = /^https:\/\/([a-z0-9-]+)\.itch\.io\/([a-z0-9-]+)\/?$/i;
+const ITCH_PLATFORMS = {
+  html5: 'Web',
+  windows: 'Windows',
+  osx: 'macOS',
+  linux: 'Linux',
+  android: 'Android',
+};
+
+const ITCH_KIND = { games: 'games', tools: 'software', 'game-assets': 'asset-packs' };
+
+/** Normalised https://user.itch.io/game link, or null if the value isn't an itch game page. */
+export function itchUrl(value) {
+  const m = typeof value === 'string' ? value.trim().match(ITCH_URL) : null;
+  return m ? `https://${m[1].toLowerCase()}.itch.io/${m[2].toLowerCase()}` : null;
+}
+
+/** itch.io game page. Draft and restricted pages return 404 to visitors, so 200 = public. */
+export async function checkItch(url, http) {
+  const page = itchUrl(url);
+  if (!page) return null;
+  const res = await get(http, page);
+  if (!res) return null;
+  const html = await res.text();
+  const product = [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs)]
+    .map((m) => {
+      try {
+        return JSON.parse(m[1]);
+      } catch {
+        return null;
+      }
+    })
+    .find((j) => j?.['@type'] === 'Product');
+  const title = product?.name ?? decode(html.match(/<title>(.*?) by [^<]*<\/title>/)?.[1] ?? '');
+  const section = html.match(/"@id":"https:\\?\/\\?\/itch\.io\\?\/([\w-]+)","name"/)?.[1];
+  const info = (label) =>
+    html.match(new RegExp(`<td>${label}</td><td>(.*?)</td></tr>`, 's'))?.[1] ?? '';
+  const platforms = [
+    ...new Set(
+      [
+        ...info('Platforms').matchAll(
+          /itch\.io\/(?:games|tools|game-assets)\/(?:platform-)?([\w-]+)"/g,
+        ),
+      ]
+        .map((m) => ITCH_PLATFORMS[m[1]])
+        .filter(Boolean),
+    ),
+  ];
+  const published = info('Published').match(/title="(\d{1,2} \w+ \d{4})/)?.[1];
+  const free = /"price":0[,}]/.test(html) || /itch\.io\\?\/games\\?\/free"/.test(html);
+  return {
+    store: 'itch',
+    platforms,
+    url: page,
+    title: title || undefined,
+    imageUrl: meta(html, 'og:image') ? decode(meta(html, 'og:image')) : undefined,
+    releasedAt: published ? day(`${published} UTC`) : undefined,
+    live: true,
+    kind: ITCH_KIND[section] ?? 'games',
+    cta: free ? 'Play free on itch.io' : 'Get it on itch.io',
+  };
+}
+
 /** Store order for picking the main link/title/icon when a project is in several stores. */
-export const STORE_ORDER = ['play', 'app-store', 'steam', 'modrinth', 'curseforge'];
+export const STORE_ORDER = ['play', 'app-store', 'steam', 'itch', 'modrinth', 'curseforge'];

@@ -6,15 +6,23 @@ import ProjectCard from '../components/ProjectCard.astro';
 import ContactButton from '../components/ContactButton.astro';
 import Icon from '../components/Icon.astro';
 import PopHeading from '../components/PopHeading.astro';
-import { allProjects, categories, categoryAccent, countIn, pluralProjects } from '../lib/projects';
+import {
+  activeCategories,
+  allProjects,
+  buildPhrase,
+  categoryAccent,
+  countIn,
+  pluralProjects,
+} from '../lib/projects';
 
 const items = allProjects();
 const shelfEmpty = items.length === 0;
+const phrase = buildPhrase.charAt(0).toUpperCase() + buildPhrase.slice(1);
 ---
 
 <BaseLayout
   title="Projects"
-  description="Software, games, mods and asset packs from RDW Labz. Filter by category."
+  description={`${phrase} from RDW Labz, the dev studio of RDW, LLC.`}
   current="projects"
 >
   <section class="intro container-lab" aria-labelledby="projects-title">
@@ -37,14 +45,14 @@ const shelfEmpty = items.length === 0;
         selected
         count={items.length || undefined}
       />
-      {categories.map((c) => (
+      {activeCategories.map((c) => (
         <FilterChip
           id={c.id}
           label={c.label}
           href={`/projects?c=${c.id}`}
           icon={c.id}
           accent={categoryAccent[c.id]}
-          count={countIn(c.id) || undefined}
+          count={countIn(c.id)}
         />
       ))}
     </div>

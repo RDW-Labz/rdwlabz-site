@@ -1,10 +1,11 @@
 ---
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
-import { site, isTodo } from '../lib/projects';
+import { buildPhrase, site, isTodo } from '../lib/projects';
 
 const year = new Date().getFullYear();
 const hasEmail = !isTodo(site.contactEmail);
+const blurb = `We build ${buildPhrase}.`;
 ---
 
 <footer class="site-footer on-ink">
@@ -13,7 +14,7 @@ const hasEmail = !isTodo(site.contactEmail);
       <a href="/" aria-label="RDW Labz home" class="site-footer__home">
         <Logo onInk />
       </a>
-      <p>Software, games, mods and asset packs.</p>
+      <p>{blurb}</p>
     </div>
     <nav aria-label="Footer">
       <ul>
@@ -25,6 +26,16 @@ const hasEmail = !isTodo(site.contactEmail);
         <li>
           <a class="link" href="/projects">
             Projects
+          </a>
+        </li>
+        <li>
+          <a class="link" href="/about">
+            About
+          </a>
+        </li>
+        <li>
+          <a class="link" href="/privacy">
+            Privacy Policy
           </a>
         </li>
         <li>
@@ -42,9 +53,26 @@ const hasEmail = !isTodo(site.contactEmail);
         </li>
       </ul>
     </nav>
-    <p class="site-footer__legal">© {year} RDW Labz</p>
+    <p class="site-footer__legal" data-legal>
+      {'© '}
+      <span data-year>{year}</span>
+      {` ${site.company}. ${site.name} is a brand of ${site.company} · ${site.address}`}
+      {hasEmail && ' · '}
+      {hasEmail && (
+        <a class="link" href={`mailto:${site.contactEmail}`}>
+          {site.contactEmail}
+        </a>
+      )}
+    </p>
   </div>
 </footer>
+
+<script is:inline>
+  // The year is set at build time; this keeps it right if the site isn't rebuilt after New Year.
+  document.querySelectorAll('[data-year]').forEach((el) => {
+    el.textContent = String(new Date().getFullYear());
+  });
+</script>
 
 <style>
   .site-footer {

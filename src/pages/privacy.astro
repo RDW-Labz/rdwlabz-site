@@ -1,0 +1,213 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { isTodo, site } from '../lib/projects';
+
+// Policy text: RDW-Labz/ship-pipeline docs/site/privacy-policy.md, with company, address and
+// contact set for RDW, LLC. Keep it true: update this page, App Store privacy details and the
+// Google Play Data safety form together before any product adds analytics, ads or accounts.
+// The source still has "[DATE]"; set the real effective date here (YYYY-MM-DD) when it goes live.
+const EFFECTIVE_DATE = 'TODO: effective date (the day this policy goes live)';
+
+const effective = isTodo(EFFECTIVE_DATE)
+  ? null
+  : new Date(`${EFFECTIVE_DATE}T00:00:00Z`).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
+const email = site.contactEmail;
+const mailto = `mailto:${email}`;
+const [street, ...rest] = site.address.split(', ');
+const cityLine = rest.join(', ');
+---
+
+<BaseLayout
+  title="Privacy Policy"
+  description={`How ${site.company} handles information in its apps, games and websites.`}
+  current="privacy"
+>
+  <article class="policy container-lab" aria-labelledby="privacy-title">
+    <h1 id="privacy-title" class="policy__title">
+      Privacy Policy
+    </h1>
+    {effective && (
+      <p class="policy__date">
+        <strong>Effective date:</strong> {effective}
+      </p>
+    )}
+
+    <p>
+      This policy explains how {site.company} (“RDW”, “we”, “us”) handles information in our apps,
+      games and websites (together, our “products”).
+    </p>
+
+    <h2>Who we are</h2>
+    <address>
+      {site.company}
+      <br />
+      {street}
+      <br />
+      {cityLine}, United States
+      <br />
+      <a href={mailto}>{email}</a>
+    </address>
+
+    <h2>What we collect</h2>
+    <p>We collect as little as we can. Depending on the product, this may include:</p>
+    <ul>
+      <li>
+        <strong>Information you give us.</strong> For example, your email address if you contact us
+        or sign up for updates, and anything you include in a support message.
+      </li>
+      <li>
+        <strong>Account information.</strong> If a product has accounts: a username, email address
+        and the settings you choose.
+      </li>
+      <li>
+        <strong>Game and app data.</strong> Progress, saves, scores, purchases and settings needed
+        to run the product.
+      </li>
+      <li>
+        <strong>Basic technical information.</strong> Device type, operating system, app version and
+        language, only as needed for the product to work.
+      </li>
+      <li>
+        <strong>Purchase information.</strong> If you buy something in a product, the app store
+        (Apple, Google, Steam, itch.io or Roblox) processes the payment. We receive a record of the
+        purchase, not your card details.
+      </li>
+    </ul>
+    <p>
+      We do <strong>not</strong> sell your personal information.
+    </p>
+
+    <h2>How we use it</h2>
+    <ul>
+      <li>To run, maintain and improve our products.</li>
+      <li>To provide support and answer messages.</li>
+      <li>To keep products secure and prevent cheating, fraud and abuse.</li>
+      <li>To meet legal obligations.</li>
+    </ul>
+
+    <h2>Who we share it with</h2>
+    <p>We share information only with:</p>
+    <ul>
+      <li>
+        <strong>Service providers</strong> that host our products and data, under contracts that
+        limit how they can use it.
+      </li>
+      <li>
+        <strong>Platforms</strong> our products run on (Apple, Google, Valve/Steam, itch.io, Roblox,
+        Microsoft/Mojang), which handle downloads, accounts and payments under their own privacy
+        policies.
+      </li>
+      <li>
+        <strong>Authorities</strong>, when the law requires it.
+      </li>
+    </ul>
+
+    <h2>Advertising and tracking</h2>
+    <p>
+      Our products do not show ads, do not use analytics or crash-reporting services, and do not
+      track you across other companies’ apps or websites.
+    </p>
+
+    <h2>Children</h2>
+    <p>
+      Our products are not directed to children under 13, and we do not knowingly collect personal
+      information from them. If you believe a child has given us personal information, email
+      <a href={mailto}>{email}</a> and we will delete it.
+    </p>
+
+    <h2>How long we keep it</h2>
+    <p>
+      We keep information only as long as we need it for the purposes above, or as the law requires.
+      When we no longer need it, we delete it or make it anonymous.
+    </p>
+
+    <h2>Your choices and rights</h2>
+    <ul>
+      <li>
+        You can ask to see, correct or delete your information by emailing
+        <a href={mailto}>{email}</a>.
+      </li>
+      <li>
+        If a product has accounts, you can delete your account by emailing
+        <a href={mailto}>{email}</a>.
+      </li>
+      <li>You can turn off optional permissions (like notifications) in your device settings.</li>
+      <li>
+        Depending on where you live (for example California or the EU/UK), you may have more rights.
+        Email us and we will respond as the law requires.
+      </li>
+    </ul>
+
+    <h2>Security</h2>
+    <p>
+      We use reasonable safeguards to protect information. No method of storage or transmission is
+      completely secure.
+    </p>
+
+    <h2>Changes</h2>
+    <p>
+      If we change this policy, we will update the effective date above, and for important changes
+      we will tell you in the product or on this page.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+      Questions about this policy: <a href={mailto}>{email}</a>
+      <br />
+      {site.company}, {site.address}, United States
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .policy {
+    max-width: 46rem;
+    padding-top: clamp(40px, 6vw, 72px);
+    padding-bottom: clamp(56px, 8vw, 96px);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+  .policy__title {
+    margin: 0;
+    font-size: clamp(2.5rem, 1.6rem + 3.5vw, 4rem);
+    line-height: 1.05;
+  }
+  .policy__date {
+    margin: 12px 0 0;
+    color: var(--color-ink-soft);
+  }
+  .policy h2 {
+    margin: 2.25em 0 0.5em;
+    font-family: var(--font-sans);
+    font-size: 1.375rem;
+    font-weight: 800;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  .policy p,
+  .policy address {
+    margin: 0.85em 0 0;
+  }
+  .policy address {
+    font-style: normal;
+  }
+  .policy ul {
+    margin: 0.85em 0 0;
+    padding-left: 1.25em;
+  }
+  .policy li + li {
+    margin-top: 0.5em;
+  }
+  .policy a {
+    color: var(--color-ink);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+  }
+</style>

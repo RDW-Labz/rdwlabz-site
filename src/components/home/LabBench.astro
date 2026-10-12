@@ -1,6 +1,6 @@
 ---
 import Icon from '../Icon.astro';
-import { categories, categoryAccent } from '../../lib/projects';
+import { activeCategories as categories, categoryAccent } from '../../lib/projects';
 
 const tokVars = categories.map((c, i) => `--tok-${i}:${categoryAccent[c.id]}`).join(';');
 const fizz = [
@@ -196,6 +196,12 @@ const fizz = [
     --hot: var(--tok-3);
   }
 
+  .token--0:only-child {
+    --x: 50%;
+    --y: 14%;
+    --from-x: 0cqw;
+    --from-y: 36cqh;
+  }
   .token--0 {
     --x: 24%;
     --y: 17%;

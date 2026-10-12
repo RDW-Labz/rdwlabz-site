@@ -2,9 +2,11 @@
 // Automatic project tracker for rdwlabz.com.
 //
 // A RDW-Labz repo is listed only if (a) its app has a public store listing (Google Play,
-// App Store, Steam, Modrinth, CurseForge) found from ids in the repo, or (b) it has the GitHub
-// topic `rdwlabz`. An optional `rdwlabz.json` at the repo root overrides any field. Nothing
-// else is ever listed. Pure logic lives in scripts/sync/ (tested in tests/sync-projects.spec.ts).
+// App Store, Steam, Modrinth, CurseForge) found from ids in the repo, or a public itch.io page
+// linked from rdwlabz.json `url` or the repo homepage, or (b) it has the GitHub topic `rdwlabz`.
+// An optional `rdwlabz.json` at the repo root overrides any field. Nothing else is ever listed.
+// Hand edits to synced entries in projects.json are kept. Pure logic lives in scripts/sync/
+// (tested in tests/sync-projects.spec.ts).
 //
 // Privacy: private repo names, descriptions and links are used only once the app has a public
 // store page. Entries are keyed by a hash of the repo id; logs and the PR body only use public
@@ -13,6 +15,7 @@
 // Fail soft: a repo that errors keeps its previous entry; only "can't list the org" aborts.
 //
 // Usage: RDWLABZ_SYNC_TOKEN=... node scripts/sync-projects.mjs [--dry-run] [--org RDW-Labz] [--summary out.md]
+//        [--ref repo=branch ...]  (read that repo's rdwlabz.json + screenshots from a branch, e.g. an open PR)
 //        (optional CURSEFORGE_API_KEY enables CurseForge checks)
 import { mkdir, readFile, readdir, unlink, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -27,11 +30,13 @@ import {
 import {
   checkAppStore,
   checkCurseForge,
+  checkItch,
   checkModrinth,
   checkPlay,
   checkSteam,
+  itchUrl,
 } from './sync/stores.mjs';
-import { processArt, processIcon } from './sync/images.mjs';
+import { processArt, processIcon, processShot } from './sync/images.mjs';
 import {
   mergeProjects,
   renderSummary,
@@ -50,7 +55,7 @@ const API = 'https://api.github.com';
 const STORE_FRESH_MS = 5 * 3600_000;
 const STORE_STALE_MS = 14 * 24 * 3600_000;
 const MAX_IMAGE_BYTES = 5_000_000;
-const GENERATED = /^[a-z0-9-]+-(icon|art)\.webp$/;
+const GENERATED = /^[a-z0-9-]+-(icon|art|shot-\d)\.webp$/;
 
 const ENTRY_ORDER = [
   'slug',
@@ -58,11 +63,14 @@ const ENTRY_ORDER = [
   'oneLiner',
   'category',
   'status',
+  'statusLabel',
   'platforms',
   'url',
+  'cta',
   'accentColor',
   'image',
   'icon',
+  'screenshots',
   'featured',
   'releasedAt',
 ];
@@ -184,20 +192,25 @@ async function asset({ cache, slug, kind, source, load, dryRun }) {
   const sourceKey = source.kind === 'url' ? source.url : `repo:${source.sha ?? source.path}`;
   const prev = cache.assets[key];
   if (prev?.source === sourceKey && existsSync(path))
-    return { publicPath: `/projects/${file}`, accent: prev.accent, changed: false };
+    return { ...prev.meta, publicPath: `/projects/${file}`, accent: prev.accent, changed: false };
   const buf = await load();
-  const out = kind === 'icon' ? await processIcon(buf) : await processArt(buf);
+  const process = kind === 'icon' ? processIcon : kind === 'art' ? processArt : processShot;
+  const out = await process(buf);
   const changed = await writeIfChanged(path, out.webp, dryRun);
-  cache.assets[key] = { source: sourceKey, accent: out.accent };
-  return { publicPath: `/projects/${file}`, accent: out.accent, changed };
+  const meta = out.width ? { width: out.width, height: out.height } : undefined;
+  cache.assets[key] = { source: sourceKey, accent: out.accent, meta };
+  return { ...meta, publicPath: `/projects/${file}`, accent: out.accent, changed };
 }
 
 async function processRepo(ctx, repo) {
-  const { gh, cache, dryRun, curseforgeKey } = ctx;
+  const { gh, cache, dryRun, curseforgeKey, refs } = ctx;
   const base = `/repos/${repo.full_name.split('/').map(encodeURIComponent).join('/')}`;
+  const ref = refs[repo.name] ? `?ref=${encodeURIComponent(refs[repo.name])}` : '';
+  const repoFile = (path, accept) =>
+    gh(`${base}/contents/${path.split('/').map(encodeURIComponent).join('/')}${ref}`, accept);
   const warnings = [];
 
-  const fileRes = await gh(`${base}/contents/rdwlabz.json`, 'application/vnd.github.raw+json');
+  const fileRes = await repoFile('rdwlabz.json', 'application/vnd.github.raw+json');
   let raw = null;
   if (fileRes) {
     const text = await fileRes.text();
@@ -220,6 +233,7 @@ async function processRepo(ctx, repo) {
   for (const k of Object.keys(ids)) if (overrides[k]) ids[k] = overrides[k];
 
   const http = (url, init) => fetch(url, init);
+  const itchPage = itchUrl(overrides.url) ?? itchUrl(repo.homepage);
   const checks = [
     ids.androidId &&
       cachedStore(cache, `play:${ids.androidId}`, () => checkPlay(ids.androidId, http)),
@@ -238,6 +252,7 @@ async function processRepo(ctx, repo) {
           )
         : (warnings.push('CurseForge id found, but CURSEFORGE_API_KEY is not set; not checked'),
           null)),
+    itchPage && cachedStore(cache, `itch:${itchPage}`, () => checkItch(itchPage, http)),
   ].filter(Boolean);
   const listings = (await Promise.all(checks)).filter(Boolean);
 
@@ -257,7 +272,7 @@ async function processRepo(ctx, repo) {
   });
   if (!resolved || 'skip' in resolved) return { result: resolved, warnings };
 
-  const { entry, iconSource, artSource } = resolved;
+  const { entry, iconSource, artSource, shotSources } = resolved;
   let assetsChanged = false;
   let accent = null;
   entry.icon = null;
@@ -298,6 +313,36 @@ async function processRepo(ctx, repo) {
       warnings.push(`card art skipped (${e.message})`);
     }
   }
+  const shots = [];
+  for (const [i, s] of shotSources.entries()) {
+    try {
+      const a = await asset({
+        cache,
+        slug: entry.slug,
+        kind: `shot-${i + 1}`,
+        // Re-check on every push to the repo (or ref): cheap, and catches replaced files.
+        source: { kind: 'repo', sha: `${s.path}@${refs[repo.name] ?? repo.pushed_at}` },
+        load: async () => {
+          const res = await repoFile(s.path, 'application/vnd.github.raw');
+          if (!res) throw new Error(`${s.path} not found`);
+          const buf = Buffer.from(await res.arrayBuffer());
+          if (buf.length > MAX_IMAGE_BYTES) throw new Error(`${s.path} is over 5 MB`);
+          return buf;
+        },
+        dryRun,
+      });
+      shots.push({
+        src: a.publicPath,
+        width: a.width,
+        height: a.height,
+        alt: s.alt ?? `${entry.name} screenshot ${i + 1}`,
+      });
+      assetsChanged ||= a.changed;
+    } catch (e) {
+      warnings.push(`screenshot skipped (${e.message})`);
+    }
+  }
+  if (shots.length) entry.screenshots = shots;
   if (!overrides.accentColor && accent) entry.accentColor = accent;
   return { result: { entry: ordered(entry) }, warnings, assetsChanged };
 }
@@ -305,7 +350,11 @@ async function processRepo(ctx, repo) {
 /** Delete generated icons/art that no project references any more. */
 async function pruneAssets(projects, dryRun) {
   if (!existsSync(ASSET_DIR)) return [];
-  const used = new Set(projects.flatMap((p) => [p.icon, p.image]).filter(Boolean));
+  const used = new Set(
+    projects
+      .flatMap((p) => [p.icon, p.image, ...(p.screenshots ?? []).map((s) => s.src)])
+      .filter(Boolean),
+  );
   const stale = (await readdir(ASSET_DIR)).filter(
     (f) => GENERATED.test(f) && !used.has(`/projects/${f}`),
   );
@@ -326,7 +375,13 @@ async function main() {
   const summaryPath = arg('--summary');
   const gh = makeGh(token);
   const cache = await loadCache();
-  const ctx = { gh, cache, dryRun, curseforgeKey: process.env.CURSEFORGE_API_KEY };
+  const refs = Object.fromEntries(
+    process.argv
+      .flatMap((a, i) => (a === '--ref' ? [process.argv[i + 1] ?? ''] : []))
+      .map((r) => r.split('='))
+      .filter(([repo, branch]) => repo && branch),
+  );
+  const ctx = { gh, cache, dryRun, curseforgeKey: process.env.CURSEFORGE_API_KEY, refs };
 
   const data = JSON.parse(await readFile(DATA_PATH, 'utf8'));
   const prevById = new Map(data.projects.filter((p) => p.sync).map((p) => [p.sync.id, p]));

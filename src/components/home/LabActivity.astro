@@ -1,0 +1,112 @@
+---
+import type { ActivityItem } from '../../lib/projects';
+
+interface Props {
+  items: ActivityItem[];
+}
+
+const { items } = Astro.props;
+const fmtDate = (d: string) =>
+  new Date(`${d}T00:00:00Z`).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+---
+
+{items.length > 0 && (
+  <div class="activity" data-reveal>
+    <h3 class="activity__title">
+      <span class="activity__pulse" aria-hidden="true" /> Lab activity
+    </h3>
+    <ol class="activity__list">
+      {items.map((a) => (
+        <li class="activity__item" style={`--acc:${a.project.accent}`}>
+          <span class="activity__kind">
+            {a.kind === 'release' ? 'Released' : 'New on the shelf'}
+          </span>
+          <a class="activity__name" href={`/projects?c=${a.project.category}`}>
+            {a.project.title}
+          </a>
+          <time class="activity__date" datetime={a.date}>
+            {fmtDate(a.date)}
+          </time>
+        </li>
+      ))}
+    </ol>
+  </div>
+)}
+
+<style>
+  .activity {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 24px;
+    margin-top: clamp(28px, 4vw, 44px);
+    padding: 16px 20px;
+    border-radius: var(--radius-lg);
+    background: rgb(255 255 255 / 0.72);
+    border: 2px solid var(--color-ink);
+  }
+  .activity__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 1.375rem;
+  }
+  .activity__pulse {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-mint);
+    box-shadow: 0 0 0 2px var(--color-ink);
+    animation: pulse 1.6s ease-out 3;
+  }
+  @keyframes pulse {
+    50% {
+      scale: 1.5;
+    }
+  }
+  .activity__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .activity__item {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    min-height: 44px;
+    padding: 6px 14px 6px 6px;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: 0 3px 0 var(--acc);
+  }
+  .activity__kind {
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    background: color-mix(in oklab, var(--acc), #fff 80%);
+    font-size: var(--text-chip);
+    font-weight: 700;
+  }
+  .activity__name {
+    color: var(--color-ink);
+    font-weight: 800;
+    text-decoration: underline;
+    text-decoration-color: var(--acc);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+  .activity__date {
+    font-size: var(--text-small);
+    color: var(--color-ink-soft);
+  }
+</style>

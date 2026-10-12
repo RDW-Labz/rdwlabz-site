@@ -49,10 +49,15 @@ Everything lives in `src/data/projects.json`. Replace the `TODO` placeholders; d
 
 - `category`: `software` | `games` | `mods` | `asset-packs`
 - `status`: `released` | `in-dev` | `coming-soon`
-- `url`: `null` shows "Link coming soon"
+- `url`: `null` shows "Link coming soon" (released) or "Not out yet"
+- `statusLabel` (optional): replaces the status chip text, e.g. "Coming to Google Play"
+- `cta` (optional): button text, e.g. "Play free on itch.io" (default "View project")
+- `screenshots` (optional): up to 4 `{ "src", "width", "height", "alt" }` real screenshots; shown instead of the art
 - `accentColor`: a hex code, or `TODO` to use the category color
 - `image`: `null` uses generated card art
 - `featured: true` puts the project on Home (at most 6 are shown)
+
+Categories with no projects are hidden everywhere (home, filter chips, counts, hero copy). With one active category, Home shows it as the main section.
 
 Images go in `public/projects/` (16:10, about 1600×1000, ≤ 120 KB, WebP or AVIF). Only use images RDW Labz has rights to; no third-party game art or logos. Log each one in `docs/ASSETS.md`.
 
@@ -60,6 +65,7 @@ Images go in `public/projects/` (16:10, about 1600×1000, ≤ 120 KB, WebP or AV
 
 **What gets listed** (RDW-Labz org only; nothing else, ever):
 - Any repo whose app has a **public store listing**, found from ids in the repo's default branch: Android `applicationId` (Gradle, Capacitor, Expo) on Google Play, iOS bundle id (Xcode project, Info.plist, Capacitor, Expo) on the App Store, `steam_appid.txt` on Steam, and Modrinth or CurseForge project ids (Gradle or `gradle.properties`).
+- Any repo with a public **itch.io** page as its `url` in `rdwlabz.json` or as the repo homepage (e.g. `https://you.itch.io/game`). A draft or unpublished page counts as nothing. Listed as `released`, with the itch platforms and a "Play free on itch.io" button (free) or "Get it on itch.io" (paid).
 - Any repo with the GitHub topic **`rdwlabz`**, for in-dev work.
 
 **How fields are filled** (an optional `rdwlabz.json` at the repo root overrides any of them):
@@ -76,7 +82,11 @@ Images go in `public/projects/` (16:10, about 1600×1000, ≤ 120 KB, WebP or AV
 
 **Privacy:** for a private repo, its name, description and GitHub links are only used once the app has a public store page. Until then it needs `"name"` in `rdwlabz.json` (the run says so in the PR) and gets no description. Entries are keyed by a hash of the repo id, so repo names never appear in the data, logs or PR.
 
-**`rdwlabz.json` (optional):** any of `name`, `oneLiner`, `category`, `status`, `platforms`, `url`, `image`, `accentColor`, `featured`, `slug`, store ids (`androidId`, `iosBundleId`, `steamAppId`, `modrinthId`, `curseforgeId`), or `"hidden": true` to keep a repo off the site. `TODO` values are ignored. See `templates/`.
+**`rdwlabz.json` (optional):** any of `name`, `oneLiner`, `category`, `status`, `statusLabel`, `platforms`, `url`, `image`, `accentColor`, `featured`, `slug`, `screenshots`, store ids (`androidId`, `iosBundleId`, `steamAppId`, `modrinthId`, `curseforgeId`), or `"hidden": true` to keep a repo off the site. `TODO` values are ignored. See `templates/`. `screenshots` is a list of up to 4 image paths in the repo (`"store/shot.png"` or `{ "path": "...", "alt": "..." }`); each is saved as `public/projects/<slug>-shot-N.webp` (fits 960×960) and replaces store art. Real captures only, never mockups or AI images.
+
+**Hand edits always win:** each synced entry keeps a short fingerprint of what the sync last wrote (`sync.written`). Change or delete a field in `projects.json` by hand and the next run notices, keeps your value, and adds the field to `sync.pinned` (listed in the PR as "Hand edits kept"). To hand a field back to the sync, remove it from `sync.pinned`. Order: hand edit > `rdwlabz.json` > detected.
+
+Preview a repo branch before merging its `rdwlabz.json`: `npm run sync -- --dry-run --ref putt-drop=my-branch`.
 
 **When it runs:** every 6 hours, from Actions → Sync projects → Run workflow, or instantly from another repo or a publishing pipeline:
 

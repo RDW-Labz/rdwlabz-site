@@ -1,4 +1,4 @@
-import data from '../data/projects.json';
+import data from '../data/projects.json' with { type: 'json' };
 
 export type CategoryId = 'software' | 'games' | 'mods' | 'asset-packs';
 export type Status = 'released' | 'in-dev' | 'coming-soon';
@@ -9,25 +9,38 @@ export interface Category {
   blurb: string;
 }
 
+export interface Screenshot {
+  src: string;
+  width: number;
+  height: number;
+  alt: string;
+}
+
 export interface Project {
   slug: string;
   name: string;
   oneLiner: string;
   category: CategoryId;
   status: Status;
+  /** Replaces the generic status text, e.g. "Coming to Google Play". */
+  statusLabel?: string;
   platforms: string[];
   url: string | null;
+  /** Button text for the link, e.g. "Play free on itch.io" (set by the sync per store). */
+  cta?: string;
   accentColor: string;
   image: string | null;
   /** Square app icon (set by the sync from a store listing or the repo). Shown on the card art. */
   icon?: string | null;
+  /** Real screenshots from the repo (set by the sync from rdwlabz.json). */
+  screenshots?: Screenshot[];
   featured: boolean;
   /** YYYY-MM-DD the project first appeared on the site. */
   addedAt?: string;
   /** YYYY-MM-DD of the latest GitHub Release (set by scripts/sync-projects.mjs). */
   releasedAt?: string;
   /** Present only on entries managed by scripts/sync-projects.mjs. Manual entries have none. */
-  sync?: { id: string };
+  sync?: { id: string; pinned?: string[]; written?: Record<string, string> };
 }
 
 export interface SiteInfo {
@@ -35,6 +48,8 @@ export interface SiteInfo {
   domain: string;
   tagline: string;
   contactEmail: string;
+  company: string;
+  address: string;
   launchDate: string;
   workWithUs: string;
 }
@@ -107,11 +122,14 @@ export function displayProject(p: Project) {
     ...p,
     placeholder,
     title: placeholder ? 'Something’s brewing' : p.name,
-    blurb: isTodo(p.oneLiner) ? 'Details coming soon.' : p.oneLiner,
+    /** null while the one-liner is TODO: the card then shows no blurb rather than filler. */
+    blurb: isTodo(p.oneLiner) ? null : p.oneLiner,
     accent: projectAccent(p),
     href: p.url && !isTodo(p.url) ? p.url : null,
+    ctaText: p.cta && !isTodo(p.cta) ? p.cta : 'View project',
     categoryText: categoryLabel(p.category),
-    statusText: statusLabel[p.status],
+    statusText: p.statusLabel && !isTodo(p.statusLabel) ? p.statusLabel : statusLabel[p.status],
+    screenshots: (p.screenshots ?? []).filter((s) => !isTodo(s.src)),
   };
 }
 
@@ -127,6 +145,26 @@ export const allProjects = (): DisplayProject[] => realProjects.map(displayProje
 
 export const countIn = (id: CategoryId): number =>
   realProjects.filter((p) => p.category === id).length;
+
+/**
+ * Categories with at least one project, in data order. Empty categories stay hidden everywhere
+ * (tiles, filter chips, hero copy) and come back on their own once a project lands in them.
+ */
+export const pickActive = (cats: Category[], list: Pick<Project, 'name' | 'category'>[]) =>
+  cats.filter((c) => list.some((p) => p.category === c.id && !isTodo(p.name)));
+
+export const activeCategories: Category[] = pickActive(categories, projects);
+
+/** "games", "software and games", "software, games and mods". */
+export const listPhrase = (words: string[]): string =>
+  words.length <= 1
+    ? (words[0] ?? '')
+    : `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}`;
+
+/** What we build, from the categories that actually have projects. */
+export const buildPhrase: string = listPhrase(
+  (activeCategories.length ? activeCategories : categories).map((c) => c.label.toLowerCase()),
+);
 
 export const pluralProjects = (n: number): string => `${n} project${n === 1 ? '' : 's'}`;
 
@@ -165,10 +203,8 @@ export const categoryInk: Record<CategoryId, string> = {
 /** The real tagline, or null while it is TODO (the hero then shows only the verified line). */
 export const customTagline: string | null = isTodo(site.tagline) ? null : site.tagline;
 
-/** Verified fallback copy (BUILD-SPEC §0) until Braden supplies a tagline. */
-export const tagline = isTodo(site.tagline)
-  ? 'We build software, games, mods and asset packs.'
-  : site.tagline;
+/** Fallback copy until Braden supplies a tagline; lists only categories with projects. */
+export const tagline = isTodo(site.tagline) ? `We build ${buildPhrase}.` : site.tagline;
 
 /** null while the contact email is still a placeholder: UI shows "Email coming soon". */
 export const contactHref: string | null = isTodo(site.contactEmail)

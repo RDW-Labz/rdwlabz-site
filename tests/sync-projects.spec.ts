@@ -21,6 +21,8 @@ import {
   checkSteam,
   checkModrinth,
   checkCurseForge,
+  checkItch,
+  itchUrl,
 } from '../scripts/sync/stores.mjs';
 import { accessibleAccent, contrast, dominantColor, processIcon } from '../scripts/sync/images.mjs';
 import {
@@ -28,6 +30,8 @@ import {
   resolveEntry,
   mergeProjects,
   renderSummary,
+  fingerprint,
+  handEdited,
   prettifyName,
   syncId,
   slugify,
@@ -219,6 +223,58 @@ test.describe('sync detectors: stores', () => {
     expect(
       await checkModrinth('x', fakeHttp({ modrinth: [200, store('modrinth-draft.json')] }).http),
     ).toBeNull();
+  });
+
+  test('itch.io: public page = live listing with "Play free" button; draft (404) = none', async () => {
+    const url = 'https://Btabor11.itch.io/Dormant-Red/';
+    const live = await checkItch(
+      url,
+      fakeHttp({ 'btabor11.itch.io': [200, store('itch.html')] }).http,
+    );
+    expect(live).toEqual({
+      store: 'itch',
+      platforms: ['Web'],
+      url: 'https://btabor11.itch.io/dormant-red',
+      title: 'Dormant Red',
+      imageUrl: 'https://img.itch.zone/aW1nLzMwNjY4Mzk1LnBuZw==/original/ZIq0dj.png',
+      releasedAt: '2026-10-08',
+      live: true,
+      kind: 'games',
+      cta: 'Play free on itch.io',
+    });
+    expect(await checkItch(url, fakeHttp({}).http)).toBeNull();
+    await expect(checkItch(url, fakeHttp({ 'itch.io': [500, ''] }).http)).rejects.toThrow(
+      'HTTP 500',
+    );
+  });
+
+  test('itch.io: paid tools say "Get it", category from the page, only itch game links count', async () => {
+    const paid = await checkItch(
+      'https://example.itch.io/pixel-kit',
+      fakeHttp({ 'example.itch.io': [200, store('itch-paid.html')] }).http,
+    );
+    expect(paid).toMatchObject({
+      title: 'Pixel Kit',
+      kind: 'software',
+      platforms: ['Windows', 'Linux'],
+      cta: 'Get it on itch.io',
+    });
+    expect(itchUrl('https://btabor11.itch.io/dormant-red')).toBe(
+      'https://btabor11.itch.io/dormant-red',
+    );
+    for (const bad of [
+      'http://btabor11.itch.io/dormant-red',
+      'https://itch.io/games',
+      'https://btabor11.itch.io',
+      'https://btabor11.itch.io.evil.com/x',
+      'https://store.steampowered.com/app/1',
+      undefined,
+    ]) {
+      expect(itchUrl(bad), String(bad)).toBeNull();
+    }
+    const { http, calls } = fakeHttp({});
+    expect(await checkItch('https://example.com/game', http)).toBeNull();
+    expect(calls).toEqual([]);
   });
 
   test('CurseForge: skipped without an API key, checked with one', async () => {
@@ -423,6 +479,95 @@ test.describe('sync listing rules and fields', () => {
     ).toBe(true);
   });
 
+  test('itch link in rdwlabz.json or the homepage lists it as released, with the store button', () => {
+    const itch = {
+      store: 'itch',
+      platforms: ['Web'],
+      url: 'https://btabor11.itch.io/secret-thing',
+      title: 'Secret Thing',
+      releasedAt: '2026-10-08',
+      live: true,
+      kind: 'games',
+      cta: 'Play free on itch.io',
+    };
+    // A private repo's name in a public itch URL is fine: the page itself is public.
+    const { overrides, warnings } = validateOverrides(
+      { url: 'https://btabor11.itch.io/secret-thing', status: 'released', platforms: ['Web'] },
+      { isPrivate: true, repoName: 'secret-thing' },
+    );
+    expect(warnings).toEqual([]);
+    const r = resolveEntry({ repo: priv, overrides, listings: [itch] });
+    expect(r).toMatchObject({
+      entry: {
+        name: 'Secret Thing',
+        status: 'released',
+        url: itch.url,
+        cta: 'Play free on itch.io',
+        category: 'games',
+        releasedAt: '2026-10-08',
+      },
+    });
+    // Homepage link (no override): same result.
+    expect(resolveEntry({ repo: pub, listings: [itch] })).toMatchObject({
+      entry: { status: 'released', url: itch.url, cta: 'Play free on itch.io' },
+    });
+  });
+
+  test('itch link that is not public (draft) is never used and never lists the repo', () => {
+    const { overrides } = validateOverrides(
+      { url: 'https://btabor11.itch.io/secret-thing' },
+      { isPrivate: true, repoName: 'secret-thing' },
+    );
+    expect(resolveEntry({ repo: priv, overrides, listings: [] })).toBeNull();
+    const tagged = resolveEntry({
+      repo: { ...priv, topics: ['rdwlabz'] },
+      overrides: { ...overrides, name: 'Public Name' },
+      listings: [],
+    });
+    expect(tagged).toMatchObject({ entry: { name: 'Public Name', url: null } });
+    expect(JSON.stringify(tagged)).not.toMatch(/secret/i);
+  });
+
+  test('status label and real screenshots come from rdwlabz.json; screenshots beat store art', () => {
+    const { overrides, warnings } = validateOverrides(
+      {
+        statusLabel: 'Coming to Google Play',
+        screenshots: [
+          'store/screenshots/01.png',
+          { path: 'store/screenshots/02.webp', alt: 'Hole 9' },
+        ],
+      },
+      { isPrivate: true, repoName: 'r' },
+    );
+    expect(warnings).toEqual([]);
+    expect(overrides.screenshots).toEqual([
+      { path: 'store/screenshots/01.png' },
+      { path: 'store/screenshots/02.webp', alt: 'Hole 9' },
+    ]);
+    const r = resolveEntry({
+      repo: { ...pub, topics: ['rdwlabz'] },
+      overrides: { ...overrides, status: 'coming-soon' },
+      listings: [{ ...playLive, live: false, imageUrl: 'https://x/art.jpg' }],
+    });
+    expect(r).toMatchObject({
+      entry: { status: 'coming-soon', statusLabel: 'Coming to Google Play' },
+      shotSources: overrides.screenshots,
+      artSource: null,
+    });
+    for (const bad of [
+      ['../secrets.png'],
+      ['shot.gif'],
+      ['/abs/x.png'],
+      ['https://x/y.png'],
+      ['a.png', 'b.png', 'c.png', 'd.png', 'e.png'],
+      [],
+    ]) {
+      const v = validateOverrides({ screenshots: bad }, { isPrivate: false, repoName: 'r' });
+      expect(v.overrides.screenshots, JSON.stringify(bad)).toBeUndefined();
+      expect(v.warnings[0]).toMatch(/screenshots/);
+    }
+  });
+
   test('hidden override removes a repo even with a store listing', () => {
     expect(
       resolveEntry({ repo: pub, overrides: { hidden: true }, listings: [playLive] }),
@@ -485,6 +630,91 @@ test.describe('sync merge', () => {
     expect(clash.changes.removed).toEqual(['Fixture Golf']);
     expect(clash.changes.skipped[0]).toMatch(/hand-written entry/);
     expect(clash.data.projects).toEqual([manual]);
+  });
+
+  test('hand edits to a synced entry in projects.json are never overwritten', () => {
+    const id = syncId(7);
+    const fromRepo = {
+      slug: 'fixture-golf',
+      name: 'Fixture Golf',
+      oneLiner: 'From the repo.',
+      category: 'games',
+      status: 'in-dev',
+      platforms: ['Android'],
+      url: null,
+      cta: 'Play free on itch.io',
+      accentColor: 'TODO',
+      image: null,
+      featured: false,
+    };
+    const first = mergeProjects({ projects: [] }, [{ id, entry: fromRepo }], '2026-10-01');
+    const synced = first.data.projects[0];
+    expect(synced.sync.written.oneLiner).toBe(fingerprint('From the repo.'));
+    expect(handEdited(synced)).toEqual([]);
+
+    // Braden edits two fields and deletes one by hand.
+    const edited = structuredClone(first.data);
+    edited.projects[0].oneLiner = 'Written by hand.';
+    edited.projects[0].featured = true;
+    delete edited.projects[0].cta;
+    expect(handEdited(edited.projects[0])).toEqual(['cta', 'featured', 'oneLiner']);
+
+    // The repo changes too: repo-only fields update, hand-edited ones stay.
+    const next = mergeProjects(
+      edited,
+      [{ id, entry: { ...fromRepo, oneLiner: 'New repo text.', status: 'released' } }],
+      '2026-10-09',
+    );
+    const p = next.data.projects[0];
+    expect(p).toMatchObject({
+      oneLiner: 'Written by hand.',
+      featured: true,
+      status: 'released',
+      addedAt: '2026-10-01',
+    });
+    expect('cta' in p).toBe(false);
+    expect(p.sync.pinned).toEqual(['cta', 'featured', 'oneLiner']);
+    expect(next.changes.handEdits).toEqual(['Fixture Golf: cta, featured, oneLiner']);
+
+    // Pins persist on later runs, even though the fingerprints now match.
+    const again = mergeProjects(next.data, [{ id, entry: fromRepo }], '2026-10-10');
+    expect(again.data.projects[0].oneLiner).toBe('Written by hand.');
+
+    // Removing a field from `pinned` hands it back to the sync.
+    const unpinned = structuredClone(again.data);
+    unpinned.projects[0].sync.pinned = ['featured'];
+    const back = mergeProjects(unpinned, [{ id, entry: fromRepo }], '2026-10-11');
+    expect(back.data.projects[0]).toMatchObject({ oneLiner: 'From the repo.', featured: true });
+    expect(back.data.projects[0].cta).toBe('Play free on itch.io');
+  });
+
+  test('older synced entries (no fingerprints) only keep explicitly pinned fields', () => {
+    const id = syncId(8);
+    const fromRepo = {
+      slug: 'old',
+      name: 'Old',
+      oneLiner: 'Repo text.',
+      category: 'games',
+      status: 'in-dev',
+      platforms: [],
+      url: null,
+      accentColor: 'TODO',
+      image: null,
+      featured: false,
+    };
+    const legacy = {
+      ...fromRepo,
+      oneLiner: 'Hand text.',
+      url: 'https://example.com/old',
+      addedAt: '2026-01-01',
+      sync: { id, pinned: ['url'] },
+    };
+    const r = mergeProjects({ projects: [legacy] }, [{ id, entry: fromRepo }], '2026-10-12');
+    expect(r.data.projects[0]).toMatchObject({
+      oneLiner: 'Repo text.',
+      url: 'https://example.com/old',
+      addedAt: '2026-01-01',
+    });
   });
 
   test('summary lists public project names and the auto-merge rule', () => {

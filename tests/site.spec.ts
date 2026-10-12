@@ -1,8 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { settleMotion } from './helpers';
+import { escapeRe, settleMotion, shelf } from './helpers';
+import { categories, listPhrase, pickActive, type CategoryId } from '../src/lib/projects';
 
-const PAGES = ['/', '/projects', '/404'];
+const PAGES = ['/', '/projects', '/about', '/privacy', '/404'];
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 function trackErrors(page: Page) {
@@ -40,76 +41,139 @@ for (const path of PAGES) {
   });
 }
 
+test('categories: empty ones stay hidden and come back once they have a project', () => {
+  const ids = (list: { name: string; category: CategoryId }[]) =>
+    pickActive(categories, list).map((c) => c.id);
+  expect(ids([])).toEqual([]);
+  expect(ids([{ name: 'A game', category: 'games' }])).toEqual(['games']);
+  expect(
+    ids([
+      { name: 'A mod', category: 'mods' },
+      { name: 'A game', category: 'games' },
+      { name: 'TODO: name', category: 'software' },
+    ]),
+  ).toEqual(['games', 'mods']);
+  expect(listPhrase(['games'])).toBe('games');
+  expect(listPhrase(['software', 'games'])).toBe('software and games');
+  expect(listPhrase(['software', 'games', 'mods'])).toBe('software, games and mods');
+});
+
 test('home: hero states who we are and links to projects', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('RDW Labz');
   await expect(
-    page.getByRole('heading', { level: 1 }).getByText(/software, games, mods and asset packs/i),
+    page.getByRole('heading', { level: 1 }).getByText(`We build ${shelf.phrase}.`),
   ).toBeVisible();
   const cta = page.getByRole('main').getByRole('link', { name: 'See our projects' });
   await expect(cta).toHaveAttribute('href', '/projects');
 });
 
-test('home: category tiles link to pre-filtered projects', async ({ page }) => {
+test('home: only categories with projects appear (tiles, tokens, links)', async ({ page }) => {
   await page.goto('/');
-  const tiles = page.locator('#what-we-build a');
-  await expect(tiles).toHaveCount(4);
-  for (const c of ['software', 'games', 'mods', 'asset-packs']) {
-    await expect(page.locator(`#what-we-build a[href="/projects?c=${c}"]`)).toHaveCount(1);
+  for (const c of shelf.hidden) {
+    await expect(page.locator(`a[href="/projects?c=${c}"]`), c).toHaveCount(0);
+  }
+  await expect(page.locator('.token')).toHaveCount(shelf.active.length);
+  if (shelf.active.length > 1) {
+    await expect(page.locator('#what-we-build .tile')).toHaveCount(shelf.active.length);
+    for (const c of shelf.active) {
+      await expect(page.locator(`#what-we-build a[href="/projects?c=${c}"]`)).toHaveCount(1);
+    }
   }
 });
 
-test('journey: tile → filtered projects (client-side nav)', async ({ page }) => {
+test('home: a single active category becomes the main section, with all its projects', async ({
+  page,
+}) => {
+  test.skip(shelf.active.length !== 1, 'more than one category has projects');
+  const [id] = shelf.active;
   await page.goto('/');
-  await page.locator('#what-we-build a[href="/projects?c=mods"]').click();
-  await expect(page).toHaveURL(/\/projects\?c=mods$/);
-  await expect(page.locator('[data-filter="mods"]')).toHaveAttribute('aria-pressed', 'true');
+  const section = page.locator('#what-we-build');
+  await expect(section.getByRole('heading', { level: 2 })).toHaveText(shelf.activeLabels[0]);
+  await expect(section.locator('.tile')).toHaveCount(0);
+  await expect(section.locator('.project-card')).toHaveCount(
+    shelf.projects.filter((p) => p.category === id).length,
+  );
+  await expect(section.locator(`a[href="/projects?c=${id}"]`).first()).toBeVisible();
+  // Its projects are already shown, so the separate featured section is dropped.
+  await expect(page.locator('#featured')).toHaveCount(0);
+});
+
+test('journey: home → filtered projects (client-side nav)', async ({ page }) => {
+  test.skip(shelf.active.length === 0, 'no categories have projects');
+  const [id] = shelf.active;
+  const label = shelf.activeLabels[0];
+  await page.goto('/');
+  await page.locator(`#what-we-build a[href="/projects?c=${id}"]`).first().click();
+  await expect(page).toHaveURL(new RegExp(`/projects\\?c=${id}$`));
+  await expect(page.locator(`[data-filter="${id}"]`)).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('[data-project-grid] > li:not([hidden])')).toHaveCount(
-    await page.locator('[data-project-grid] > li[data-category="mods"]').count(),
+    await page.locator(`[data-project-grid] > li[data-category="${id}"]`).count(),
   );
-  await expect(page.locator('[data-filter-status]')).toContainText(
-    /in Mods|No projects on the shelf yet/,
-  );
+  await expect(page.locator('[data-filter-status]')).toContainText(`in ${label}`);
   await expect(page.locator('a[aria-current="page"]').first()).toHaveText(/Projects/);
 });
 
+test('projects: filter chips exist only for categories with projects', async ({ page }) => {
+  await page.goto('/projects');
+  await expect(page.locator('[data-filter]')).toHaveCount(1 + shelf.active.length);
+  for (const c of shelf.hidden) await expect(page.locator(`[data-filter="${c}"]`)).toHaveCount(0);
+  for (const c of shelf.active) {
+    await expect(page.locator(`[data-filter="${c}"] .chip-filter__count`)).toHaveText(
+      String(shelf.projects.filter((p) => p.category === c).length),
+    );
+  }
+  // An old link to a hidden category shows everything instead of an empty shelf.
+  if (shelf.hidden.length) {
+    await page.goto(`/projects?c=${shelf.hidden[0]}`);
+    await expect(page.locator('[data-filter="all"]')).toHaveAttribute('aria-pressed', 'true');
+  }
+});
+
 test('projects: filters by click and keyboard, reflect URL, and reset', async ({ page }) => {
+  test.skip(shelf.active.length === 0, 'no categories have projects');
+  const [id] = shelf.active;
   await page.goto('/projects');
   const visible = page.locator('[data-project-grid] > li:not([hidden])');
   const total = await page.locator('[data-project-grid] > li').count();
   await expect(visible).toHaveCount(total);
 
-  await page.locator('[data-filter="games"]').click();
-  await expect(page).toHaveURL(/\?c=games$/);
-  await expect(page.locator('[data-filter="games"]')).toHaveAttribute('aria-pressed', 'true');
+  await page.locator(`[data-filter="${id}"]`).click();
+  await expect(page).toHaveURL(new RegExp(`\\?c=${id}$`));
+  await expect(page.locator(`[data-filter="${id}"]`)).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('[data-filter="all"]')).toHaveAttribute('aria-pressed', 'false');
-  for (const li of await visible.all()) await expect(li).toHaveAttribute('data-category', 'games');
+  for (const li of await visible.all()) await expect(li).toHaveAttribute('data-category', id);
 
-  await page.locator('[data-filter="software"]').focus();
-  await page.keyboard.press('Space');
-  await expect(page).toHaveURL(/\?c=software$/);
   await page.locator('[data-filter="all"]').focus();
-  await page.keyboard.press('Enter');
+  await page.keyboard.press('Space');
   await expect(page).toHaveURL(/\/projects$/);
+  await expect(visible).toHaveCount(total);
+  await page.locator(`[data-filter="${id}"]`).focus();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(new RegExp(`\\?c=${id}$`));
+  await page.locator('[data-filter="all"]').click();
   await expect(visible).toHaveCount(total);
 });
 
 test('projects: empty state when a category has no projects', async ({ page }) => {
+  test.skip(shelf.active.length === 0, 'shelf is empty; covered by the empty-shelf test');
+  const [id] = shelf.active;
+  const label = shelf.activeLabels[0];
   await page.goto('/projects');
-  test.skip(
-    (await page.locator('[data-project-grid] > li').count()) === 0,
-    'shelf is empty; covered by the empty-shelf test',
-  );
-  // Simulate a category with zero projects by removing its cards, then filtering.
-  await page.evaluate(() =>
-    document
-      .querySelectorAll('[data-project-grid] > li[data-category="mods"]')
-      .forEach((li) => li.remove()),
-  );
-  await page.locator('[data-filter="mods"]').click();
+  // Simulate the category emptying out (while another still has a card), then filtering.
+  await page.evaluate((c) => {
+    const grid = document.querySelector('[data-project-grid]')!;
+    const other = grid.firstElementChild!.cloneNode(true) as HTMLElement;
+    other.dataset.category = `not-${c}`;
+    grid.querySelectorAll(`:scope > li[data-category="${c}"]`).forEach((li) => li.remove());
+    grid.append(other);
+  }, id);
+  await page.locator(`[data-filter="${id}"]`).click();
   await expect(page.locator('[data-empty]')).toBeVisible();
-  await expect(page.locator('[data-empty]')).toContainText('mods');
-  await expect(page.locator('[data-filter-status]')).toContainText('Showing 0 projects in Mods');
+  await expect(page.locator('[data-empty]')).toContainText(label.toLowerCase());
+  await expect(page.locator('[data-filter-status]')).toContainText(
+    `Showing 0 projects in ${label}`,
+  );
   await page.locator('[data-filter-reset]').click();
   await expect(page.locator('[data-empty]')).toBeHidden();
   await expect(page.locator('[data-filter="all"]')).toBeFocused();
@@ -148,16 +212,37 @@ test('projects: unknown ?c= falls back to All', async ({ page }) => {
   await expect(page.locator('[data-filter="all"]')).toHaveAttribute('aria-pressed', 'true');
 });
 
-test('projects: placeholder projects show "Link coming soon", never a dead link', async ({
+test('projects: cards without a link say so plainly, never a dead link or filler', async ({
   page,
 }) => {
   await page.goto('/projects');
+  await expect(page.locator('main')).not.toContainText(/details coming soon/i);
   const cards = page.locator('.project-card');
   for (const card of await cards.all()) {
     const links = card.locator('a');
-    const soon = card.getByText('Link coming soon');
-    expect((await links.count()) + (await soon.count())).toBeGreaterThan(0);
-    for (const a of await links.all()) await expect(a).toHaveAttribute('href', /^https?:\/\//);
+    const note = card.getByText(/^(Link coming soon|Not out yet)$/);
+    expect((await links.count()) + (await note.count())).toBeGreaterThan(0);
+    for (const a of await links.all()) await expect(a).toHaveAttribute('href', /^https:\/\//);
+  }
+});
+
+test('projects: synced store labels, buttons and real screenshots render', async ({ page }) => {
+  await page.goto('/projects');
+  for (const p of shelf.projects) {
+    const card = page.locator(`.project-card:has(#proj-${p.slug}-title)`);
+    await expect(card.locator('.chip--status')).toHaveText(p.statusText);
+    if (p.href) {
+      await expect(
+        card.getByRole('link', { name: new RegExp(escapeRe(p.ctaText)) }),
+      ).toHaveAttribute('href', p.href);
+    }
+    const [first] = p.screenshots;
+    const shown = p.image ? [] : first?.width > first?.height ? [first] : p.screenshots.slice(0, 2);
+    for (const s of shown) {
+      const img = card.locator(`img[src="${s.src}"]`);
+      await expect(img).toHaveAttribute('alt', s.alt);
+      await expect(img).toHaveAttribute('width', String(s.width));
+    }
   }
 });
 
@@ -209,9 +294,78 @@ for (const path of PAGES) {
     expect(await mailtos.count()).toBeGreaterThan(0);
     for (const a of await mailtos.all()) await expect(a).toHaveAttribute('href', MAILTO);
     await expect(page.locator(`header a[href="${MAILTO}"]`).first()).toHaveText(/Contact/);
-    await expect(page.locator(`footer a[href="${MAILTO}"]`)).toHaveText(/devops@therdw\.com/);
+    for (const a of await page.locator(`footer a[href="${MAILTO}"]`).all()) {
+      await expect(a).toHaveText(/devops@therdw\.com/);
+    }
+  });
+
+  test(`${path}: footer names the company, address and email, with About + Privacy links`, async ({
+    page,
+  }) => {
+    await page.goto(path);
+    const year = new Date().getFullYear();
+    await expect(page.locator('[data-legal]')).toHaveText(
+      `© ${year} RDW, LLC. RDW Labz is a brand of RDW, LLC · 1301 N Main St, Harrison, AR 72601 · devops@therdw.com`,
+    );
+    await expect(page.locator(`[data-legal] a[href="${MAILTO}"]`)).toHaveCount(1);
+    const nav = page.getByRole('navigation', { name: 'Footer' });
+    await expect(nav.getByRole('link', { name: 'About' })).toHaveAttribute('href', '/about');
+    await expect(nav.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute(
+      'href',
+      '/privacy',
+    );
   });
 }
+
+test('footer year follows the visitor’s clock, not only the build', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2031-03-01T12:00:00Z'));
+  await page.goto('/');
+  await expect(page.locator('[data-year]')).toHaveText('2031');
+});
+
+test('about: who we are, where, and how to reach us (real facts only)', async ({ page }) => {
+  await page.goto('/about');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('About us');
+  const main = page.locator('main');
+  await expect(main).toContainText('RDW Labz is the dev studio brand of RDW, LLC');
+  await expect(main).toContainText('Harrison, Arkansas');
+  await expect(main.locator('address')).toContainText('1301 N Main St');
+  await expect(main.locator('address')).toContainText('Harrison, AR 72601');
+  await expect(main.locator(`a[href="${MAILTO}"]`).first()).toBeVisible();
+  for (const p of shelf.projects) await expect(main).toContainText(p.title);
+  await expect(page.locator('header a[aria-current="page"]').first()).toHaveText(/About/);
+});
+
+test('privacy: RDW, LLC policy with the right contact, no leftovers, no motion', async ({
+  page,
+}) => {
+  await page.goto('/privacy');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Privacy Policy');
+  const main = page.locator('main');
+  await expect(main).toContainText('This policy explains how RDW, LLC');
+  await expect(main.locator('address')).toContainText('1301 N Main St');
+  await expect(main.locator('address')).toContainText('Harrison, AR 72601, United States');
+  await expect(main).not.toContainText(/Cluer|operations@|601 US 62|\[DATE\]|TODO|GoDaddy|Draft/);
+  for (const a of await main.locator('a[href^="mailto:"]').all()) {
+    await expect(a).toHaveAttribute('href', MAILTO);
+  }
+  await expect(main.locator('[data-reveal]')).toHaveCount(0);
+  for (const h of ['What we collect', 'Children', 'Your choices and rights', 'Contact']) {
+    await expect(page.getByRole('heading', { level: 2, name: h })).toHaveCount(1);
+  }
+});
+
+test('mobile menu lists About and the Privacy Policy', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.locator('[data-menu-toggle]').click();
+  const menu = page.locator('#mobile-menu');
+  await expect(menu.getByRole('link', { name: 'About' })).toHaveAttribute('href', '/about');
+  await expect(menu.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute(
+    'href',
+    '/privacy',
+  );
+});
 
 test('home: hero, Work with us and CTA band all link to the contact email', async ({ page }) => {
   await page.goto('/');
@@ -244,7 +398,9 @@ test('SEO: canonical, OG tags, sitemap, robots, favicons', async ({ page, reques
     expect((await request.get(p)).status(), p).toBe(200);
   }
   const sitemap = await (await request.get('/sitemap-0.xml')).text();
-  expect(sitemap).toContain('https://rdwlabz.com/projects');
+  for (const p of ['/projects', '/about', '/privacy']) {
+    expect(sitemap).toContain(`https://rdwlabz.com${p}`);
+  }
   expect(sitemap).not.toContain('404');
   expect(sitemap).not.toContain('_gallery');
 });
@@ -285,12 +441,18 @@ for (const path of PAGES) {
 test.describe('no JavaScript', () => {
   test.use({ javaScriptEnabled: false });
   test('content is readable and filters degrade to links', async ({ page }) => {
-    await page.goto('/projects?c=mods');
+    const id = shelf.active[0] ?? 'games';
+    await page.goto(`/projects?c=${id}`);
     const hasCards = (await page.locator('.project-card').count()) > 0;
     await expect(page.locator(hasCards ? '.project-card' : '[data-empty]').first()).toBeVisible();
-    await expect(page.locator('[data-filter="mods"]')).toHaveAttribute('href', '/projects?c=mods');
-    await page.goto('/');
-    await expect(page.locator('#what-we-build .tile').first()).toBeVisible();
+    if (shelf.active.length) {
+      await expect(page.locator(`[data-filter="${id}"]`)).toHaveAttribute(
+        'href',
+        `/projects?c=${id}`,
+      );
+      await page.goto('/');
+      await expect(page.locator('#what-we-build :is(.tile, .project-card)').first()).toBeVisible();
+    }
   });
 });
 
@@ -318,16 +480,21 @@ test.describe('reduced motion', () => {
 test.describe('round 2 motion', () => {
   test.use({ reducedMotion: 'no-preference' });
 
-  test('hero cycler swaps the category word', async ({ page }) => {
+  test('hero cycler swaps the category word (only with 2+ active categories)', async ({ page }) => {
     await page.goto('/');
+    // The cycle is decorative; the h1's accessible name keeps the full sentence.
+    await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName(
+      new RegExp(`RDW Labz.*We build ${escapeRe(shelf.phrase)}\\.`),
+    );
+    if (shelf.active.length < 2) {
+      await expect(page.locator('.hero__tag-cycle')).toBeHidden();
+      await expect(page.locator('.hero__tag-static')).toBeVisible();
+      return;
+    }
     const on = page.locator('.cycler__word.is-on');
     await expect(on).toHaveCount(1);
     const first = await on.textContent();
     await expect.poll(() => on.textContent(), { timeout: 6000 }).not.toBe(first);
-    // The cycle is decorative; the h1's accessible name keeps the full sentence.
-    await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName(
-      /RDW Labz.*software, games, mods and asset packs/i,
-    );
   });
 
   test('pause toggle stops the cycler and persists across reloads', async ({ page }) => {
@@ -347,7 +514,11 @@ test.describe('round 2 motion', () => {
 
   test('pop headings keep their accessible names', async ({ page }) => {
     await page.goto('/');
-    for (const name of ['What we build', 'Fresh from the lab', 'Work with us']) {
+    const sections =
+      shelf.active.length === 1
+        ? [shelf.activeLabels[0], 'Work with us']
+        : ['What we build', 'Fresh from the lab', 'Work with us'];
+    for (const name of sections) {
       await expect(page.getByRole('heading', { level: 2, name })).toHaveCount(1);
     }
     await page.goto('/projects');

@@ -6,9 +6,12 @@ import ContactButton from '../components/ContactButton.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import Icon from '../components/Icon.astro';
 import LabBench from '../components/home/LabBench.astro';
+import LabActivity from '../components/home/LabActivity.astro';
 import PopHeading from '../components/PopHeading.astro';
 import {
-  categories,
+  activeCategories,
+  allProjects,
+  buildPhrase,
   categoryAccent,
   categoryBlurb,
   categoryInk,
@@ -18,22 +21,20 @@ import {
   featuredProjects,
   isTodo,
   labActivity,
+  pluralProjects,
   site,
   tagline,
 } from '../lib/projects';
 
-const featured = featuredProjects().slice(0, 6);
+/** With a single active category, it takes over the "What we build" slot with its projects. */
+const spotlight = activeCategories.length === 1 ? activeCategories[0] : null;
+const spotlightItems = spotlight ? allProjects().filter((p) => p.category === spotlight.id) : [];
+const featured = spotlight ? [] : featuredProjects().slice(0, 6);
 const fillerSpan = featured.length > 0 && featured.length < 3 ? 3 - featured.length : 0;
 const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
 const activity = labActivity(3);
-const buildLine = 'We build software, games, mods and asset packs.';
-const fmtDate = (d: string) =>
-  new Date(`${d}T00:00:00Z`).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
+const buildLine = `We build ${buildPhrase}.`;
+const kinds = ['', 'One', 'Two', 'Three', 'Four'][activeCategories.length] ?? 'A few';
 ---
 
 <BaseLayout description={tagline} current="home">
@@ -47,12 +48,12 @@ const fmtDate = (d: string) =>
         <span class="hero__name">
           <span class="hero__word">RDW</span> <span class="hero__word hero__labz">Labz</span>
         </span>
-        <span class="hero__tag">
+        <span class:list={['hero__tag', activeCategories.length < 2 && 'hero__tag--still']}>
           <span class="hero__tag-static">{buildLine}</span>
           <span class="hero__tag-cycle" aria-hidden="true" data-loop>
             We build{' '}
             <span class="cycler">
-              {categories.map((c, i) => (
+              {activeCategories.map((c, i) => (
                 <span
                   class:list={['cycler__word', i === 0 && 'is-on']}
                   style={`--c:${categoryInk[c.id]}; --u:${categoryAccent[c.id]}`}
@@ -91,107 +92,124 @@ const fmtDate = (d: string) =>
     </div>
   </section>
 
-  <!-- 2. What we build -->
-  <Section tone="peach" id="what-we-build" labelledby="wwb-title">
-    <div class="section-head" data-reveal>
-      <PopHeading id="wwb-title" class="text-h2" text="What we build" />
-      <p class="section-head__lead">
-        Four kinds of things come out of the lab. Pick one to browse.
-      </p>
-    </div>
-    <ul class="tiles">
-      {categories.map((c, i) => {
-        const n = countIn(c.id);
-        const blurb = categoryBlurb(c);
-        return (
-          <li data-reveal style={`--reveal-i:${i}`}>
-            <a href={`/projects?c=${c.id}`} class="tile" style={`--acc:${categoryAccent[c.id]}`}>
-              <span class="tile__no" aria-hidden="true">
-                0{i + 1}
-              </span>
-              <span class="tile__icon" aria-hidden="true">
-                <Icon name={c.id} size={36} strokeWidth={1.8} />
-              </span>
-              <span class="tile__label">{c.label}</span>
-              {blurb && <span class="tile__blurb">{blurb}</span>}
-              <span class="tile__meta">
-                {countLabel(n)}
-                <Icon name="arrow-right" size={18} class="tile__arrow" />
-              </span>
-            </a>
-          </li>
-        );
-      })}
-    </ul>
-  </Section>
-
-  <!-- 3. Featured projects -->
-  <Section tone="mint" id="featured" labelledby="featured-title">
-    <div class="section-head section-head--split" data-reveal>
-      <div>
-        <PopHeading id="featured-title" class="text-h2" text="Fresh from the lab" />
-        <p class="section-head__lead">A few things we're working on.</p>
+  <!-- 2. What we build: tiles per active category, or the only active category's projects -->
+  {spotlight ? (
+    <Section tone="peach" id="what-we-build" labelledby="wwb-title">
+      <div class="section-head section-head--split" data-reveal>
+        <div class="spotlight-head">
+          <p class="eyebrow">
+            <Icon name={spotlight.id} size={16} /> What we build
+          </p>
+          <PopHeading id="wwb-title" class="text-h2" text={spotlight.label} />
+          <p class="section-head__lead">
+            {categoryBlurb(spotlight) ??
+              `${pluralProjects(spotlightItems.length)} from the lab, out now or on the way.`}
+          </p>
+        </div>
+        <Button
+          href={`/projects?c=${spotlight.id}`}
+          variant="secondary"
+          size="sm"
+          iconEnd="arrow-right"
+        >
+          All {spotlight.label.toLowerCase()}
+        </Button>
       </div>
-      <Button href="/projects" variant="secondary" size="sm" iconEnd="arrow-right">
-        All projects
-      </Button>
-    </div>
-    {featured.length > 0 ? (
-      <ul class="featured-grid">
-        {featured.map((p, i) => (
+      <ul
+        class="featured-grid featured-grid--fit"
+        style={`--cols:${Math.min(spotlightItems.length, 3)}`}
+      >
+        {spotlightItems.map((p, i) => (
           <li data-reveal="rise" style={`--reveal-i:${i}`}>
             <ProjectCard project={p} />
           </li>
         ))}
-        {fillerSpan > 0 && (
-          <li
-            data-reveal="rise"
-            class="filler-slot"
-            style={`--span:${fillerSpan}; --reveal-i:${featured.length}`}
-          >
-            <a href="/projects" class="filler">
-              <span class="filler__icon" aria-hidden="true">
-                <Icon name="flask" size={32} strokeWidth={1.8} />
-              </span>
-              <span class="filler__title">More on the shelf</span>
-              <span class="filler__text">
-                See everything we’re building <Icon name="arrow-right" size={18} />
-              </span>
-            </a>
-          </li>
-        )}
       </ul>
-    ) : (
-      <p class="empty-note" data-reveal>
-        Featured projects are on their way.{' '}
-        <a class="link" href="/projects">
-          Browse everything
-        </a>
-      </p>
-    )}
-    {activity.length > 0 && (
-      <div class="activity" data-reveal>
-        <h3 class="activity__title">
-          <span class="activity__pulse" aria-hidden="true" /> Lab activity
-        </h3>
-        <ol class="activity__list">
-          {activity.map((a) => (
-            <li class="activity__item" style={`--acc:${a.project.accent}`}>
-              <span class="activity__kind">
-                {a.kind === 'release' ? 'Released' : 'New on the shelf'}
-              </span>
-              <a class="activity__name" href={`/projects?c=${a.project.category}`}>
-                {a.project.title}
+      <LabActivity items={activity} />
+    </Section>
+  ) : activeCategories.length > 1 ? (
+    <Section tone="peach" id="what-we-build" labelledby="wwb-title">
+      <div class="section-head" data-reveal>
+        <PopHeading id="wwb-title" class="text-h2" text="What we build" />
+        <p class="section-head__lead">
+          {kinds} kinds of things come out of the lab. Pick one to browse.
+        </p>
+      </div>
+      <ul class="tiles">
+        {activeCategories.map((c, i) => {
+          const n = countIn(c.id);
+          const blurb = categoryBlurb(c);
+          return (
+            <li data-reveal style={`--reveal-i:${i}`}>
+              <a href={`/projects?c=${c.id}`} class="tile" style={`--acc:${categoryAccent[c.id]}`}>
+                <span class="tile__no" aria-hidden="true">
+                  0{i + 1}
+                </span>
+                <span class="tile__icon" aria-hidden="true">
+                  <Icon name={c.id} size={36} strokeWidth={1.8} />
+                </span>
+                <span class="tile__label">{c.label}</span>
+                {blurb && <span class="tile__blurb">{blurb}</span>}
+                <span class="tile__meta">
+                  {countLabel(n)}
+                  <Icon name="arrow-right" size={18} class="tile__arrow" />
+                </span>
               </a>
-              <time class="activity__date" datetime={a.date}>
-                {fmtDate(a.date)}
-              </time>
+            </li>
+          );
+        })}
+      </ul>
+    </Section>
+  ) : null}
+
+  <!-- 3. Featured projects (the spotlight above already shows them when there's one category) -->
+  {!spotlight && (
+    <Section tone="mint" id="featured" labelledby="featured-title">
+      <div class="section-head section-head--split" data-reveal>
+        <div>
+          <PopHeading id="featured-title" class="text-h2" text="Fresh from the lab" />
+          <p class="section-head__lead">A few things we're working on.</p>
+        </div>
+        <Button href="/projects" variant="secondary" size="sm" iconEnd="arrow-right">
+          All projects
+        </Button>
+      </div>
+      {featured.length > 0 ? (
+        <ul class="featured-grid">
+          {featured.map((p, i) => (
+            <li data-reveal="rise" style={`--reveal-i:${i}`}>
+              <ProjectCard project={p} />
             </li>
           ))}
-        </ol>
-      </div>
-    )}
-  </Section>
+          {fillerSpan > 0 && (
+            <li
+              data-reveal="rise"
+              class="filler-slot"
+              style={`--span:${fillerSpan}; --reveal-i:${featured.length}`}
+            >
+              <a href="/projects" class="filler">
+                <span class="filler__icon" aria-hidden="true">
+                  <Icon name="flask" size={32} strokeWidth={1.8} />
+                </span>
+                <span class="filler__title">More on the shelf</span>
+                <span class="filler__text">
+                  See everything we’re building <Icon name="arrow-right" size={18} />
+                </span>
+              </a>
+            </li>
+          )}
+        </ul>
+      ) : (
+        <p class="empty-note" data-reveal>
+          Featured projects are on their way.{' '}
+          <a class="link" href="/projects">
+            Browse everything
+          </a>
+        </p>
+      )}
+      <LabActivity items={activity} />
+    </Section>
+  )}
 
   <!-- 4. Work with us -->
   <Section tone="paper" id="work-with-us" labelledby="wwu-title">
@@ -317,10 +335,12 @@ const fmtDate = (d: string) =>
       clip-path: inset(50%);
       white-space: nowrap;
     }
-    :global(html[data-motion='paused']) .hero__tag-cycle {
+    :global(html[data-motion='paused']) .hero__tag-cycle,
+    .hero__tag--still .hero__tag-cycle {
       display: none;
     }
-    :global(html[data-motion='paused']) .hero__tag-static {
+    :global(html[data-motion='paused']) .hero__tag-static,
+    .hero__tag--still .hero__tag-static {
       position: static;
       width: auto;
       height: auto;
@@ -405,6 +425,9 @@ const fmtDate = (d: string) =>
     justify-content: space-between;
     gap: 20px;
     max-width: none;
+  }
+  .spotlight-head :global(h2) {
+    margin: 14px 0 0;
   }
   .section-head__lead {
     margin: 12px 0 0;
@@ -558,6 +581,11 @@ const fmtDate = (d: string) =>
     }
   }
   @media (min-width: 64rem) {
+    .featured-grid--fit {
+      grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 64rem) {
     .filler-slot {
       grid-column: span var(--span);
     }
@@ -612,77 +640,6 @@ const fmtDate = (d: string) =>
   }
   .empty-note {
     font-size: 1.125rem;
-  }
-
-  .activity {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px 24px;
-    margin-top: clamp(28px, 4vw, 44px);
-    padding: 16px 20px;
-    border-radius: var(--radius-lg);
-    background: rgb(255 255 255 / 0.72);
-    border: 2px solid var(--color-ink);
-  }
-  .activity__title {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0;
-    font-size: 1.375rem;
-  }
-  .activity__pulse {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--color-mint);
-    box-shadow: 0 0 0 2px var(--color-ink);
-    animation: pulse 1.6s ease-out 3;
-  }
-  @keyframes pulse {
-    50% {
-      scale: 1.5;
-    }
-  }
-  .activity__list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .activity__item {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px 10px;
-    min-height: 44px;
-    padding: 6px 14px 6px 6px;
-    border-radius: var(--radius-lg);
-    background: var(--color-surface);
-    border: 2px solid var(--color-ink);
-    box-shadow: 0 3px 0 var(--acc);
-  }
-  .activity__kind {
-    padding: 3px 10px;
-    border-radius: var(--radius-pill);
-    background: color-mix(in oklab, var(--acc), #fff 80%);
-    font-size: var(--text-chip);
-    font-weight: 700;
-  }
-  .activity__name {
-    color: var(--color-ink);
-    font-weight: 800;
-    text-decoration: underline;
-    text-decoration-color: var(--acc);
-    text-decoration-thickness: 2px;
-    text-underline-offset: 3px;
-  }
-  .activity__date {
-    font-size: var(--text-small);
-    color: var(--color-ink-soft);
   }
 
   .wwu {

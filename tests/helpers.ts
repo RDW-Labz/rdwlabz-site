@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import { activeCategories, allProjects, buildPhrase, categories, site } from '../src/lib/projects';
 
 /** Measure final colors, not mid-fade: finish reveals, entrance animations and transitions. */
 export async function settleMotion(page: Page) {
@@ -10,3 +11,15 @@ export async function settleMotion(page: Page) {
     });
   });
 }
+
+/** What the site should show, computed from the same data the build uses. */
+export const shelf = {
+  active: activeCategories.map((c) => c.id),
+  activeLabels: activeCategories.map((c) => c.label),
+  hidden: categories.filter((c) => !activeCategories.includes(c)).map((c) => c.id),
+  projects: allProjects(),
+  phrase: buildPhrase,
+  site,
+};
+
+export const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

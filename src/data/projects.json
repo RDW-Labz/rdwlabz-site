@@ -24,20 +24,93 @@
   ],
   "projects": [
     {
+      "slug": "dormant-red",
+      "name": "Dormant Red",
+      "oneLiner": "Restore a dead space station's power, comms and airlock before your 100 seconds of oxygen run out. Something red sits dormant in a corner; get too close and it hunts you down.",
+      "category": "games",
+      "status": "released",
+      "platforms": ["Web"],
+      "url": "https://btabor11.itch.io/dormant-red",
+      "cta": "Play free on itch.io",
+      "accentColor": "TODO",
+      "image": null,
+      "icon": null,
+      "screenshots": [
+        {
+          "src": "/projects/dormant-red-shot-1.webp",
+          "width": 960,
+          "height": 540,
+          "alt": "Dormant Red: the red entity awake near the power system, with 2 of 3 systems restored and 84 seconds of oxygen left"
+        }
+      ],
+      "featured": true,
+      "releasedAt": "2026-10-08",
+      "addedAt": "2026-10-12",
+      "sync": {
+        "id": "gh-1f1a4789a369",
+        "written": {
+          "slug": "9de3676b",
+          "name": "6b93f30f",
+          "oneLiner": "d5ee1c4b",
+          "category": "e69443fd",
+          "status": "4281d8b5",
+          "platforms": "665aea3c",
+          "url": "6979c94a",
+          "cta": "1857e920",
+          "accentColor": "95c98b3d",
+          "image": "74234e98",
+          "icon": "74234e98",
+          "screenshots": "c3d8b78d",
+          "featured": "b5bea41b",
+          "releasedAt": "6b9df640"
+        }
+      }
+    },
+    {
       "slug": "putt-drop",
       "name": "Putt Drop",
-      "oneLiner": "TODO: one line",
+      "oneLiner": "One-thumb neon mini golf for phones: drag back to aim, release to putt. Each hole is a small puzzle of walls, bumpers, sand, water, slopes and moving bars.",
       "category": "games",
-      "status": "in-dev",
+      "status": "coming-soon",
+      "statusLabel": "Coming to Google Play",
       "platforms": ["Android"],
       "url": null,
       "accentColor": "TODO",
       "image": null,
       "icon": null,
+      "screenshots": [
+        {
+          "src": "/projects/putt-drop-shot-1.webp",
+          "width": 573,
+          "height": 960,
+          "alt": "Putt Drop, hole 1 (Dewdrop): aiming a putt up a narrow neon fairway"
+        },
+        {
+          "src": "/projects/putt-drop-shot-2.webp",
+          "width": 573,
+          "height": 960,
+          "alt": "Putt Drop, hole 9 (Undertow): a zigzag neon course, par 4"
+        }
+      ],
       "featured": true,
       "addedAt": "2026-10-12",
       "sync": {
-        "id": "gh-9f23b4a2d3c3"
+        "id": "gh-9f23b4a2d3c3",
+        "written": {
+          "slug": "b78bb1c0",
+          "name": "231940df",
+          "oneLiner": "b89dd11a",
+          "category": "e69443fd",
+          "status": "853495a5",
+          "statusLabel": "6a3caec4",
+          "platforms": "5b45ac66",
+          "url": "74234e98",
+          "accentColor": "95c98b3d",
+          "image": "74234e98",
+          "icon": "74234e98",
+          "screenshots": "49ce2a2a",
+          "featured": "b5bea41b"
+        }
       }
     }
   ],
@@ -46,6 +119,8 @@
     "domain": "rdwlabz.com",
     "tagline": "TODO: one sentence on what RDW Labz builds",
     "contactEmail": "devops@therdw.com",
+    "company": "RDW, LLC",
+    "address": "1301 N Main St, Harrison, AR 72601",
     "launchDate": "TODO",
     "workWithUs": "TODO: optional line on the kinds of client/collab work RDW Labz takes on (availability, scope)"
   }

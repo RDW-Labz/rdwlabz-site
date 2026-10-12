@@ -1,30 +1,58 @@
 ---
 import Icon from './Icon.astro';
-import type { CategoryId } from '../lib/projects';
+import type { CategoryId, Screenshot } from '../lib/projects';
 
 /**
  * Project image, or generated accent art when the image is missing (0 bytes, looks intentional).
  * Real images are expected in /public/projects/ and must be cleared for use (docs/ASSETS.md).
+ * Screenshots: a landscape one fills the frame; portrait (phone) ones sit side by side.
  */
 interface Props {
   image: string | null;
   /** Square app icon, shown as a sticker on the accent art when there's no card image. */
   icon?: string | null;
+  screenshots?: Screenshot[];
   accent: string;
   category: CategoryId;
   alt?: string;
   class?: string;
 }
 
-const { image, icon, accent, category, alt = '', class: className } = Astro.props;
+const { image, icon, screenshots = [], accent, category, alt = '', class: className } = Astro.props;
 const usable = (v?: string | null) => !!v && !v.toUpperCase().startsWith('TODO');
 const hasImage = usable(image);
-const hasIcon = !hasImage && usable(icon);
+const wideShot = !hasImage && screenshots[0] && screenshots[0].width > screenshots[0].height;
+const phoneShots = !hasImage && !wideShot ? screenshots.slice(0, 2) : [];
+const hasIcon = !hasImage && !screenshots.length && usable(icon);
 ---
 
-<div class:list={['art', className]} style={`--acc:${accent}`}>
+<div
+  class:list={['art', phoneShots.length > 0 && 'art--phones', className]}
+  style={`--acc:${accent}`}
+>
   {hasImage ? (
     <img src={image} alt={alt} width="800" height="500" loading="lazy" decoding="async" />
+  ) : wideShot ? (
+    <img
+      src={screenshots[0].src}
+      alt={screenshots[0].alt}
+      width={screenshots[0].width}
+      height={screenshots[0].height}
+      loading="lazy"
+      decoding="async"
+    />
+  ) : phoneShots.length > 0 ? (
+    phoneShots.map((s) => (
+      <img
+        class="art__phone"
+        src={s.src}
+        alt={s.alt}
+        width={s.width}
+        height={s.height}
+        loading="lazy"
+        decoding="async"
+      />
+    ))
   ) : hasIcon ? (
     <img
       class="art__app"
@@ -59,10 +87,31 @@ const hasIcon = !hasImage && usable(icon);
       aspect-ratio: 2 / 1;
     }
   }
-  .art img:not(.art__app) {
+  .art img:not(.art__app, .art__phone) {
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+  .art--phones {
+    grid-auto-flow: column;
+    justify-content: center;
+    gap: 6%;
+  }
+  .art .art__phone {
+    height: 88%;
+    width: auto;
+    max-width: 100%;
+    border-radius: 12px;
+    border: 2px solid var(--color-ink);
+    box-shadow: 0 5px 0 rgb(30 20 51 / 0.45);
+    background: var(--color-ink);
+  }
+  .art__phone:nth-child(1) {
+    rotate: -4deg;
+  }
+  .art__phone:nth-child(2) {
+    rotate: 4deg;
+    translate: 0 6%;
   }
   .art .art__app {
     width: clamp(72px, 32%, 112px);

@@ -4,13 +4,14 @@ import Icon from './Icon.astro';
 import ContactButton from './ContactButton.astro';
 
 interface Props {
-  current: 'home' | 'projects' | null;
+  current: 'home' | 'projects' | 'about' | 'privacy' | null;
 }
 
 const { current } = Astro.props;
 const links = [
   { id: 'home', label: 'Home', href: '/' },
   { id: 'projects', label: 'Projects', href: '/projects' },
+  { id: 'about', label: 'About', href: '/about' },
 ] as const;
 ---
 
@@ -80,6 +81,13 @@ const links = [
           ))}
         </ul>
         <ContactButton variant="primary" label="Get in touch" class="w-full" />
+        <a
+          href="/privacy"
+          class="mobile-menu__small link"
+          aria-current={current === 'privacy' ? 'page' : undefined}
+        >
+          Privacy Policy
+        </a>
       </nav>
     </div>
   </div>
@@ -212,6 +220,14 @@ const links = [
   .mobile-menu__link:hover,
   .mobile-menu__link[aria-current='page'] {
     background: var(--color-cream);
+  }
+  .mobile-menu__small {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    margin-top: 8px;
+    font-weight: 600;
   }
   @keyframes menu-in {
     from {

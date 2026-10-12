@@ -32,6 +32,15 @@ No AI-generated images, stock photos or third-party game art, logos or trademark
 
 Written by `scripts/sync-projects.mjs`. They come only from RDW-Labz's own repos (the app icon in the repo) or from those apps' own public store listings (Google Play, App Store, Steam, Modrinth, CurseForge), so they're RDW Labz's own app art. Icons are re-encoded to 256 px WebP and Steam headers to 800×500 WebP. The sync deletes files no project references any more. If a repo ever ships third-party art as its icon, set `"hidden": true` or override `image` in its `rdwlabz.json`.
 
+## Synced screenshots (`public/projects/*-shot-N.webp`)
+
+Real in-game captures listed in each repo's `rdwlabz.json` `screenshots`, re-encoded by the sync to fit 960×960 WebP. Never mockups or AI images.
+
+| File | Source (repo path) | Rights |
+|---|---|---|
+| `dormant-red-shot-1.webp` (960×540) | RDW-Labz/dormant-red `store/screenshot-04-entity-awake.png` (via [dormant-red#5](https://github.com/RDW-Labz/dormant-red/pull/5)) | RDW Labz's own game. The repo's `RIGHTS.md` says cleared 2026-10-08 |
+| `putt-drop-shot-1.webp`, `putt-drop-shot-2.webp` (573×960) | RDW-Labz/putt-drop `store/screenshots/01-hole-1-aiming.png`, `02-hole-9-undertow.png` (copied from the baseline captures in `docs/design/baseline/screens`, via [putt-drop#3](https://github.com/RDW-Labz/putt-drop/pull/3)) | RDW Labz's own game |
+
 ## Adding real project images
 
 Put the files in `public/projects/<slug>.webp` (or `.avif`), 1600×1000 (16:10), at most about 120 KB each, then set `"image": "/projects/<slug>.webp"` in `src/data/projects.json`. Only use images RDW Labz owns or has rights to, and log each one here.

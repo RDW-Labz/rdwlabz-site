@@ -30,6 +30,7 @@ const titleId = `proj-${p.slug}-title`;
   <ProjectArt
     image={p.image}
     icon={p.icon ?? null}
+    screenshots={p.screenshots}
     accent={p.accent}
     category={p.category}
     alt={p.image ? '' : undefined}
@@ -46,7 +47,7 @@ const titleId = `proj-${p.slug}-title`;
     <H id={titleId} class="project-card__title">
       {p.title}
     </H>
-    <p class="project-card__blurb">{p.blurb}</p>
+    {p.blurb && <p class="project-card__blurb">{p.blurb}</p>}
     {p.platforms.length > 0 && (
       <ul class="project-card__tags" aria-label="Platforms">
         {p.platforms.map((t) => (
@@ -64,12 +65,13 @@ const titleId = `proj-${p.slug}-title`;
           target="_blank"
           rel="noopener noreferrer"
         >
-          View project <Icon name="arrow-up-right" size={16} />
+          {p.ctaText} <Icon name="arrow-up-right" size={16} />
           <span class="sr-only">: {p.title} (opens in a new tab)</span>
         </a>
       ) : (
         <span class="project-card__soon">
-          <Icon name="clock" size={16} /> Link coming soon
+          <Icon name="clock" size={16} />
+          {p.status === 'released' ? 'Link coming soon' : 'Not out yet'}
         </span>
       )}
     </div>
