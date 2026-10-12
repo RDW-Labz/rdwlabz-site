@@ -15,6 +15,7 @@
     "format": "prettier --write .",
     "test": "playwright test",
     "test:shots": "playwright test --project=screenshots",
+    "sync": "node scripts/sync-projects.mjs",
     "lhci": "astro build && lhci autorun --config=lighthouserc.cjs && node scripts/lh-summary.mjs"
   },
   "dependencies": {

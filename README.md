@@ -56,6 +56,14 @@ Everything lives in `src/data/projects.json`. Replace the `TODO` placeholders; d
 
 Images go in `public/projects/` (16:10, about 1600×1000, ≤ 120 KB, WebP or AVIF). Only use images RDW Labz has rights to; no third-party game art or logos. Log each one in `docs/ASSETS.md`.
 
+### Auto project tracker (opt-in per repo)
+
+1. Copy `templates/rdwlabz.json` to the root of any RDW-Labz repo you want on the site (Putt Drop's is ready in `templates/putt-drop.rdwlabz.json`). Repos without that file are never listed.
+2. Fill it in with public facts only; leave unknowns as `TODO`. For a private repo, don't use a GitHub link for `url` or `image`, because it would expose the repo.
+3. Every day the **Sync projects** workflow (or Actions → Sync projects → Run workflow) reads those files, validates them, marks a project `released` when its repo has a GitHub Release, and opens a PR. It never pushes to main and never deploys.
+4. Hand-written entries in `projects.json` are kept as-is. If a repo uses the same slug as one of them, the repo is skipped until you delete the hand-written entry (do this for Putt Drop once its repo has the file).
+5. Run it locally with `RDWLABZ_SYNC_TOKEN=… npm run sync -- --dry-run`, and see `scripts/sync-projects.mjs` for the rules. The Home "Lab activity" strip is built from the same data at build time.
+
 The `site` block holds the tagline, contact email, launch date and an optional "work with us" line. Any value starting with `TODO` is hidden or replaced with a "coming soon" state. Build-time validation fails on an unknown category or status, or a duplicate slug.
 
 ## Analytics

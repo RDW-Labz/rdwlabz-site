@@ -1,0 +1,11 @@
+{
+  "name": "Project name (shown on rdwlabz.com)",
+  "oneLiner": "TODO: one line on what it is",
+  "category": "games",
+  "status": "in-dev",
+  "platforms": ["Windows"],
+  "url": "TODO",
+  "accentColor": "TODO",
+  "image": null,
+  "featured": false
+}
