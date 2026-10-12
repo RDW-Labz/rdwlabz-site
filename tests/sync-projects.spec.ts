@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { execSync } from 'node:child_process';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import sharp from 'sharp';
@@ -8,6 +9,7 @@ import {
   steamAppId,
   modrinthId,
   curseforgeId,
+  detectIds,
   guessCategory,
   categoryFromTopics,
   findRepoIcon,
@@ -107,10 +109,21 @@ test.describe('sync detectors: repo files', () => {
       { path: 'web/package.json', type: 'blob', size: 300 },
       { path: 'huge/build.gradle', type: 'blob', size: 900_000 },
       { path: 'src/main.ts', type: 'blob', size: 300 },
+      { path: 'tests/fixtures/sync/steam/steam_appid.txt', type: 'blob', size: 8 },
+      { path: 'android/app/src/test/build.gradle', type: 'blob', size: 900 },
+      { path: 'examples/demo/app.json', type: 'blob', size: 300 },
+      { path: 'packages/x/__fixtures__/gradle.properties', type: 'blob', size: 90 },
     ];
     expect(pickFiles(tree).sort()).toEqual(
       ['android/app/build.gradle', 'ios/App/App/Info.plist', 'package.json'].sort(),
     );
+  });
+
+  test('this site repo is not detected as a store project (its fixtures are ignored)', () => {
+    const paths = execSync('git ls-files', { encoding: 'utf8' }).trim().split('\n');
+    const tree = paths.map((path) => ({ path, type: 'blob', size: 1 }));
+    const all = Object.fromEntries(pickFiles(tree).map((p) => [p, readFileSync(p, 'utf8')]));
+    expect(Object.values(detectIds(all)).filter(Boolean)).toEqual([]);
   });
 
   test('category: topics first, then files, default software', () => {

@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { settleMotion } from './helpers';
 
 const PAGES = ['/', '/projects', '/404'];
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
@@ -20,14 +21,7 @@ for (const path of PAGES) {
   test(`${path}: no axe violations, no console/network errors`, async ({ page }) => {
     const errors = trackErrors(page);
     await page.goto(path);
-    // Measure final colors, not mid-fade: finish reveals and stop transitions first.
-    await page.addStyleTag({ content: '*{transition:none!important}' });
-    await page.evaluate(() => {
-      document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-revealed'));
-      document.getAnimations().forEach((a) => {
-        if (a.effect?.getTiming().iterations !== Infinity) a.finish();
-      });
-    });
+    await settleMotion(page);
     const results = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
     expect(results.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([]);
     expect(errors).toEqual([]);

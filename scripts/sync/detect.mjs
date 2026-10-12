@@ -1,7 +1,10 @@
 // Pure detectors: read a repo's file list + a few small config files, return store ids,
 // a category guess and the best app-icon path. No network here (see stores.mjs).
 
-const SKIP_DIR = /(^|\/)(node_modules|Pods|build|dist|\.gradle|\.git|vendor|Library|Temp)\//;
+const BUILD_DIR = /(^|\/)(node_modules|Pods|build|dist|\.gradle|\.git|vendor|Library|Temp)\//;
+// Test data and samples can hold other apps' store ids (this site's own fixtures do).
+const TEST_DIR = /(^|\/)(tests?|__tests__|spec|e2e|(__)?fixtures(__)?|examples?|samples?)\//i;
+const skipped = (/** @type {string} */ p) => BUILD_DIR.test(p) || TEST_DIR.test(p);
 const PKG = /^[A-Za-z][\w]*(\.[A-Za-z][\w-]*)+$/;
 
 /** Config files worth fetching, by basename. */
@@ -31,7 +34,7 @@ const depth = (p) => p.split('/').length;
  */
 export function pickFiles(tree, max = 20) {
   const picked = tree
-    .filter((f) => f.type === 'blob' && !SKIP_DIR.test(f.path) && (f.size ?? 0) <= 300_000)
+    .filter((f) => f.type === 'blob' && !skipped(f.path) && (f.size ?? 0) <= 300_000)
     .filter((f) => {
       const b = base(f.path);
       if (b === 'package.json') return f.path === 'package.json';
@@ -208,7 +211,7 @@ export function guessCategory({ topics = [], paths = [], files: all = {} }) {
   )
     return 'games';
   if (GAME_DEPS.test(all['package.json'] ?? '')) return 'games';
-  const blobs = paths.filter((p) => !SKIP_DIR.test(p));
+  const blobs = paths.filter((p) => !skipped(p));
   const assets = blobs.filter((p) => ASSET_EXT.test(p)).length;
   if (blobs.length >= 5 && !blobs.some((p) => CODE_EXT.test(p)) && assets / blobs.length >= 0.6)
     return 'asset-packs';
@@ -227,7 +230,7 @@ const ICON_RANKS = [
 
 /** Best app icon in the repo: platform launcher icons first, then common locations. */
 export function findRepoIcon(tree, all = {}) {
-  const blobs = tree.filter((f) => f.type === 'blob' && !SKIP_DIR.test(f.path));
+  const blobs = tree.filter((f) => f.type === 'blob' && !skipped(f.path));
   const expoIcon = (() => {
     const j = parseJson(all['app.json'] ?? '');
     const icon = (j?.expo ?? j)?.icon;
