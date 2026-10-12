@@ -1,6 +1,6 @@
 # Preflight
 
-**Overall: PARTIALLY VERIFIED. Not ready to launch.** Every check the agent could run passes. Launch is blocked on real content (there's no contact email yet, so the site has no working contact route; Putt Drop has no link or one-liner; the tagline is the fallback) and on checks that need a human or a deployed site (screen reader, real devices, other browsers, field metrics).
+**Overall: PARTIALLY VERIFIED. Not ready to launch.** Every check the agent could run passes. Launch is blocked on real content (Putt Drop has no link or one-liner; the tagline is the fallback) and on checks that need a human or a deployed site (screen reader, real devices, other browsers, field metrics).
 
 Last updated 2026-10-12 after Round 2 (Bagel Fat One headings, playful motion, the opt-in project tracker and the Lab activity strip). Unless noted, everything ran against the **production build** (`astro build && astro preview`) in Playwright Chromium.
 
@@ -10,7 +10,7 @@ Status key: PASS · FAIL · BLOCKED · NOT RUN · N/A (with reason)
 |---|---|---|---|---|
 | Scope matches v1 | Home, Projects, 404; footer mailto only; no forms, CMS, logins, store or blog | PASS | `dist/` contains only `index.html`, `projects.html`, `404.html` + assets. The e2e test "dev-only routes are not in the production build" passes | — |
 | No invented facts | All copy and data | PASS | Every unknown is a `TODO:` in `src/data/projects.json` and renders as "coming soon" UI. Entries whose name is TODO are never shown or counted; categories with 0 real projects show "Coming soon" instead of a count, and their filter chip has no count badge (e2e "placeholder entries are never shown or counted"). The hero eyebrow was changed from "Indie dev lab" to "Hello from the lab" (Review pass 1 #3) | Real content is needed (see the TODOs below) |
-| Contact never points at a placeholder | Header, hero, CTA band, footer | PASS | e2e "contact: placeholder email never renders a mailto to a TODO address" | The contact email is still TODO, so there is currently **no working contact route** |
+| Contact | Header Contact pill + mobile menu, hero, Work with us, CTA band, footer, 404 | PASS | `site.contactEmail` is `devops@therdw.com`. e2e on all 3 pages: every mailto is `mailto:devops@therdw.com`, there's no "Email coming soon" text, and the header and footer link to it. Hero, Work with us, CTA band and 404 each have one. The built HTML has no `TODO@` left | The address is on therdw.com, not rdwlabz.com (Braden's choice, 2026-10-12) |
 | Design-system consistency | Tokens, primitives, all pages | PASS (manual review) | `/_gallery` (dev only) with screenshots in `docs/screenshots/gallery/`. Review pass 1 checked the pages against `docs/ART-DIRECTION.md` | — |
 | Journeys and states | 3 journeys from `docs/BRIEF.md`; filters; empty, coming-soon and 404 states; long and short content | PASS | e2e tile → filter journey, filters by click/Space/Enter/URL/reset, empty state, unknown `?c=`, 404 status and page. Fixture builds (`scripts/fixture-build.mjs twenty\|one`) reviewed in pass 2 | — |
 | Responsive | 1440 / 768 / 390 and 320 reflow | PASS | `docs/screenshots/{home,projects,404}-{desktop,tablet,mobile}.png`. e2e reflow at 320px with no horizontal scroll on all 3 pages | — |
@@ -27,7 +27,7 @@ Status key: PASS · FAIL · BLOCKED · NOT RUN · N/A (with reason)
 | Lighthouse (lab) | Mobile profile, 3 runs, median: `/`, `/projects`, `/404` | PASS (rerun after Round 2) | `npm run lhci`: `/` and `/projects` scored 100/100/100/100; `/404` scored 100/100/100 with SEO 63 (intended `noindex`, not gated). LCP about 1.35 s, TBT 0 ms, CLS 0 | Lab numbers from localhost only |
 | Field performance (LCP / INP / CLS) | Real users | NOT RUN | — | Needs a deployed site + Web Analytics |
 | Cross-browser and real devices | Safari, Firefox, iOS, Android | NOT RUN | Only Playwright Chromium was used | Spot-check before launch |
-| Lint / types / tests / build | Whole repo | PASS | `npm run lint` clean; `astro check` 0 errors, 0 warnings, 0 hints; `astro build` OK; `npm test`: 52/52 (36 site e2e, 7 sync, 9 screenshot runs) | — |
+| Lint / types / tests / build | Whole repo | PASS | `npm run lint` clean; `astro check` 0 errors, 0 warnings, 0 hints; `astro build` OK; `npm test`: 56/56 (40 site e2e, 7 sync, 9 screenshot runs) | — |
 | Console and network errors | All 3 pages + client navigation | PASS | e2e collects `pageerror`, console errors and failed requests on every page; the motion probe reports 0 errors | — |
 | SEO basics | Titles, descriptions, canonical, OG/Twitter, favicons, manifest, sitemap, robots | PASS | e2e "SEO: canonical, OG tags, sitemap, robots, favicons" | `public/og.png` text is hard-coded in `scripts/make-icons.mjs` ("We build software, games, mods and asset packs."). To change it for a new tagline, edit the script and rerun it |
 | Analytics | Cloudflare Web Analytics | BLOCKED | The snippet renders only when `PUBLIC_CF_BEACON_TOKEN` is set at build time | Needs Braden to enable Web Analytics and set the token in Cloudflare Pages |
@@ -43,7 +43,6 @@ Status key: PASS · FAIL · BLOCKED · NOT RUN · N/A (with reason)
 
 ## Content still TODO (in `src/data/projects.json`)
 
-- `site.contactEmail`: still `TODO@rdwlabz.com`. The update message had a blank (`____@rdwlabz.com`). Once it's set, every "Email coming soon" becomes a mailto automatically.
 - `site.tagline`: blank in the update message. The UI uses the fallback "We build software, games, mods and asset packs."
 - Putt Drop: `url` (blank in the update), `oneLiner`, `accentColor` (it uses the Games color for now) and `image`.
 - Project 2: blank in the update, so nothing was added.

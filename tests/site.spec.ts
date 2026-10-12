@@ -186,12 +186,30 @@ test('unknown routes return the branded 404', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Back to the lab' })).toHaveAttribute('href', '/');
 });
 
-test('contact: placeholder email never renders a mailto to a TODO address', async ({ page }) => {
+const MAILTO = 'mailto:devops@therdw.com';
+
+for (const path of PAGES) {
+  test(`${path}: every contact spot is a real mailto, no "Email coming soon"`, async ({ page }) => {
+    await page.goto(path);
+    await expect(page.getByText(/email (address )?coming soon/i)).toHaveCount(0);
+    const mailtos = page.locator('a[href^="mailto:"]');
+    expect(await mailtos.count()).toBeGreaterThan(0);
+    for (const a of await mailtos.all()) await expect(a).toHaveAttribute('href', MAILTO);
+    await expect(page.locator(`header a[href="${MAILTO}"]`).first()).toHaveText(/Contact/);
+    await expect(page.locator(`footer a[href="${MAILTO}"]`)).toHaveText(/devops@therdw\.com/);
+  });
+}
+
+test('home: hero, Work with us and CTA band all link to the contact email', async ({ page }) => {
   await page.goto('/');
-  const mailtos = page.locator('a[href^="mailto:"]');
-  for (const a of await mailtos.all()) {
-    await expect(a).not.toHaveAttribute('href', /todo/i);
+  for (const scope of ['[data-hero]', '.wwu', '.cta']) {
+    await expect(page.locator(`${scope} a[href="${MAILTO}"]`), scope).toHaveCount(1);
   }
+});
+
+test('404: offers a way to email the lab', async ({ page }) => {
+  await page.goto('/does-not-exist');
+  await expect(page.locator(`main a[href="${MAILTO}"]`)).toHaveCount(1);
 });
 
 test('SEO: canonical, OG tags, sitemap, robots, favicons', async ({ page, request }) => {

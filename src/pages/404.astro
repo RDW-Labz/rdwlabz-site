@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Button from '../components/Button.astro';
+import ContactButton from '../components/ContactButton.astro';
 ---
 
 <BaseLayout
@@ -42,6 +43,7 @@ import Button from '../components/Button.astro';
       <Button href="/projects" variant="secondary" iconEnd="arrow-right">
         See our projects
       </Button>
+      <ContactButton variant="secondary" label="Report a broken link" />
     </div>
   </section>
 </BaseLayout>

@@ -203,6 +203,9 @@ const fmtDate = (d: string) =>
           Have an idea for software, a game, a mod or an asset pack? Tell us about it.
         </p>
         {workWithUs && <p class="wwu__extra">{workWithUs}</p>}
+        <div class="wwu__cta">
+          <ContactButton variant="primary" label="Email us about a project" />
+        </div>
       </div>
       <div class="wwu__note sticker">
         <h3 class="wwu__note-title">Handy things to include in your email</h3>
@@ -709,6 +712,9 @@ const fmtDate = (d: string) =>
   .wwu__extra {
     margin: 14px 0 0;
     color: var(--color-ink-soft);
+  }
+  .wwu__cta {
+    margin-top: 24px;
   }
   .wwu__note {
     padding: clamp(22px, 3vw, 32px);

@@ -16,6 +16,7 @@
 | 2026-10-12 | Round 2: motion + type    | Done   | Headings in **Bagel Fat One** (picked from a 3-font study on `/_studies#type`; 24 KB Latin subset, fonts 43 KB total). Hero word cycler, wordmark pop, pop-in headings, swaying bench with fizz and hover reactions, parallax, tile wiggle, sticker-peel cards, rising cards, scroll-driven tray slide, scroll-progress bar, and a Pause animations toggle. Everything is off under reduced motion. Lab activity strip on Home (build time). |
 | 2026-10-12 | Round 2: project tracker  | Done   | `scripts/sync-projects.mjs` (opt-in via `rdwlabz.json`, validation, private-repo guard, merge, auto-`released`), `.github/workflows/sync-projects.yml` (daily + manual, PR only), templates, README how-to. Not run on GitHub yet: needs the `RDWLABZ_SYNC_TOKEN` secret. |
 | 2026-10-12 | Round 2: checks           | Done   | Lint clean; build 0 errors; e2e 36/36 + sync 7/7 + screenshots 9/9; budgets OK (JS ≤ 7.3 KB gz); motion-check CLS 0, no leaks; Lighthouse medians 100s (404 SEO 63 by design). See `docs/REVIEWS.md` Round 2. Not pushed or deployed. |
+| 2026-10-12 | Contact email             | Done   | `site.contactEmail` = `devops@therdw.com`; all contact spots are real mailto links (header pill, mobile menu, hero, new Work with us button, CTA band, footer, new 404 button). e2e 40/40 + sync 7/7 + screenshots 9/9. |
 
 ## Baseline (step 1, run 2026-10-12)
 
@@ -43,4 +44,4 @@
 
 ## Blockers / needs from Braden
 
-- Content: tagline, real projects (names, blurbs, links, images, accents), category blurbs, work-with-us line, contact email, launch date. (DNS is confirmed on Cloudflare.) See `docs/PREFLIGHT.md`.
+- Content: tagline, real projects (names, blurbs, links, images, accents), category blurbs, work-with-us line, launch date. (DNS is confirmed on Cloudflare.) See `docs/PREFLIGHT.md`.
