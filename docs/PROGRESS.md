@@ -4,6 +4,8 @@
 | ---------- | -------------------------- | ------ | ----- |
 | 2026-10-12 | 1. Scaffold + checks       | Done   | Astro 7.3.8, Tailwind 4.3.3 (Vite plugin), TS 6.0.3, ESLint 10 + astro/jsx-a11y-x, Prettier, Playwright 1.64 + axe, Lighthouse CI 0.15. `seed/projects.json` → `src/data/projects.json`. |
 
+| 2026-10-12 | 2. Brief                   | Done   | `docs/BRIEF.md`: audiences, jobs, 3 journeys, facts, assumptions, open questions. |
+
 ## Baseline (step 1, run 2026-10-12)
 
 - `npm run lint`: pass (0 ESLint problems, Prettier clean).
@@ -26,7 +28,7 @@
 
 ## Next
 
-- Step 2: `docs/BRIEF.md`.
+- Step 3: three art-direction studies on `/_studies`, pick one, write `docs/ART-DIRECTION.md`.
 
 ## Blockers / needs from Braden
 
