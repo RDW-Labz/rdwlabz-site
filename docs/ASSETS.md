@@ -22,8 +22,9 @@ No text or controls are baked into images, except the OG image, which is a link 
 | `src/components/home/LabBench.astro` | Agent, 2026-10-12 | Inline SVG + CSS | Original work for RDW Labz |
 | `src/pages/404.astro` illustration | Agent, 2026-10-12 | Inline SVG | Original work for RDW Labz |
 | `public/favicon.ico`, `favicon-32.png`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `og.png` | `node scripts/make-icons.mjs` | Rendered from `public/favicon.svg` in headless Chromium | Original work; OG uses Bricolage Grotesque + Figtree (SIL OFL 1.1) |
-| Fonts: Bricolage Grotesque, Figtree | Google Fonts via Astro Fonts API (self-hosted at build) | — | SIL Open Font License 1.1 |
-| Study-only fonts (dev route only, not shipped): Pixelify Sans, Space Grotesk, Unbounded, IBM Plex Mono | Google Fonts | — | SIL OFL 1.1 |
+| `src/assets/fonts/BagelFatOne-Latin.woff2` (display, 24 KB) | Bagel Fat One © 2022 The Bagel Fat Project Authors, from the Google Fonts repo (`ofl/bagelfatone/BagelFatOne-Regular.ttf`) | Subset with `pyftsubset` to the Google "latin" unicode ranges, all layout features kept, woff2 | SIL OFL 1.1, no Reserved Font Name (so subsetting and renaming aren't restricted). License text: `src/assets/fonts/BagelFatOne-OFL.txt` |
+| Font: Figtree (body) | Google Fonts via Astro Fonts API (self-hosted at build) | — | SIL Open Font License 1.1 |
+| Study-only fonts (dev route only, not shipped): Bricolage Grotesque (Round 1 display), Lilita One, Fredoka, Pixelify Sans, Space Grotesk, Unbounded, IBM Plex Mono | Google Fonts | — | SIL OFL 1.1 |
 
 No AI-generated images, stock photos or third-party game art, logos or trademarks are used. Higgsfield and other generators were not used.
 

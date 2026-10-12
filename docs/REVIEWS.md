@@ -79,3 +79,27 @@ Verified (all run on 2026-10-12):
 - Re-ran `npm run lint` (clean), `astro check` (0 errors, 0 warnings, 0 hints) and `npx playwright test --project=e2e` (29/29 pass) after the fixes.
 
 **Not performed:** a field (RUM) performance check on real devices; there's no deployed site. A throttled real-device check is not done either. The Lighthouse numbers are lab numbers from localhost.
+
+## Round 2: playful motion, display font, project tracker (2026-10-12)
+
+Colors, layout and the hero concept were kept. Problems found while building and checking Round 2, all fixed:
+
+| # | Finding | Fix |
+|---|---|---|
+| 1 | The Google provider served Bagel Fat One as about 90 Korean-range slices: 582 KB of fonts and about 90 inline `@font-face` rules, so HTML went from 6.5 to 23 KB gz | Self-hosted a 24 KB Latin subset through `fontProviders.local()`. Fonts are now 43 KB for 2 families |
+| 2 | Astro dropped the whitespace between inline spans on separate lines, so the hero read "RDWLabz" and "We buildsoftware" | Explicit `{' '}` between the spans |
+| 3 | Headings moved into `PopHeading` lost page-scoped styles: "Say hi to the lab." rendered at body size, and the Projects title and the Work-with-us spacing were affected too | Those selectors now use `:global()` inside their scoped parent |
+| 4 | The minifier folded `animation-timeline` into the `animation` shorthand, which browsers reject, so the scroll-progress bar and the tray slide never ran. The new e2e test caught it | Timelines live in a separate rule (`:root .tray`, `:root .scroll-progress`) |
+| 5 | At 320px the swaying token layer's rotated corners caused 2–10px of sideways scroll | `overflow-x: clip` on the hero section (it clips at the page edge without creating a scroll container) |
+| 6 | The heading face is a poster font, so small numerals and menu labels looked heavy | Tile numbers, the 404 code and mobile-menu links use Figtree 700 |
+
+Verified (all run on 2026-10-12, production build):
+- `npm run lint` clean; `astro check` 0 errors, 0 warnings, 0 hints.
+- e2e: 36/36 site tests (including new tests for the cycler, the pause toggle and its persistence, the reduced-motion static sentence, pop-heading names, Lab activity and scroll progress), plus 7/7 sync-script tests.
+- Budgets: JS 6.8–7.3 KB gz per page; fonts 43.4 KB, 2 families; HTML 5.0–8.4 KB gz; CLS 0.
+- `scripts/motion-check.mjs`: CLS 0, bench pauses offscreen and resumes, `document` listener count flat at 18 over 8 round trips, 0 errors.
+- Lighthouse (mobile, 3 runs, median): `/` and `/projects` 100/100/100/100; `/404` 100/100/100, SEO 63 (`noindex`). LCP about 1.35 s, TBT 0 ms, CLS 0.
+- Contrast: the four category text colors used by the cycler are 5.07–6.34:1 on paper.
+- Sync script: a live read-only dry run against the RDW-Labz org found 0 opted-in repos (no repo has a `rdwlabz.json` yet) and wrote nothing.
+
+**Not performed:** a 60 fps check on a real phone (only compositor-friendly properties are animated, and lab TBT is 0, but that isn't a device measurement); the hidden-tab pause; Safari and Firefox (scroll-driven animations aren't in Firefox yet, so the trays are static there by design); the GitHub workflow itself (it needs the secret and runs only on GitHub).

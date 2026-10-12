@@ -25,8 +25,10 @@ function devRoutes() {
   };
 }
 
+/** Rejected art-direction studies (B, C) — dev only, never in production. */
 /** @type {NonNullable<import('astro').AstroUserConfig['fonts']>} */
-const siteFonts = [
+const studyFonts = [
+  // Round 1 heading font, kept for side-by-side comparison only
   {
     provider: fontProviders.google(),
     name: 'Bricolage Grotesque',
@@ -34,18 +36,6 @@ const siteFonts = [
     weights: ['400 800'],
     styles: ['normal'],
   },
-  {
-    provider: fontProviders.google(),
-    name: 'Figtree',
-    cssVariable: '--font-figtree',
-    weights: ['400 700'],
-    styles: ['normal'],
-  },
-];
-
-/** Rejected art-direction studies (B, C) — dev only, never in production. */
-/** @type {NonNullable<import('astro').AstroUserConfig['fonts']>} */
-const studyFonts = [
   {
     provider: fontProviders.google(),
     name: 'Pixelify Sans',
@@ -66,6 +56,23 @@ const studyFonts = [
     cssVariable: '--font-c-display',
     weights: ['400 900'],
     styles: ['normal'],
+  },
+  // Round 2 heading-font candidates (type study on /_studies)
+  {
+    provider: fontProviders.google(),
+    name: 'Lilita One',
+    cssVariable: '--font-t1',
+    weights: ['400'],
+    styles: ['normal'],
+    subsets: ['latin'],
+  },
+  {
+    provider: fontProviders.google(),
+    name: 'Fredoka',
+    cssVariable: '--font-t3',
+    weights: ['600 700'],
+    styles: ['normal'],
+    subsets: ['latin'],
   },
   {
     provider: fontProviders.google(),
@@ -90,5 +97,28 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  fonts: devRoutesOn ? [...siteFonts, ...studyFonts] : siteFonts,
+  // Site fonts are inline so each provider's options are type-checked.
+  fonts: [
+    // Headings + wordmark only. Single weight: weight synthesis is disabled in global.css.
+    // Self-hosted Latin subset (Google serves this family only as ~90 Korean slices); see docs/ASSETS.md.
+    {
+      provider: fontProviders.local(),
+      name: 'Bagel Fat One',
+      cssVariable: '--font-bagel',
+      fallbacks: ['ui-rounded', 'system-ui', 'sans-serif'],
+      options: {
+        variants: [
+          { src: ['./src/assets/fonts/BagelFatOne-Latin.woff2'], weight: 400, style: 'normal' },
+        ],
+      },
+    },
+    {
+      provider: fontProviders.google(),
+      name: 'Figtree',
+      cssVariable: '--font-figtree',
+      weights: ['400 700'],
+      styles: ['normal'],
+    },
+    ...(devRoutesOn ? studyFonts : []),
+  ],
 });

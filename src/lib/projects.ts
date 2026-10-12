@@ -20,6 +20,12 @@ export interface Project {
   accentColor: string;
   image: string | null;
   featured: boolean;
+  /** YYYY-MM-DD the project first appeared on the site. */
+  addedAt?: string;
+  /** YYYY-MM-DD of the latest GitHub Release (set by scripts/sync-projects.mjs). */
+  releasedAt?: string;
+  /** Present only on entries managed by scripts/sync-projects.mjs. Manual entries have none. */
+  sync?: { id: string };
 }
 
 export interface SiteInfo {
@@ -33,6 +39,7 @@ export interface SiteInfo {
 
 const CATEGORY_IDS: readonly CategoryId[] = ['software', 'games', 'mods', 'asset-packs'];
 const STATUSES: readonly Status[] = ['released', 'in-dev', 'coming-soon'];
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** A value still waiting on real content from Braden. */
 export const isTodo = (value: string | null | undefined): boolean =>
@@ -49,6 +56,12 @@ function validate(raw: typeof data): { projects: Project[]; categories: Category
     }
     if (slugs.has(p.slug)) throw new Error(`projects.json: duplicate slug "${p.slug}"`);
     slugs.add(p.slug);
+    for (const key of ['addedAt', 'releasedAt'] as const) {
+      const v = (p as Partial<Project>)[key];
+      if (v !== undefined && !DATE.test(v)) {
+        throw new Error(`projects.json: "${p.slug}" ${key} must be YYYY-MM-DD, got "${v}"`);
+      }
+    }
     return p as Project;
   });
   return { projects, categories: raw.categories as Category[] };
@@ -117,6 +130,36 @@ export const countLabel = (n: number): string => (n === 0 ? 'Coming soon' : plur
 
 /** Category blurb from data, or null while it is still TODO (UI then shows only the count). */
 export const categoryBlurb = (c: Category): string | null => (isTodo(c.blurb) ? null : c.blurb);
+
+export interface ActivityItem {
+  kind: 'release' | 'new';
+  date: string;
+  project: DisplayProject;
+}
+
+/** Latest "new project" / "release" events, newest first. Built at build time from the data. */
+export function labActivity(limit = 3): ActivityItem[] {
+  const items: ActivityItem[] = [];
+  for (const p of realProjects) {
+    const d = displayProject(p);
+    if (p.releasedAt) items.push({ kind: 'release', date: p.releasedAt, project: d });
+    if (p.addedAt) items.push({ kind: 'new', date: p.addedAt, project: d });
+  }
+  return items
+    .sort((a, b) => b.date.localeCompare(a.date) || (a.kind === 'release' ? -1 : 1))
+    .slice(0, limit);
+}
+
+/** Text-safe (≥ 4.5:1 on paper) versions of the category accents, for colored words. */
+export const categoryInk: Record<CategoryId, string> = {
+  software: '#1f4fd1',
+  games: '#c42d14',
+  mods: '#0b7a3e',
+  'asset-packs': '#9c1fa8',
+};
+
+/** The real tagline, or null while it is TODO (the hero then shows only the verified line). */
+export const customTagline: string | null = isTodo(site.tagline) ? null : site.tagline;
 
 /** Verified fallback copy (BUILD-SPEC §0) until Braden supplies a tagline. */
 export const tagline = isTodo(site.tagline)

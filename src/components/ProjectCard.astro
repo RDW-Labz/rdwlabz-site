@@ -78,6 +78,7 @@ const titleId = `proj-${p.slug}-title`;
 <style>
   .project-card {
     view-transition-class: project-card;
+    position: relative;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -93,8 +94,35 @@ const titleId = `proj-${p.slug}-title`;
   .project-card:hover,
   .project-card:focus-within,
   .project-card.is-hover {
-    transform: translateY(-6px) rotate(-1.2deg);
-    box-shadow: 0 12px 0 var(--acc);
+    transform: translateY(-8px) rotate(-2deg);
+    box-shadow: 0 13px 0 var(--acc);
+  }
+  /* Sticker peel: the art's top-right corner lifts on hover, showing its folded back. */
+  .project-card::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: var(--peel, 0px);
+    aspect-ratio: 1;
+    border-radius: 0 24px 0 12px;
+    background: linear-gradient(
+      225deg,
+      var(--color-surface) 0 48%,
+      var(--color-ink) 48% 53%,
+      #fff1dc 53%
+    );
+    box-shadow: -4px 5px 8px rgb(30 20 51 / 0.22);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      width 260ms var(--ease-spring),
+      opacity 120ms;
+  }
+  .project-card:hover::after,
+  .project-card.is-hover::after {
+    --peel: 52px;
+    opacity: 1;
   }
   .project-card:hover :global(.art__icon),
   .project-card.is-hover :global(.art__icon) {

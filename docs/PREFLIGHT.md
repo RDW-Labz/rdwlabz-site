@@ -2,7 +2,7 @@
 
 **Overall: PARTIALLY VERIFIED. Not ready to launch.** Every check the agent could run passes. Launch is blocked on real content (there's no contact email yet, so the site has no working contact route; Putt Drop has no link or one-liner; the tagline is the fallback) and on checks that need a human or a deployed site (screen reader, real devices, other browsers, field metrics).
 
-Last updated 2026-10-12 after the content update (Putt Drop added, placeholder projects removed). Unless noted, everything ran against the **production build** (`astro build && astro preview`) in Playwright Chromium.
+Last updated 2026-10-12 after Round 2 (Bagel Fat One headings, playful motion, the opt-in project tracker and the Lab activity strip). Unless noted, everything ran against the **production build** (`astro build && astro preview`) in Playwright Chromium.
 
 Status key: PASS · FAIL · BLOCKED · NOT RUN · N/A (with reason)
 
@@ -17,15 +17,17 @@ Status key: PASS · FAIL · BLOCKED · NOT RUN · N/A (with reason)
 | Accessibility: automated | WCAG 2.0/2.1/2.2 A+AA axe rules, on all 3 pages | PASS | e2e axe: 0 violations. Contrast spot-checks with `scripts/contrast.mjs` (lowest text pair 4.59:1) | Axe doesn't prove conformance |
 | Accessibility: keyboard and focus | Tab order, visible focus, menu trap/restore, skip link | PASS (scripted) | e2e: every tab stop has a visible focus indicator; skip link is first; mobile menu traps focus, closes on Esc and restores focus, page is inert while it's open | This was a scripted Playwright pass, not a human keyboard session |
 | Accessibility: screen reader | VoiceOver / NVDA | NOT RUN | — | Needs a human test before claiming WCAG 2.2 AA |
-| Reduced motion | Reveals, loops, view transitions, filters | PASS | e2e "reveals are visible immediately and hero tokens are static". The global reduced-motion block covers `::view-transition-*`, and filters skip `startViewTransition` | — |
+| Reduced motion | Reveals, loops, view transitions, filters, hero cycler, pop headings, scroll effects | PASS | e2e "reveals are visible immediately and hero tokens are static" and "hero shows the full static sentence, no cycler, no pause button". The global reduced-motion block covers `::view-transition-*`, and filters skip `startViewTransition` | — |
+| Pause control (WCAG 2.2.2) | Hero loops and cycler | PASS | e2e "pause toggle stops the cycler and persists across reloads" | — |
+| 60 fps on a phone | Round 2 motion | NOT RUN | Only transform, translate, rotate, scale and opacity are animated; Lighthouse mobile TBT is 0 ms | Needs a real-device check |
 | Motion fallbacks | No JS, offscreen, hidden tab, unsupported View Transitions | PASS (no-JS, offscreen) / NOT RUN (hidden-tab pause; browsers without View Transitions) | e2e no-JS test (content visible, filters are plain links). `scripts/motion-check.mjs`: bench `data-paused` toggles true offscreen and false on return | The `visibilitychange` pause is implemented but untested. `fallback="animate"` hasn't been checked in a browser that lacks View Transitions |
 | Route-change motion | Header pill morph, room swap | PASS | Mid-transition frames in `docs/screenshots/motion/`. Two glitches fixed in Review pass 3 | — |
-| Cleanup and reliability | Listeners across repeated client navigation | PASS | `scripts/motion-check.mjs`: `document` listener count stays at 16 over 8 round trips; 0 page or console errors | — |
-| Budgets | JS ≤ 60 KB gz/page; fonts ≤ 2 families / ≤ 120 KB; hero media ≤ 200 KB; CLS ≈ 0 | PASS | `node scripts/budgets.mjs`: JS 6.4 / 7.0 / 6.4 KB gz; fonts 60.0 KB, 2 families; the hero has no raster media; CLS 0 (in-browser and Lighthouse) | — |
-| Lighthouse (lab) | Mobile profile, 3 runs, median: `/`, `/projects`, `/404` | PASS (rerun after the content update) | `npm run lhci`: `/` and `/projects` scored 100/100/100/100; `/404` scored 100/100/100 with SEO 63 (intended `noindex`, not gated). LCP about 1.5 s, TBT 0 ms, CLS 0 | Lab numbers from localhost only |
+| Cleanup and reliability | Listeners across repeated client navigation | PASS | `scripts/motion-check.mjs`: `document` listener count stays at 18 over 8 round trips (Round 2); 0 page or console errors | — |
+| Budgets | JS ≤ 60 KB gz/page; fonts ≤ 2 families / ≤ 120 KB; hero media ≤ 200 KB; CLS ≈ 0 | PASS | `node scripts/budgets.mjs` (Round 2): JS 6.8 / 7.3 / 7.3 KB gz; fonts 43.4 KB, 2 families (Bagel Fat One subset, Figtree); the hero has no raster media; CLS 0 (in-browser and Lighthouse) | — |
+| Lighthouse (lab) | Mobile profile, 3 runs, median: `/`, `/projects`, `/404` | PASS (rerun after Round 2) | `npm run lhci`: `/` and `/projects` scored 100/100/100/100; `/404` scored 100/100/100 with SEO 63 (intended `noindex`, not gated). LCP about 1.35 s, TBT 0 ms, CLS 0 | Lab numbers from localhost only |
 | Field performance (LCP / INP / CLS) | Real users | NOT RUN | — | Needs a deployed site + Web Analytics |
 | Cross-browser and real devices | Safari, Firefox, iOS, Android | NOT RUN | Only Playwright Chromium was used | Spot-check before launch |
-| Lint / types / tests / build | Whole repo | PASS | `npm run lint` clean; `astro check` 0 errors, 0 warnings, 0 hints; `astro build` OK; `npx playwright test --project=e2e` 30/30 | — |
+| Lint / types / tests / build | Whole repo | PASS | `npm run lint` clean; `astro check` 0 errors, 0 warnings, 0 hints; `astro build` OK; `npm test`: 52/52 (36 site e2e, 7 sync, 9 screenshot runs) | — |
 | Console and network errors | All 3 pages + client navigation | PASS | e2e collects `pageerror`, console errors and failed requests on every page; the motion probe reports 0 errors | — |
 | SEO basics | Titles, descriptions, canonical, OG/Twitter, favicons, manifest, sitemap, robots | PASS | e2e "SEO: canonical, OG tags, sitemap, robots, favicons" | `public/og.png` text is hard-coded in `scripts/make-icons.mjs` ("We build software, games, mods and asset packs."). To change it for a new tagline, edit the script and rerun it |
 | Analytics | Cloudflare Web Analytics | BLOCKED | The snippet renders only when `PUBLIC_CF_BEACON_TOKEN` is set at build time | Needs Braden to enable Web Analytics and set the token in Cloudflare Pages |
@@ -35,6 +37,7 @@ Status key: PASS · FAIL · BLOCKED · NOT RUN · N/A (with reason)
 | Review pass 1: art direction and craft | 1440 / 768 / 390 | PASS | `docs/REVIEWS.md`: 8 findings fixed | — |
 | Review pass 2: UX, states and a11y | 1440 / 768 / 390 + fixtures | PASS | `docs/REVIEWS.md`: 7 findings fixed | — |
 | Review pass 3: motion, perf and reliability | Production build | PASS | `docs/REVIEWS.md`: 4 findings fixed | — |
+| Project tracker | `scripts/sync-projects.mjs` + workflow | PASS (script) / NOT RUN (workflow) | 7 unit tests (validation, private-repo leak guard, merge, summary, templates). A live read-only dry run against RDW-Labz found 0 opted-in repos and wrote nothing | The workflow needs the `RDWLABZ_SYNC_TOKEN` secret and the Actions PR permission (see the README), then one manual run |
 | DNS | rdwlabz.com | PASS (confirmed by Braden, 2026-10-12) | DNS is on Cloudflare | — |
 | Deploy | Cloudflare Pages | N/A | Out of the agent's permissions; Braden does this | See the go-live steps in the README |
 
@@ -45,6 +48,7 @@ Status key: PASS · FAIL · BLOCKED · NOT RUN · N/A (with reason)
 - Putt Drop: `url` (blank in the update), `oneLiner`, `accentColor` (it uses the Games color for now) and `image`.
 - Project 2: blank in the update, so nothing was added.
 - `site.launchDate`, `site.workWithUs` (optional) and the 4 category blurbs.
-- `public/og.png` text, if the tagline changes (`scripts/make-icons.mjs`).
+- `public/og.png` text, if the tagline changes (`scripts/make-icons.mjs`). The OG image still uses the Round 1 heading font (Bricolage); regenerating it in Bagel Fat One is optional.
+- Add `templates/putt-drop.rdwlabz.json` to the Putt Drop repo as `rdwlabz.json`, then delete the hand-written Putt Drop entry so the repo manages it.
 
 DNS: done (Cloudflare).

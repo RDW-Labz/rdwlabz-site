@@ -47,9 +47,28 @@ export function initMotion() {
   }
   document.addEventListener('visibilitychange', apply);
 
+  // Scroll progress fallback where CSS scroll timelines are missing (or reduced motion is on).
+  const bar = document.querySelector<HTMLElement>('[data-scroll-progress]');
+  let frame = 0;
+  const onScroll = () => {
+    if (frame || !bar) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      const max = document.documentElement.scrollHeight - innerHeight;
+      bar.style.setProperty('--sp', max > 0 ? (scrollY / max).toFixed(4) : '0');
+    });
+  };
+  const cssDriven = CSS.supports('animation-timeline: scroll()') && !reduced();
+  if (bar && !cssDriven) {
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+
   teardown = () => {
     observers.forEach((o) => o.disconnect());
     document.removeEventListener('visibilitychange', apply);
+    window.removeEventListener('scroll', onScroll);
+    cancelAnimationFrame(frame);
     teardown = null;
   };
   document.addEventListener('astro:before-swap', () => teardown?.(), { once: true });

@@ -75,9 +75,21 @@ Rule: never two adjacent trays with the same gradient; no purple-to-blue "AI" gr
 
 ## Type
 
-- Display: **Bricolage Grotesque** variable (wght 400–800 only; the `wdth` axis isn't loaded, to save bytes), tight tracking (−0.02 to −0.045em).
-- Body/UI: **Figtree** variable (400–700).
-- Two families total; both self-hosted woff2 via Astro Fonts API, `font-display: swap`, metric-matched fallbacks.
+- Display (Round 2): **Bagel Fat One**, single weight, used for headings and the wordmark only. Tracking −0.01 to −0.02em; weight synthesis is off, so it never fakes a bold. (Round 1 used Bricolage Grotesque 800.)
+- Body/UI: **Figtree** variable (400–700). Small UI numerals and labels that used the display face (tile numbers, 404 code, mobile menu) moved to Figtree 700, because Bagel is a poster face.
+- Two families total, both self-hosted woff2 via the Astro Fonts API with `font-display: swap` and metric-matched fallbacks. Bagel is a local Latin subset (24 KB). Total font weight is 43 KB (it was 60 KB).
+
+### Round 2 heading-font study (`/_studies#type`, `docs/screenshots/studies/type-study.png`)
+
+The same hero, section heading, tile and card were set in three candidates next to the old face:
+
+| Candidate | Read | Verdict |
+|---|---|---|
+| A. Lilita One | Condensed and sporty; reads as "sports poster" next to the round sticker shapes | Runner-up |
+| **B. Bagel Fat One** | Bubbly, chunky, rounded terminals; matches the 2px-outline sticker look and the lab's playful feel without becoming childish. "RDW Labz" gets a strong, memorable silhouette | **Picked** |
+| C. Fredoka 700 | Friendly but the most generic; too close to the body face to add character | Dropped |
+
+Cost: Google serves Bagel Fat One only as about 90 Korean-range slices (582 KB, which would also bloat every page's inline CSS). So the Latin range was subset locally with `pyftsubset` into one 24 KB woff2 (OFL 1.1 with no Reserved Font Name, so subsetting is allowed). See `docs/ASSETS.md`.
 
 | Step | Size (clamp) | Use |
 |---|---|---|
@@ -150,3 +162,22 @@ Rule: never two adjacent trays with the same gradient; no purple-to-blue "AI" gr
 - **Trigger:** IntersectionObserver (threshold 0.15), once per element, then unobserved.
 - **Timing:** translateY 24px → 0 + opacity, 600ms `ease-out`, 60ms stagger.
 - **Fallback:** no JS or reduced motion → visible immediately. No scroll hijacking.
+
+## Round 2 motion spec
+
+Colors, layout and the hero concept are unchanged. Every item below is turned off by `prefers-reduced-motion`, which gives a static final state. Loops also stop when the visitor presses **Pause animations** (WCAG 2.2.2, remembered in localStorage and applied before paint), when they're offscreen, and in a hidden tab. Everything animates `transform`, `translate`, `rotate`, `scale` or `opacity` only.
+
+| Moment | What it does | Where |
+|---|---|---|
+| Hero word cycler | "We build **software / games / mods / asset packs**": letters flip in one by one in the category's text color (all four pass AA on paper, ≥ 5.07:1), every 2.4s. Screen readers and no-JS visitors get the full static sentence, and all the words share one grid cell, so nothing shifts | `index.astro`, `src/scripts/hero.ts` |
+| Wordmark pop | "RDW" and "Labz" pop in with overshoot on load | `index.astro` |
+| Pop headings | Section headings: each word rises with an overshoot as it scrolls in (80ms stagger) | `src/components/PopHeading.astro` |
+| Lab bench | Token ring sways ±9° (counter-rotated so labels stay upright), tokens drift, flask fizz bubbles rise. Hovering or focusing a token pauses the sway, wiggles the icon, speeds up the fizz and tints the flask's shadow with that token's color | `LabBench.astro` |
+| Parallax | Bench layers move at depths 0.2–1: by pointer on desktop (`pointer: fine`), by scroll on touch. rAF-throttled, max 14px | `hero.ts` |
+| Tiles | Icon wiggles on hover/focus | `index.astro` |
+| Project cards | Rise in with a slight tilt (90ms stagger), lift and tilt on hover, and a sticker corner peels back | `ProjectCard.astro`, `global.css` |
+| Trays | Gradient sections slide up over the previous one as they enter (CSS scroll-driven `view()` timeline; static where unsupported) | `global.css` |
+| Scroll progress | 4px tomato → sun → grape bar at the top. CSS `scroll(root)` timeline, with a JS rAF fallback | `global.css`, `motion.ts` |
+| Lab activity | Pulse dot, 3 iterations only (so it needs no pause control) | `index.astro` |
+
+Gotcha: the CSS minifier folds `animation-timeline` into the `animation` shorthand when both are in one rule, and browsers reject that, so the declaration is dropped. Keep the timeline in a separate rule (`:root .tray`).

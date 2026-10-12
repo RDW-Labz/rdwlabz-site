@@ -1,28 +1,49 @@
 ---
 import Icon from '../Icon.astro';
 import { categories, categoryAccent } from '../../lib/projects';
+
+const tokVars = categories.map((c, i) => `--tok-${i}:${categoryAccent[c.id]}`).join(';');
+const fizz = [
+  { x: '-18%', s: 14, d: 0 },
+  { x: '6%', s: 10, d: 0.7 },
+  { x: '-4%', s: 18, d: 1.4 },
+  { x: '16%', s: 12, d: 2.1 },
+  { x: '-10%', s: 9, d: 2.8 },
+  { x: '10%', s: 15, d: 3.5 },
+];
 ---
 
-<div class="bench" data-loop>
-  <div class="bench__glow" aria-hidden="true"></div>
-  <div class="bench__orbit" aria-hidden="true"></div>
-  <div class="bench__core" aria-hidden="true">
-    <svg viewBox="0 0 120 120" width="120" height="120">
-      <path d="M40 66h40l8 13a6 6 0 0 1-5 9H37a6 6 0 0 1-5-9Z" fill="#ff4d2e"></path>
-      <path
-        d="M48 22h24M52 22v22L32 78a7 7 0 0 0 6 10.5h44A7 7 0 0 0 88 78L68 44V22"
-        fill="none"
-        stroke="#1e1433"
-        stroke-width="6"
-        stroke-linejoin="round"
-        stroke-linecap="round"
-      ></path>
-      <circle class="bench__bubble b1" cx="56" cy="74" r="4" fill="#ffc23d"></circle>
-      <circle class="bench__bubble b2" cx="67" cy="78" r="3" fill="#ffc23d"></circle>
-      <circle class="bench__bubble b3" cx="48" cy="80" r="2.5" fill="#fff6ea"></circle>
-    </svg>
+<div class="bench" data-loop data-bench style={tokVars}>
+  <div class="bench__layer" style="--d:0.2" aria-hidden="true">
+    <div class="bench__glow"></div>
   </div>
-  <ul class="bench__tokens" aria-label="What we build">
+  <div class="bench__layer" style="--d:0.45" aria-hidden="true">
+    <div class="bench__orbit"></div>
+  </div>
+  <div class="bench__layer" style="--d:0.7" aria-hidden="true">
+    <div class="bench__fizz">
+      {fizz.map((f) => (
+        <span style={`--fx:${f.x}; --fs:${f.s}px; --fd:${f.d}s`} />
+      ))}
+    </div>
+    <div class="bench__core">
+      <svg viewBox="0 0 120 120" width="120" height="120">
+        <path d="M40 66h40l8 13a6 6 0 0 1-5 9H37a6 6 0 0 1-5-9Z" fill="#ff4d2e"></path>
+        <path
+          d="M48 22h24M52 22v22L32 78a7 7 0 0 0 6 10.5h44A7 7 0 0 0 88 78L68 44V22"
+          fill="none"
+          stroke="#1e1433"
+          stroke-width="6"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        ></path>
+        <circle class="bench__bubble b1" cx="56" cy="74" r="4" fill="#ffc23d"></circle>
+        <circle class="bench__bubble b2" cx="67" cy="78" r="3" fill="#ffc23d"></circle>
+        <circle class="bench__bubble b3" cx="48" cy="80" r="2.5" fill="#fff6ea"></circle>
+      </svg>
+    </div>
+  </div>
+  <ul class="bench__layer bench__tokens" style="--d:1" aria-label="What we build">
     {categories.map((c, i) => (
       <li class={`token token--${i}`} style={`--tok:${categoryAccent[c.id]}; --i:${i}`}>
         <a href={`/projects?c=${c.id}`} class="token__link">
@@ -38,6 +59,7 @@ import { categories, categoryAccent } from '../../lib/projects';
 
 <style>
   .bench {
+    --sway: 16s;
     position: relative;
     width: 100%;
     max-width: min(520px, 100%);
@@ -50,12 +72,23 @@ import { categories, categoryAccent } from '../../lib/projects';
     isolation: isolate;
     container-type: size;
   }
+
+  /* Parallax depth: hero.ts sets --px/--py in [-1, 1]; deeper layers (--d) move more. */
+  .bench__layer {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    pointer-events: none;
+    translate: calc(var(--px, 0) * var(--d) * 14px) calc(var(--py, 0) * var(--d) * 14px);
+    transition: translate 500ms var(--ease-out-soft);
+  }
   .bench__glow {
     position: absolute;
     inset: 16%;
     border-radius: 50%;
     background: radial-gradient(circle, rgb(255 255 255 / 0.45), transparent 70%);
-    z-index: -1;
   }
   .bench__orbit {
     position: absolute;
@@ -63,11 +96,6 @@ import { categories, categoryAccent } from '../../lib/projects';
     border-radius: 50%;
     border: 2px dashed rgb(30 20 51 / 0.28);
     animation: spin 60s linear infinite;
-  }
-  @keyframes spin {
-    to {
-      rotate: 1turn;
-    }
   }
   .bench__core {
     position: absolute;
@@ -81,8 +109,9 @@ import { categories, categoryAccent } from '../../lib/projects';
     border-radius: 30%;
     background: var(--color-surface);
     border: 2px solid var(--color-ink);
-    box-shadow: var(--shadow-pop);
+    box-shadow: 0 6px 0 var(--hot, var(--color-ink));
     animation: wobble 3.2s ease-in-out infinite;
+    transition: box-shadow var(--dur-fast);
   }
   .bench__core svg {
     width: 70%;
@@ -98,23 +127,75 @@ import { categories, categoryAccent } from '../../lib/projects';
   .b3 {
     animation-delay: 1.6s;
   }
+
+  /* Fizz: bubbles that leave the flask and pop above it. */
+  .bench__fizz span {
+    position: absolute;
+    left: calc(50% + var(--fx));
+    top: 36%;
+    width: var(--fs);
+    height: var(--fs);
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.85);
+    border: 2px solid var(--color-ink);
+    opacity: 0;
+    animation: fizz 4.2s ease-in var(--fd) infinite;
+  }
+  .bench__fizz span:nth-child(odd) {
+    background: var(--color-sun);
+  }
+
+  /* Tokens ride a ring that sways back and forth; each token counter-rotates to stay upright. */
   .bench__tokens {
-    margin: 0;
-    padding: 0;
-    list-style: none;
+    animation: sway var(--sway) ease-in-out infinite alternate;
   }
   .token {
     position: absolute;
     left: var(--x);
     top: var(--y);
     translate: -50% -50%;
-    animation: spawn var(--dur-spawn) var(--ease-spring) both;
-    animation-delay: calc(150ms + var(--i) * 140ms);
+    pointer-events: auto;
+    animation:
+      spawn var(--dur-spawn) var(--ease-spring) calc(150ms + var(--i) * 140ms) both,
+      unsway var(--sway) ease-in-out infinite alternate;
   }
   .token .token__link {
-    animation: bob 4s ease-in-out infinite;
-    animation-delay: calc(1.2s + var(--i) * 400ms);
+    animation: drift calc(5.5s + var(--i) * 0.7s) ease-in-out infinite;
+    animation-delay: calc(1.2s + var(--i) * -1.3s);
   }
+  /* Hover/focus anywhere on the bench steadies the ring so tokens are easy to hit. */
+  .bench:hover .bench__tokens,
+  .bench:focus-within .bench__tokens {
+    animation-play-state: paused;
+  }
+  .bench:hover .token,
+  .bench:focus-within .token {
+    animation-play-state: running, paused;
+  }
+  .token__link:hover,
+  .token__link:focus-visible {
+    animation-play-state: paused;
+  }
+  /* The flask reacts to whichever token is hovered or focused. */
+  .bench:has(.token__link:is(:hover, :focus-visible)) .bench__core {
+    animation-duration: 0.8s;
+  }
+  .bench:has(.token__link:is(:hover, :focus-visible)) .bench__fizz span {
+    animation-duration: 1.6s;
+  }
+  .bench:has(.token--0 .token__link:is(:hover, :focus-visible)) {
+    --hot: var(--tok-0);
+  }
+  .bench:has(.token--1 .token__link:is(:hover, :focus-visible)) {
+    --hot: var(--tok-1);
+  }
+  .bench:has(.token--2 .token__link:is(:hover, :focus-visible)) {
+    --hot: var(--tok-2);
+  }
+  .bench:has(.token--3 .token__link:is(:hover, :focus-visible)) {
+    --hot: var(--tok-3);
+  }
+
   .token--0 {
     --x: 24%;
     --y: 17%;
@@ -154,20 +235,24 @@ import { categories, categoryAccent } from '../../lib/projects';
     white-space: nowrap;
     text-decoration: none;
     transition:
-      transform var(--dur-instant) var(--ease-spring),
+      transform var(--dur-fast) var(--ease-spring),
       box-shadow var(--dur-instant);
   }
   .token__link:hover,
   .token__link:focus-visible {
-    transform: translateY(-3px) rotate(-3deg) scale(1.04);
+    transform: translateY(-4px) rotate(-5deg) scale(1.08);
     box-shadow: 0 7px 0 var(--tok);
+  }
+  .token__link:hover .token__icon,
+  .token__link:focus-visible .token__icon {
+    animation: wiggle 500ms var(--ease-spring);
   }
   .token__link:focus-visible {
     outline: 3px solid var(--color-ink);
     outline-offset: 3px;
   }
   .token__link:active {
-    transform: translateY(2px) scale(0.98);
+    transform: translateY(2px) scale(0.96);
     box-shadow: var(--shadow-pop-xs);
   }
   .token__icon {
@@ -184,6 +269,27 @@ import { categories, categoryAccent } from '../../lib/projects';
     animation-play-state: paused !important;
   }
 
+  @keyframes spin {
+    to {
+      rotate: 1turn;
+    }
+  }
+  @keyframes sway {
+    from {
+      rotate: -9deg;
+    }
+    to {
+      rotate: 9deg;
+    }
+  }
+  @keyframes unsway {
+    from {
+      rotate: 9deg;
+    }
+    to {
+      rotate: -9deg;
+    }
+  }
   @keyframes spawn {
     from {
       transform: translate(var(--from-x), var(--from-y)) scale(0.2) rotate(-24deg);
@@ -194,13 +300,19 @@ import { categories, categoryAccent } from '../../lib/projects';
       opacity: 1;
     }
   }
-  @keyframes bob {
+  @keyframes drift {
     0%,
     100% {
       translate: 0 0;
     }
+    25% {
+      translate: 4px -5px;
+    }
     50% {
-      translate: 0 -6px;
+      translate: 0 -9px;
+    }
+    75% {
+      translate: -4px -4px;
     }
   }
   @keyframes wobble {
@@ -222,6 +334,35 @@ import { categories, categoryAccent } from '../../lib/projects';
       opacity: 0;
     }
   }
+  @keyframes fizz {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, 0) scale(0.3);
+    }
+    15% {
+      opacity: 1;
+    }
+    80% {
+      opacity: 1;
+      transform: translate(calc(-50% + 6px), -16cqh) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(calc(-50% + 4px), -19cqh) scale(1.5);
+    }
+  }
+  @keyframes wiggle {
+    0%,
+    100% {
+      rotate: 0deg;
+    }
+    25% {
+      rotate: -14deg;
+    }
+    60% {
+      rotate: 10deg;
+    }
+  }
 
   @media (min-width: 30rem) and (max-width: 59.99rem) {
     .bench {
@@ -241,10 +382,16 @@ import { categories, categoryAccent } from '../../lib/projects';
   @media (prefers-reduced-motion: reduce) {
     .token,
     .token .token__link,
+    .token__icon,
+    .bench__tokens,
     .bench__orbit,
     .bench__core,
-    .bench__bubble {
+    .bench__bubble,
+    .bench__fizz span {
       animation: none !important;
+    }
+    .bench__layer {
+      translate: none;
     }
   }
 </style>

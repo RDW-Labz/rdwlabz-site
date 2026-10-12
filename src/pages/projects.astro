@@ -5,6 +5,7 @@ import FilterChip from '../components/FilterChip.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import ContactButton from '../components/ContactButton.astro';
 import Icon from '../components/Icon.astro';
+import PopHeading from '../components/PopHeading.astro';
 import { allProjects, categories, categoryAccent, countIn, pluralProjects } from '../lib/projects';
 
 const items = allProjects();
@@ -19,9 +20,7 @@ const items = allProjects();
     <p class="eyebrow">
       <Icon name="flask" size={16} /> The shelf
     </p>
-    <h1 id="projects-title" class="intro__title">
-      Projects
-    </h1>
+    <PopHeading as="h1" id="projects-title" class="intro__title" text="Projects" />
     <p class="intro__lead">Everything we’ve made or are making. Filter by what you’re after.</p>
   </section>
 
@@ -48,8 +47,8 @@ const items = allProjects();
     </p>
 
     <ul class="grid" data-project-grid>
-      {items.map((p) => (
-        <li data-category={p.category}>
+      {items.map((p, i) => (
+        <li data-category={p.category} data-reveal="rise" style={`--reveal-i:${i % 3}`}>
           <ProjectCard project={p} headingLevel="h3" />
         </li>
       ))}
@@ -84,12 +83,12 @@ const items = allProjects();
     padding-top: clamp(40px, 6vw, 72px);
     padding-bottom: calc(var(--tray-r) + clamp(32px, 5vw, 56px));
   }
-  .intro__title {
+  .intro :global(.intro__title) {
     margin: 18px 0 0;
     font-size: var(--text-h1);
     line-height: var(--text-h1--line-height);
     font-size: clamp(3.5rem, 1.8rem + 7vw, 7rem);
-    letter-spacing: -0.045em;
+    letter-spacing: -0.02em;
   }
   .intro__lead {
     margin: 16px 0 0;

@@ -1,0 +1,119 @@
+---
+/** Round 2: three heading-font candidates on the real hero, side by side. Dev only. */
+import LabBench from '../../components/home/LabBench.astro';
+import Icon from '../../components/Icon.astro';
+
+const candidates = [
+  {
+    id: 't0',
+    name: 'Current: Bricolage Grotesque 800',
+    font: 'var(--font-bricolage)',
+    weight: 800,
+  },
+  { id: 't1', name: 'A: Lilita One', font: 'var(--font-t1)', weight: 400 },
+  { id: 't2', name: 'B: Bagel Fat One', font: 'var(--font-bagel)', weight: 400 },
+  { id: 't3', name: 'C: Fredoka 700', font: 'var(--font-t3)', weight: 700 },
+];
+---
+
+<section class="ts" aria-label="Heading font study">
+  {candidates.map((c) => (
+    <article class="ts__col" style={`--tf:${c.font}; --tw:${c.weight}`}>
+      <p class="ts__name">{c.name}</p>
+      <p class="eyebrow">
+        <Icon name="sparkle" size={16} /> Hello from the lab
+      </p>
+      <h2 class="ts__hero">
+        RDW <span>Labz</span>
+      </h2>
+      <p class="ts__tag">
+        We build <span>games</span>
+      </p>
+      <div class="ts__bench">
+        <LabBench />
+      </div>
+      <h3 class="ts__h2">Fresh from the lab</h3>
+      <div class="ts__row">
+        <span class="ts__tile">Asset packs</span>
+        <span class="ts__card">Putt Drop</span>
+      </div>
+      <p class="ts__body">
+        Body stays Figtree: have an idea for software, a game, a mod or an asset pack? Tell us about
+        it. 0123456789 &amp; ? !
+      </p>
+    </article>
+  ))}
+</section>
+
+<style>
+  .ts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+    padding: 32px 20px;
+    background: var(--color-paper);
+  }
+  .ts__col {
+    padding: 20px;
+    border: 2px solid var(--color-ink);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+  .ts__name {
+    margin: 0 0 14px;
+    font:
+      600 13px/1 ui-monospace,
+      monospace;
+  }
+  .ts__hero,
+  .ts__h2,
+  .ts__tile,
+  .ts__card {
+    font-family: var(--tf);
+    font-weight: var(--tw);
+    font-synthesis: none;
+  }
+  .ts__hero {
+    margin: 14px 0 0;
+    font-size: 4.25rem;
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+  }
+  .ts__hero span {
+    color: var(--color-tomato-700);
+  }
+  .ts__tag {
+    margin: 10px 0 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+  .ts__tag span {
+    color: var(--color-tomato-700);
+    font-family: var(--tf);
+    font-weight: var(--tw);
+  }
+  .ts__bench {
+    margin: 16px 0;
+  }
+  .ts__h2 {
+    margin: 0;
+    font-size: 2.25rem;
+    line-height: 1;
+  }
+  .ts__row {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .ts__tile {
+    font-size: 1.75rem;
+  }
+  .ts__card {
+    font-size: 1.5rem;
+    color: var(--color-ink-soft);
+  }
+  .ts__body {
+    margin: 12px 0 0;
+    font-size: 0.95rem;
+  }
+</style>

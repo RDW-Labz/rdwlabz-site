@@ -274,4 +274,70 @@ test.describe('reduced motion', () => {
       .evaluate((el) => getComputedStyle(el).animationName);
     expect(anim).toBe('none');
   });
+
+  test('hero shows the full static sentence, no cycler, no pause button', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.hero__tag-static')).toBeVisible();
+    await expect(page.locator('.hero__tag-cycle')).toBeHidden();
+    await expect(page.locator('[data-motion-toggle]')).toBeHidden();
+  });
+});
+
+test.describe('round 2 motion', () => {
+  test.use({ reducedMotion: 'no-preference' });
+
+  test('hero cycler swaps the category word', async ({ page }) => {
+    await page.goto('/');
+    const on = page.locator('.cycler__word.is-on');
+    await expect(on).toHaveCount(1);
+    const first = await on.textContent();
+    await expect.poll(() => on.textContent(), { timeout: 6000 }).not.toBe(first);
+    // The cycle is decorative; the h1's accessible name keeps the full sentence.
+    await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName(
+      /RDW Labz.*software, games, mods and asset packs/i,
+    );
+  });
+
+  test('pause toggle stops the cycler and persists across reloads', async ({ page }) => {
+    await page.goto('/');
+    const toggle = page.locator('[data-motion-toggle]');
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    await expect(toggle).toContainText('Play animations');
+    await expect(page.locator('html')).toHaveAttribute('data-motion', 'paused');
+    await expect(page.locator('.hero__tag-static')).toBeVisible();
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-motion', 'paused');
+    await expect(page.locator('[data-motion-toggle]')).toHaveAttribute('aria-pressed', 'true');
+    await page.locator('[data-motion-toggle]').click();
+    await expect(page.locator('html')).not.toHaveAttribute('data-motion', 'paused');
+  });
+
+  test('pop headings keep their accessible names', async ({ page }) => {
+    await page.goto('/');
+    for (const name of ['What we build', 'Fresh from the lab', 'Work with us']) {
+      await expect(page.getByRole('heading', { level: 2, name })).toHaveCount(1);
+    }
+    await page.goto('/projects');
+    await expect(page.getByRole('heading', { level: 1, name: 'Projects' })).toHaveCount(1);
+  });
+
+  test('lab activity lists build-time updates linking to the shelf', async ({ page }) => {
+    await page.goto('/');
+    const items = page.locator('.activity li');
+    expect(await items.count()).toBeGreaterThan(0);
+    expect(await items.count()).toBeLessThanOrEqual(3);
+    await expect(items.first().locator('a')).toHaveAttribute('href', /^\/projects\?c=/);
+    await expect(items.first().locator('time')).toHaveAttribute('datetime', /^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  test('scroll progress is decorative and fills as you scroll', async ({ page }) => {
+    await page.goto('/');
+    const bar = page.locator('[data-scroll-progress]');
+    await expect(bar).toHaveAttribute('aria-hidden', 'true');
+    const scaleAt = () => bar.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).a);
+    const top = await scaleAt();
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await expect.poll(scaleAt).toBeGreaterThan(top + 0.2);
+  });
 });

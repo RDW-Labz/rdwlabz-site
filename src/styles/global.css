@@ -67,7 +67,7 @@
 }
 
 @theme inline {
-  --font-display: var(--font-bricolage), ui-rounded, system-ui, sans-serif;
+  --font-display: var(--font-bagel), ui-rounded, system-ui, sans-serif;
   --font-sans: var(--font-figtree), system-ui, sans-serif;
 }
 
@@ -115,6 +115,8 @@
     font-size: 100%;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* The display face has one weight; never fake a bold. */
+    font-synthesis-weight: none;
     scroll-padding-top: calc(var(--header-h) + 16px);
   }
   body {
@@ -130,8 +132,8 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    font-weight: 800;
-    letter-spacing: -0.025em;
+    font-weight: 400;
+    letter-spacing: -0.01em;
     text-wrap: balance;
   }
   p {
@@ -460,6 +462,103 @@
   opacity: 1;
   transform: none;
 }
+/* Cards rise in with a little spring and tilt. */
+.js [data-reveal='rise'] {
+  transform: translateY(56px) rotate(-2.5deg) scale(0.96);
+  transition:
+    opacity var(--dur-base) var(--ease-out-soft),
+    transform 700ms var(--ease-spring);
+  transition-delay: calc(var(--reveal-i, 0) * 90ms);
+}
+
+/* Headings pop in word by word (see PopHeading.astro). The heading itself stays put. */
+.js [data-reveal][data-pop] {
+  opacity: 1;
+  transform: none;
+}
+.pop-w {
+  display: inline-block;
+}
+.js [data-pop] .pop-w {
+  opacity: 0.001;
+  transform: translateY(0.55em) rotate(5deg) scale(0.85);
+}
+.js [data-pop].is-revealed .pop-w {
+  animation: pop-in 640ms var(--ease-spring) both;
+  animation-delay: calc(var(--wi) * 80ms);
+}
+@keyframes pop-in {
+  from {
+    opacity: 0.001;
+    transform: translateY(0.55em) rotate(5deg) scale(0.85);
+  }
+  60% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Trays slide up into their overlap as they enter (scroll-driven; no JS, no layout change).
+   The shift is less than --tray-r, so the tray above always covers the gap. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .tray {
+      animation: tray-rise linear both;
+    }
+    /* Separate rule: the minifier would fold a same-rule timeline into the shorthand, which browsers reject. */
+    :root .tray {
+      animation-timeline: view();
+      animation-range: entry 0% entry 90%;
+    }
+  }
+}
+@keyframes tray-rise {
+  from {
+    translate: 0 calc(var(--tray-r) * 0.7);
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+/* Scroll progress: scroll-driven where supported, otherwise motion.ts sets --sp. */
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: calc(var(--z-header) + 1);
+  height: 4px;
+  transform-origin: 0 50%;
+  transform: scaleX(var(--sp, 0));
+  background: linear-gradient(90deg, var(--color-tomato), var(--color-sun), var(--color-grape));
+  pointer-events: none;
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-progress {
+      animation: scroll-fill linear both;
+    }
+    :root .scroll-progress {
+      animation-timeline: scroll(root);
+    }
+  }
+}
+@keyframes scroll-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Visitor pressed "Pause animations" (stored in localStorage, applied before paint). */
+html[data-motion='paused'] [data-loop],
+html[data-motion='paused'] [data-loop] * {
+  animation-play-state: paused !important;
+}
 
 /* Page transitions (Astro ClientRouter) */
 @keyframes vt-out {
@@ -494,9 +593,11 @@
     transition-delay: 0ms !important;
     scroll-behavior: auto !important;
   }
-  .js [data-reveal] {
+  .js [data-reveal],
+  .js [data-pop] .pop-w {
     opacity: 1;
     transform: none;
+    animation: none !important;
   }
   ::view-transition-group(*),
   ::view-transition-old(*),

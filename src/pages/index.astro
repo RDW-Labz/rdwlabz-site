@@ -6,14 +6,18 @@ import ContactButton from '../components/ContactButton.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import Icon from '../components/Icon.astro';
 import LabBench from '../components/home/LabBench.astro';
+import PopHeading from '../components/PopHeading.astro';
 import {
   categories,
   categoryAccent,
   categoryBlurb,
+  categoryInk,
   countIn,
   countLabel,
+  customTagline,
   featuredProjects,
   isTodo,
+  labActivity,
   site,
   tagline,
 } from '../lib/projects';
@@ -21,21 +25,51 @@ import {
 const featured = featuredProjects().slice(0, 6);
 const fillerSpan = featured.length > 0 && featured.length < 3 ? 3 - featured.length : 0;
 const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
+const activity = labActivity(3);
+const buildLine = 'We build software, games, mods and asset packs.';
+const fmtDate = (d: string) =>
+  new Date(`${d}T00:00:00Z`).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
 ---
 
 <BaseLayout description={tagline} current="home">
   <!-- 1. Hero: who we are -->
-  <section class="hero container-lab" aria-labelledby="hero-title">
+  <section class="hero container-lab" aria-labelledby="hero-title" data-hero>
     <div class="hero__copy">
       <p class="eyebrow">
         <Icon name="sparkle" size={16} /> Hello from the lab
       </p>
       <h1 id="hero-title" class="hero__title">
         <span class="hero__name">
-          RDW <span class="hero__labz">Labz</span>
+          <span class="hero__word">RDW</span> <span class="hero__word hero__labz">Labz</span>
         </span>
-        <span class="hero__tag">{tagline}</span>
+        <span class="hero__tag">
+          <span class="hero__tag-static">{buildLine}</span>
+          <span class="hero__tag-cycle" aria-hidden="true" data-loop>
+            We build{' '}
+            <span class="cycler">
+              {categories.map((c, i) => (
+                <span
+                  class:list={['cycler__word', i === 0 && 'is-on']}
+                  style={`--c:${categoryInk[c.id]}; --u:${categoryAccent[c.id]}`}
+                  data-word
+                >
+                  {[...c.label.toLowerCase()].map((ch, li) => (
+                    <span class="cycler__l" style={`--li:${li}`}>
+                      {ch}
+                    </span>
+                  ))}
+                </span>
+              ))}
+            </span>
+          </span>
+        </span>
       </h1>
+      {customTagline && <p class="hero__lead">{customTagline}</p>}
       <div class="hero__ctas">
         <Button href="/projects" variant="primary" iconEnd="arrow-right">
           See our projects
@@ -43,15 +77,24 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
         <ContactButton variant="secondary" />
       </div>
     </div>
-    <LabBench />
+    <div class="hero__stage">
+      <LabBench />
+      <button
+        type="button"
+        class="btn btn--ghost btn--sm hero__pause"
+        aria-pressed="false"
+        data-motion-toggle
+      >
+        <Icon name="pause" size={18} />
+        <span data-motion-label>Pause animations</span>
+      </button>
+    </div>
   </section>
 
   <!-- 2. What we build -->
   <Section tone="peach" id="what-we-build" labelledby="wwb-title">
     <div class="section-head" data-reveal>
-      <h2 id="wwb-title" class="text-h2">
-        What we build
-      </h2>
+      <PopHeading id="wwb-title" class="text-h2" text="What we build" />
       <p class="section-head__lead">
         Four kinds of things come out of the lab. Pick one to browse.
       </p>
@@ -86,9 +129,7 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
   <Section tone="mint" id="featured" labelledby="featured-title">
     <div class="section-head section-head--split" data-reveal>
       <div>
-        <h2 id="featured-title" class="text-h2">
-          Fresh from the lab
-        </h2>
+        <PopHeading id="featured-title" class="text-h2" text="Fresh from the lab" />
         <p class="section-head__lead">A few things we're working on.</p>
       </div>
       <Button href="/projects" variant="secondary" size="sm" iconEnd="arrow-right">
@@ -98,12 +139,16 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
     {featured.length > 0 ? (
       <ul class="featured-grid">
         {featured.map((p, i) => (
-          <li data-reveal style={`--reveal-i:${i}`}>
+          <li data-reveal="rise" style={`--reveal-i:${i}`}>
             <ProjectCard project={p} />
           </li>
         ))}
         {fillerSpan > 0 && (
-          <li data-reveal class="filler-slot" style={`--span:${fillerSpan}`}>
+          <li
+            data-reveal="rise"
+            class="filler-slot"
+            style={`--span:${fillerSpan}; --reveal-i:${featured.length}`}
+          >
             <a href="/projects" class="filler">
               <span class="filler__icon" aria-hidden="true">
                 <Icon name="flask" size={32} strokeWidth={1.8} />
@@ -124,6 +169,28 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
         </a>
       </p>
     )}
+    {activity.length > 0 && (
+      <div class="activity" data-reveal>
+        <h3 class="activity__title">
+          <span class="activity__pulse" aria-hidden="true" /> Lab activity
+        </h3>
+        <ol class="activity__list">
+          {activity.map((a) => (
+            <li class="activity__item" style={`--acc:${a.project.accent}`}>
+              <span class="activity__kind">
+                {a.kind === 'release' ? 'Released' : 'New on the shelf'}
+              </span>
+              <a class="activity__name" href={`/projects?c=${a.project.category}`}>
+                {a.project.title}
+              </a>
+              <time class="activity__date" datetime={a.date}>
+                {fmtDate(a.date)}
+              </time>
+            </li>
+          ))}
+        </ol>
+      </div>
+    )}
   </Section>
 
   <!-- 4. Work with us -->
@@ -131,9 +198,7 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
     <div class="wwu" data-reveal>
       <div class="wwu__intro">
         <p class="eyebrow eyebrow--mint">For clients &amp; collaborators</p>
-        <h2 id="wwu-title" class="text-h2">
-          Work with us
-        </h2>
+        <PopHeading id="wwu-title" class="text-h2" text="Work with us" />
         <p class="wwu__lead">
           Have an idea for software, a game, a mod or an asset pack? Tell us about it.
         </p>
@@ -159,9 +224,7 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
   <!-- 5. CTA band -->
   <Section tone="ink" id="say-hi" labelledby="cta-title" class="cta-band">
     <div class="cta" data-reveal>
-      <h2 id="cta-title" class="cta__title">
-        Say hi to the lab.
-      </h2>
+      <PopHeading id="cta-title" class="cta__title" text="Say hi to the lab." />
       <p class="cta__lead">Questions, ideas or collabs. One email away.</p>
       <div class="cta__actions">
         <ContactButton variant="sun" />
@@ -173,6 +236,11 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
   </Section>
 </BaseLayout>
 
+<script>
+  import { initHero } from '../scripts/hero';
+  document.addEventListener('astro:page-load', initHero);
+</script>
+
 <style>
   .hero {
     display: grid;
@@ -180,6 +248,8 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
     align-items: center;
     padding-top: clamp(40px, 7vw, 88px);
     padding-bottom: calc(var(--tray-r) + clamp(48px, 7vw, 96px));
+    /* The swaying token layer's rotated corners must not cause sideways scroll at 320px. */
+    overflow-x: clip;
   }
   .hero__copy {
     display: flex;
@@ -193,19 +263,120 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
     display: block;
     font-size: var(--text-display);
     line-height: var(--text-display--line-height);
-    letter-spacing: -0.045em;
+    letter-spacing: -0.02em;
+  }
+  .hero__word {
+    display: inline-block;
+    animation: name-pop 820ms var(--ease-spring) both;
   }
   .hero__labz {
     color: var(--color-tomato-700);
+    animation-delay: 140ms;
+  }
+  @keyframes name-pop {
+    from {
+      transform: translateY(0.2em) scale(0.72) rotate(-7deg);
+    }
+    to {
+      transform: none;
+    }
   }
   .hero__tag {
     display: block;
     margin-top: 20px;
     max-width: 22ch;
+    font-family: var(--font-sans);
     font-size: var(--text-lead);
     line-height: var(--text-lead--line-height);
     font-weight: 600;
     letter-spacing: -0.015em;
+  }
+  .hero__lead {
+    margin: 14px 0 0;
+    max-width: 34ch;
+    font-size: 1.1875rem;
+    color: var(--color-ink-soft);
+  }
+
+  /* Cycler: shown only with JS and motion allowed; the full sentence stays for screen readers. */
+  .hero__tag-cycle {
+    display: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .hero__tag-cycle {
+      display: block;
+    }
+    :global(.js) .hero__tag-static {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    :global(html[data-motion='paused']) .hero__tag-cycle {
+      display: none;
+    }
+    :global(html[data-motion='paused']) .hero__tag-static {
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      clip-path: none;
+      white-space: normal;
+    }
+  }
+  .cycler {
+    display: inline-grid;
+    vertical-align: bottom;
+    perspective: 420px;
+  }
+  .cycler__word {
+    grid-area: 1 / 1;
+    white-space: nowrap;
+    color: var(--c);
+    font-family: var(--font-display);
+    font-weight: 400;
+  }
+  .cycler__l {
+    display: inline-block;
+    white-space: pre;
+    opacity: 0;
+    transform: translateY(0.5em) rotateX(-80deg);
+    transform-origin: 50% 100%;
+    transition:
+      transform 540ms var(--ease-spring),
+      opacity 220ms var(--ease-out-soft);
+    transition-delay: calc(var(--li) * 32ms);
+  }
+  .is-on .cycler__l {
+    opacity: 1;
+    transform: none;
+  }
+  .is-off .cycler__l {
+    opacity: 0;
+    transform: translateY(-0.45em) rotateX(80deg);
+    transition-duration: 280ms, 200ms;
+    transition-timing-function: var(--ease-out-soft);
+  }
+
+  .hero__stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+  }
+  .hero__pause {
+    gap: 8px;
+  }
+  :global(html:not(.js)) .hero__pause {
+    visibility: hidden;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero__pause {
+      visibility: hidden;
+    }
   }
   .hero__ctas {
     display: flex;
@@ -301,7 +472,7 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
     box-shadow: 0 2px 0 var(--acc);
   }
   .tile__no {
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
     font-weight: 800;
     font-size: 0.875rem;
     color: var(--color-ink-soft);
@@ -321,6 +492,22 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
   .tile:hover .tile__icon,
   .tile:focus-visible .tile__icon {
     transform: rotate(-8deg) scale(1.06);
+    animation: tile-wiggle 650ms var(--ease-spring);
+  }
+  @keyframes tile-wiggle {
+    0%,
+    100% {
+      rotate: 0deg;
+    }
+    20% {
+      rotate: -14deg;
+    }
+    45% {
+      rotate: 11deg;
+    }
+    70% {
+      rotate: -5deg;
+    }
   }
   .tile__label {
     margin-top: 20px;
@@ -424,6 +611,77 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
     font-size: 1.125rem;
   }
 
+  .activity {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 24px;
+    margin-top: clamp(28px, 4vw, 44px);
+    padding: 16px 20px;
+    border-radius: var(--radius-lg);
+    background: rgb(255 255 255 / 0.72);
+    border: 2px solid var(--color-ink);
+  }
+  .activity__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 1.375rem;
+  }
+  .activity__pulse {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-mint);
+    box-shadow: 0 0 0 2px var(--color-ink);
+    animation: pulse 1.6s ease-out 3;
+  }
+  @keyframes pulse {
+    50% {
+      scale: 1.5;
+    }
+  }
+  .activity__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .activity__item {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    min-height: 44px;
+    padding: 6px 14px 6px 6px;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: 0 3px 0 var(--acc);
+  }
+  .activity__kind {
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    background: color-mix(in oklab, var(--acc), #fff 80%);
+    font-size: var(--text-chip);
+    font-weight: 700;
+  }
+  .activity__name {
+    color: var(--color-ink);
+    font-weight: 800;
+    text-decoration: underline;
+    text-decoration-color: var(--acc);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+  .activity__date {
+    font-size: var(--text-small);
+    color: var(--color-ink-soft);
+  }
+
   .wwu {
     display: grid;
     gap: 32px;
@@ -438,7 +696,7 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
   .eyebrow--mint {
     background: var(--color-mint-tint);
   }
-  .wwu h2 {
+  .wwu :global(h2) {
     margin: 16px 0 0;
   }
   .wwu__lead {
@@ -497,11 +755,11 @@ const workWithUs = isTodo(site.workWithUs) ? null : site.workWithUs;
     text-align: center;
     padding: clamp(8px, 2vw, 24px) 0;
   }
-  .cta__title {
+  .cta :global(.cta__title) {
     margin: 0;
     font-size: clamp(2.75rem, 1.4rem + 5.6vw, 6rem);
     line-height: 0.95;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.02em;
     color: #fff;
   }
   .cta__lead {

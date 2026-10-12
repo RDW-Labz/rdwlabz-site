@@ -18,6 +18,10 @@ const pairs = process.argv.slice(2).length
   ? [process.argv.slice(2)]
   : [
       ['#1e1433', '#fff6ea', 'ink on paper'],
+      ['#1f4fd1', '#fff6ea', 'software ink (hero cycler) on paper'],
+      ['#c42d14', '#fff6ea', 'games ink on paper'],
+      ['#0b7a3e', '#fff6ea', 'mods ink on paper'],
+      ['#9c1fa8', '#fff6ea', 'asset-packs ink on paper'],
       ['#544a6b', '#fff6ea', 'ink-soft on paper'],
       ['#544a6b', '#ffffff', 'ink-soft on surface'],
       ['#544a6b', '#ffe0bd', 'ink-soft on peach gradient top'],

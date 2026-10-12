@@ -15,7 +15,8 @@ export type IconName =
   | 'close'
   | 'sparkle'
   | 'flask'
-  | 'clock';
+  | 'clock'
+  | 'pause';
 
 interface Props {
   name: IconName;
@@ -45,6 +46,7 @@ const paths: Record<IconName, string> = {
   flask:
     '<path d="M9 3h6M10 3v5.2L4.8 17A2.6 2.6 0 0 0 7 21h10a2.6 2.6 0 0 0 2.2-4L14 8.2V3"/><path d="M7 15h10"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  pause: '<circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/>',
 };
 ---
 

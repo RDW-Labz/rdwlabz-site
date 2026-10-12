@@ -42,6 +42,24 @@ Reusable bits from this build. **Validated** means it shipped here and is covere
 - Reduced motion: `::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*)` are neutralised.
 - Evidence: mid-transition frames in `docs/screenshots/motion/`; Review pass 3.
 
+### Motion controls (`src/scripts/hero.ts`, `BaseLayout.astro`, `global.css`)
+- A **Pause animations** button (WCAG 2.2.2) sets `html[data-motion='paused']`. It's stored in localStorage `rdw-motion` and re-applied by an inline head script before paint and after every client navigation, so there's no flash of motion.
+- Decorative text animation (the hero cycler) is `aria-hidden`. The real sentence stays in the DOM (visually hidden only while the cycler runs), and all the cycling words stack in one grid cell, so swaps never shift layout.
+- Scroll-driven CSS (`view()`, `scroll(root)`) sits behind `@supports` and `prefers-reduced-motion: no-preference`. **Put `animation-timeline` in its own rule**, or the minifier folds it into the shorthand and the browser drops it.
+- Rotating decorative layers: clip the section with `overflow-x: clip`, not `hidden`.
+- Evidence: e2e "round 2 motion" tests; `scripts/motion-check.mjs`.
+
+### Pop headings (`src/components/PopHeading.astro`)
+- Splits the text into word spans with `--wi` stagger. The accessible name is unchanged, and it's visible without JS or under reduced motion.
+- Page-scoped styles don't reach a component's root element. Style it from the page with `.parent :global(.class)`.
+
+### Opt-in project sync (`scripts/sync-projects.mjs`, `.github/workflows/sync-projects.yml`)
+- A repo appears only if it has `rdwlabz.json` at its root. Pure, tested functions (`validateEntry`, `mergeProjects`, `renderSummary`); network code only in `main()`.
+- Privacy: entries are keyed by a hash of the repo id; repo names never reach the data, logs or PR body. For private repos, links to GitHub or containing the repo name are rejected.
+- Manual entries are untouched; a slug clash skips the repo with a warning. Any API error other than a 404 aborts without writing.
+- The workflow opens or updates one PR from `bot/sync-projects` after `npm run build` passes. It never pushes to main and never deploys.
+- Evidence: `tests/sync-projects.spec.ts` (7 tests); a live read-only dry run.
+
 ### Test kit
 - `tests/site.spec.ts`. Per page: axe after forcing reveals and finishing finite animations (avoids mid-fade contrast false positives); console and network errors; 320px reflow; "every tab stop has a visible focus indicator" (outline ≥ 2px or a ring box-shadow). This last one caught a real bug.
 - `scripts/budgets.mjs` (JS, CSS and fonts per page from `dist/`), `scripts/motion-check.mjs`, `scripts/fixture-build.mjs` (content extremes; always restores the data).
@@ -57,5 +75,5 @@ Reusable bits from this build. **Validated** means it shipped here and is covere
 - **Lab bench hero** (`src/components/home/LabBench.astro`): tokens positioned with `cqw`/`cqh` in a `container-type: size` box, a bob on the `translate` property, and a CSS dashed orbit ring. Measured CLS 0 in Chromium only; not checked in Safari or Firefox.
 - **Filter changes inside `document.startViewTransition`** with per-card `view-transition-name` + `view-transition-class`. Chromium only. Other browsers fall back to an instant change (not verified).
 - **`fallback="animate"`** for browsers without native View Transitions: not observed in such a browser.
-- **Astro Fonts API** (`fontProviders.google()` self-hosted at build): works, 60 KB for 2 families. The API is new, so watch for upgrade changes.
+- **Astro Fonts API**: `fontProviders.google()` for Figtree; `fontProviders.local()` for the Bagel subset. Families whose Google CSS is split into many non-Latin slices ignore `subsets`, so check `node scripts/budgets.mjs` after adding a font. Inline the `fonts` array in `defineConfig`, or the per-provider `options` lose their types.
 - **Dev-only routes through an injected-route integration** (`astro.config.mjs`, gated on `dev`/`check`/`DEV_ROUTES=1`): works, but depends on how the CLI is invoked.

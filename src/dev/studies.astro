@@ -4,6 +4,7 @@ import '../styles/global.css';
 import StudyA from './studies/StudyA.astro';
 import StudyB from './studies/StudyB.astro';
 import StudyC from './studies/StudyC.astro';
+import TypeStudy from './studies/TypeStudy.astro';
 ---
 
 <html lang="en">
@@ -13,15 +14,22 @@ import StudyC from './studies/StudyC.astro';
     <meta name="robots" content="noindex" />
     <title>Studies (dev only) · RDW Labz</title>
     <Font cssVariable="--font-bricolage" />
+    <Font cssVariable="--font-bagel" />
     <Font cssVariable="--font-figtree" />
     <Font cssVariable="--font-b-display" />
     <Font cssVariable="--font-b-body" />
     <Font cssVariable="--font-c-display" />
     <Font cssVariable="--font-c-body" />
+    <Font cssVariable="--font-t1" />
+    <Font cssVariable="--font-t3" />
   </head>
   <body class="m-0">
     <main>
       <h1 class="sr-only">Art direction studies</h1>
+      <div class="study-label" id="type">
+        Round 2: heading font study
+      </div>
+      <TypeStudy />
       <div class="study-label">Study A — Workbench</div>
       <StudyA />
       <div class="study-label">Study B — Arcade cartridge</div>

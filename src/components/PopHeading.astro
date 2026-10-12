@@ -1,0 +1,26 @@
+---
+/**
+ * Heading whose words pop in (with a little overshoot) when it scrolls into view.
+ * The text stays one heading with normal spaces, so it reads and wraps like plain text.
+ */
+interface Props {
+  as?: 'h1' | 'h2' | 'h3';
+  text: string;
+  id?: string;
+  class?: string;
+}
+
+const { as: Tag = 'h2', text, id, class: className } = Astro.props;
+const words = text.split(/\s+/).filter(Boolean);
+---
+
+<Tag id={id} class={className} data-reveal data-pop>
+  {words.map((w, i) => (
+    <>
+      <span class="pop-w" style={`--wi:${i}`}>
+        {w}
+      </span>
+      {i < words.length - 1 && ' '}
+    </>
+  ))}
+</Tag>
