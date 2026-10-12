@@ -30,13 +30,32 @@
       "category": "games",
       "status": "in-dev",
       "platforms": ["Android"],
-      "url": "TODO: Putt Drop link",
+      "url": null,
       "accentColor": "TODO",
       "image": null,
+      "icon": null,
       "featured": true,
       "addedAt": "2026-10-12",
       "sync": {
         "id": "gh-9f23b4a2d3c3"
+      }
+    },
+    {
+      "slug": "rogue-snow-everwinter",
+      "name": "Rogue Snow: Everwinter",
+      "oneLiner": "TODO: one line",
+      "category": "games",
+      "status": "released",
+      "platforms": ["Windows", "Android", "iOS"],
+      "url": "https://store.steampowered.com/app/1234560",
+      "accentColor": "#1d1332",
+      "image": "/projects/rogue-snow-everwinter-art.webp",
+      "icon": "/projects/rogue-snow-everwinter-icon.webp",
+      "featured": false,
+      "releasedAt": "2020-09-29",
+      "addedAt": "2026-10-12",
+      "sync": {
+        "id": "gh-9126e68ff031"
       }
     }
   ],
