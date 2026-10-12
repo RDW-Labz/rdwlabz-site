@@ -52,3 +52,30 @@ Verified (automated, `npx playwright test --project=e2e`, 29/29 pass):
 Checked manually from screenshots: the open mobile menu, focus rings (hero token, selected chip), the filtered view at 390, the empty state at 390, 20 projects at 1440, and the 1-project filler at 1440.
 
 **Not performed:** testing with a real screen reader (VoiceOver/NVDA). The semantics were checked with axe and the accessibility snapshot only, so full WCAG conformance is not claimed.
+
+## Pass 3: Motion, performance and reliability (2026-10-12)
+
+Checked page transitions, the nav-pill morph, loops, listener cleanup, CLS, budgets and Lighthouse on the production build.
+
+Tools: `node scripts/budgets.mjs` (reads `dist/`), and `node scripts/motion-check.mjs <url> <outDir>` (slows animations to 10% through CDP to capture mid-transition frames, round-trips Home ↔ Projects 8 times while counting `document` listeners, checks the hero loop pauses offscreen, and measures CLS).
+
+| # | Finding | Fix |
+|---|---|---|
+| 1 | **During the route change the nav pill covered the link labels**, so "Projects" was blank for the 420 ms morph. The named pill is lifted above the header snapshot | Each nav label has its own `view-transition-name` (`nav-text-<id>`), so labels paint above the moving pill |
+| 2 | The old and new page contents were double-exposed early in the transition, because the fade-out and slide-in started together | The slide-in has a 120 ms delay, so the old room mostly clears first |
+| 3 | The budget script found only one font family (the regex expected a quoted name) | Regex fixed. It now reports both families |
+| 4 | Lighthouse can't audit the real 404 response (it refuses non-2xx documents) | The 404 page is audited at `/404`. Its SEO score (63) comes from the intended `noindex`, so SEO is reported but not gated for that URL |
+
+Mid-transition frames after the fixes: `docs/screenshots/motion/route-change-early.png` and `route-change-late.png`.
+
+Verified (all run on 2026-10-12):
+- **Budgets** (`scripts/budgets.mjs`): JS is 6.4 KB gz on Home and 404 and 7.0 KB gz on Projects (budget 60). Fonts: 2 families (Bricolage Grotesque, Figtree), 2 woff2 files, 60.0 KB (budget 2 families / 120 KB). Hero media: the hero has no raster media (CSS + inline SVG). CSS is 8.0–10.9 KB gz.
+- **Lighthouse CI** (`npm run lhci`, mobile default, 3 runs, median): `/` scored 100/100/100/100, `/projects` 100/100/100/100, and `/404` 100/100/100 with SEO 63 (noindex). LCP was about 1.5 s, TBT 0 ms and CLS 0.000 on all three. All assertions passed.
+- **CLS** measured in-browser on Home with a PerformanceObserver: 0.
+- **Loops**: the hero bench gets `data-paused="true"` when scrolled offscreen and `"false"` when back in view.
+- **Listener cleanup**: the `document` listener count stays at 16 for all 8 Home ↔ Projects round trips (no growth). No page errors or console errors.
+- **Filters after repeated navigation** work, including a click that lands before init finishes: it falls back to a client navigation to `?c=games`, which selects the right chip.
+- **Reduced motion**: the global block neutralises all `::view-transition-*` animations, reveals and loops. This is covered by the e2e reduced-motion test.
+- Re-ran `npm run lint` (clean), `astro check` (0 errors, 0 warnings, 0 hints) and `npx playwright test --project=e2e` (29/29 pass) after the fixes.
+
+**Not performed:** a field (RUM) performance check on real devices; there's no deployed site. A throttled real-device check is not done either. The Lighthouse numbers are lab numbers from localhost.

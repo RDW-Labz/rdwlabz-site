@@ -36,7 +36,9 @@ const links = [
                 aria-current={current === l.id ? 'page' : undefined}
               >
                 {current === l.id && <span class="nav-link__pill" aria-hidden="true" />}
-                <span class="nav-link__text">{l.label}</span>
+                <span class="nav-link__text" style={`view-transition-name: nav-text-${l.id}`}>
+                  {l.label}
+                </span>
               </a>
             </li>
           ))}

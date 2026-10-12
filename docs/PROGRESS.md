@@ -10,6 +10,7 @@
 | 2026-10-12 | 4. Tokens + primitives     | Done   | Tokens in `src/styles/global.css` (`@theme` + CSS vars). Primitives: Button, ContactButton, Chip, FilterChip, ProjectCard, ProjectArt, Section (tray), Header (+ mobile menu w/ focus trap), Footer, Logo, Icon, BaseLayout (ClientRouter, SEO, fonts). `/_gallery` screenshots in `docs/screenshots/gallery/`. |
 | 2026-10-12 | 5. Pages + SEO + analytics | Done   | Home (hero/LabBench, What we build tiles, featured, Work with us, CTA band), Projects (URL-reflected filters, live status, empty state, no-JS links), 404, canonical/OG/favicons/manifest/robots/sitemap, CF Web Analytics snippet gated on `PUBLIC_CF_BEACON_TOKEN`. `npx playwright test --project=e2e`: 23/23 pass (run twice). |
 
+| 2026-10-12 | 6. Review passes 1–3       | Done   | See `docs/REVIEWS.md`. Pass 3: fixed the nav-label occlusion during the pill morph and the transition double exposure. Lighthouse medians 100/100/100/100 on `/` and `/projects` (404: 100/100/100, SEO 63 by design). JS ≤ 7.0 KB gz, fonts 60 KB / 2 families, CLS 0. e2e 29/29. |
 ## Baseline (step 1, run 2026-10-12)
 
 - `npm run lint`: pass (0 ESLint problems, Prettier clean).
@@ -32,7 +33,7 @@
 
 ## Next
 
-- Step 6: three review passes (1440 / 768 / 390).
+- Step 7: final screenshots, PREFLIGHT.md, PATTERNS.md, README, handoff.
 
 ## Blockers / needs from Braden
 
