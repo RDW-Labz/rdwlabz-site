@@ -1,0 +1,26 @@
+---
+description: Design taste, design system and motion rules for UI work
+globs: src/**/*.astro, src/**/*.ts, src/**/*.tsx, src/**/*.css, tailwind.config.*
+alwaysApply: false
+---
+
+**Owner taste (required)**
+- Organization and clear flow first.
+- Smooth rounded corners, pill buttons and chips, gradients that separate sections from the background.
+- Visible, smooth animations on navigation (Astro View Transitions) and section reveals.
+- Characterful display font + clean body font. Never default system fonts.
+- Avoid: sharp flat boxes, no section separation, generic purple-gradient AI look, repeated identical card grids, random glass.
+
+**System**
+- Use tokens only (Tailwind theme + CSS vars): color roles, type scale, spacing, radii, elevation, z, motion durations/easings.
+- Primitives: Button (pill), Chip, ProjectCard, Section, Header/Nav, Footer, Logo, Icon. Every state: hover, focus-visible, active, selected, disabled.
+- Each ProjectCard uses its accent color from `projects.json`.
+
+**Motion**
+- Purposeful, never blocks content. No scroll hijacking, custom cursors or hover-only info.
+- Instant feedback on hover/press/focus.
+- `prefers-reduced-motion` → real reduced/static version. Pause offscreen animation; clean up observers/listeners.
+
+**A11y/perf**
+- WCAG 2.2 AA, check contrast on gradients, visible focus, 24px+ targets, keyboard-operable filters and menu.
+- Budgets: JS ≤ 60 KB gz/page, ≤ 2 font families ≤ 120 KB, hero media ≤ 200 KB, CLS ≈ 0. Lighthouse ≥ 90 (mobile, prod build).

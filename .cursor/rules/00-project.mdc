@@ -1,0 +1,16 @@
+---
+description: RDW Labz site — core facts, scope and permissions
+alwaysApply: true
+---
+
+- Site: rdwlabz.com for RDW Labz, a dev team building software, games, mods and asset packs.
+- Fully separate brand. No references, links, logos or styling from any other company.
+- Greenfield Astro + TS + Tailwind, Cloudflare Pages (assumed). Developer: Braden.
+- Audience: players/modders/asset buyers + potential clients. Vibe: playful tech, indie-studio feel, still professional.
+- v1 pages: Home, Projects, 404. Footer mailto only. No forms, CMS, logins, store, blog.
+- Projects live in `src/data/projects.json`. Categories: Software, Games, Mods, Asset packs.
+- Never invent facts. Unknowns = `TODO:` in data, tasteful "Coming soon" in UI.
+- No third-party game art/logos/trademarks without confirmed rights.
+- Full spec: `docs/BUILD-SPEC.md`. Scope: `docs/PLAN.md`.
+- Permissions: local commits OK. No push, merge, deploy, DNS changes, paid spend, or new accounts without Braden.
+- Never claim a check passed unless you ran it. Update `docs/PROGRESS.md` at milestones.

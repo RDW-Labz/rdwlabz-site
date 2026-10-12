@@ -1,0 +1,66 @@
+{
+  "_note": "Single source of truth for Home + Projects. Replace every TODO with real content from Braden. Do not invent projects.",
+  "categories": [
+    { "id": "software", "label": "Software" },
+    { "id": "games", "label": "Games" },
+    { "id": "mods", "label": "Mods" },
+    { "id": "asset-packs", "label": "Asset packs" }
+  ],
+  "projects": [
+    {
+      "slug": "todo-software",
+      "name": "TODO: Project name",
+      "oneLiner": "TODO: one line",
+      "category": "software",
+      "status": "coming-soon",
+      "platforms": [],
+      "url": null,
+      "accentColor": "TODO",
+      "image": null,
+      "featured": true
+    },
+    {
+      "slug": "todo-game",
+      "name": "TODO: Project name",
+      "oneLiner": "TODO: one line",
+      "category": "games",
+      "status": "coming-soon",
+      "platforms": [],
+      "url": null,
+      "accentColor": "TODO",
+      "image": null,
+      "featured": true
+    },
+    {
+      "slug": "todo-mod",
+      "name": "TODO: Project name",
+      "oneLiner": "TODO: one line",
+      "category": "mods",
+      "status": "coming-soon",
+      "platforms": [],
+      "url": null,
+      "accentColor": "TODO",
+      "image": null,
+      "featured": true
+    },
+    {
+      "slug": "todo-asset-pack",
+      "name": "TODO: Project name",
+      "oneLiner": "TODO: one line",
+      "category": "asset-packs",
+      "status": "coming-soon",
+      "platforms": [],
+      "url": null,
+      "accentColor": "TODO",
+      "image": null,
+      "featured": false
+    }
+  ],
+  "site": {
+    "name": "RDW Labz",
+    "domain": "rdwlabz.com",
+    "tagline": "TODO: one sentence on what RDW Labz builds",
+    "contactEmail": "TODO@rdwlabz.com",
+    "launchDate": "TODO"
+  }
+}
