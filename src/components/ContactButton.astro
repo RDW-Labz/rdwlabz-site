@@ -1,0 +1,29 @@
+---
+import Button from './Button.astro';
+import { contactHref } from '../lib/projects';
+
+/** "Get in touch" pill wired to site.contactEmail; a clear placeholder while that is TODO. */
+interface Props {
+  variant?: 'primary' | 'secondary' | 'ink' | 'sun';
+  size?: 'md' | 'sm';
+  label?: string;
+  class?: string;
+}
+
+const {
+  variant = 'secondary',
+  size = 'md',
+  label = 'Get in touch',
+  class: className,
+} = Astro.props;
+---
+
+{contactHref ? (
+  <Button href={contactHref} variant={variant} size={size} icon="mail" class={className}>
+    {label}
+  </Button>
+) : (
+  <Button href={null} variant={variant} size={size} icon="mail" class={className}>
+    Email coming soon
+  </Button>
+)}

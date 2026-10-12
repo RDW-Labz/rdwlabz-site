@@ -6,6 +6,8 @@ import { test } from '@playwright/test';
  * SHOTS=site     → site pages at 1440 / 768 / 390 (default)
  * SHOT_DIR       → output dir (default docs/screenshots)
  */
+test.setTimeout(120_000);
+
 const mode = process.env.SHOTS ?? 'site';
 const outDir = process.env.SHOT_DIR ?? 'docs/screenshots';
 

@@ -1,0 +1,62 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import Icon, { type IconName } from './Icon.astro';
+
+/**
+ * Pill button. `href` set → <a>; `href` null or `disabled` on a link → non-interactive
+ * <span aria-disabled> (never a dead link); no `href` → <button>.
+ */
+type Variant = 'primary' | 'secondary' | 'ghost' | 'ink' | 'sun';
+
+interface Props extends Omit<HTMLAttributes<'a'>, 'href'> {
+  variant?: Variant;
+  size?: 'md' | 'sm';
+  href?: string | null;
+  icon?: IconName;
+  iconEnd?: IconName;
+  disabled?: boolean;
+  type?: 'button' | 'submit';
+  external?: boolean;
+  /** Gallery only: force a visual state. */
+  state?: 'hover' | 'focus' | 'active';
+}
+
+const {
+  variant = 'primary',
+  size = 'md',
+  href,
+  icon,
+  iconEnd,
+  disabled = false,
+  type = 'button',
+  external = false,
+  state,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const isLink = href !== undefined;
+const Tag = isLink ? (href && !disabled ? 'a' : 'span') : 'button';
+const attrs: Record<string, unknown> =
+  Tag === 'a'
+    ? { href, ...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {}) }
+    : Tag === 'span'
+      ? { 'aria-disabled': 'true' }
+      : { type, disabled: disabled || undefined };
+
+const classes = [
+  'btn',
+  `btn--${variant}`,
+  size === 'sm' && 'btn--sm',
+  state && `is-${state}`,
+  className,
+];
+const iconSize = size === 'sm' ? 16 : 18;
+---
+
+<Tag class:list={classes} {...attrs} {...(rest as Record<string, unknown>)}>
+  {icon && <Icon name={icon} size={iconSize} />}
+  <slot />
+  {iconEnd && <Icon name={iconEnd} size={iconSize} />}
+  {Tag === 'a' && external && <span class="sr-only">(opens in a new tab)</span>}
+</Tag>

@@ -3,24 +3,79 @@ import { defineConfig, fontProviders } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 
+// `check` is included so the dev-only pages still type-check against their font variables.
+const devRoutesOn =
+  process.argv.includes('dev') || process.argv.includes('check') || process.env.DEV_ROUTES === '1';
+
 /**
  * Dev-only routes (/_studies, /_gallery). They are injected only when running
- * `astro dev` (or when DEV_ROUTES=1 for screenshot runs against a preview build),
- * so they never ship in the production build.
+ * `astro dev` (or when DEV_ROUTES=1), so they never ship in the production build.
  * @returns {import('astro').AstroIntegration}
  */
 function devRoutes() {
   return {
     name: 'rdw-dev-routes',
     hooks: {
-      'astro:config:setup': ({ command, injectRoute }) => {
-        if (command !== 'dev' && process.env.DEV_ROUTES !== '1') return;
+      'astro:config:setup': ({ injectRoute }) => {
+        if (!devRoutesOn) return;
         injectRoute({ pattern: '/_studies', entrypoint: './src/dev/studies.astro' });
         injectRoute({ pattern: '/_gallery', entrypoint: './src/dev/gallery.astro' });
       },
     },
   };
 }
+
+/** @type {NonNullable<import('astro').AstroUserConfig['fonts']>} */
+const siteFonts = [
+  {
+    provider: fontProviders.google(),
+    name: 'Bricolage Grotesque',
+    cssVariable: '--font-bricolage',
+    weights: ['400 800'],
+    styles: ['normal'],
+  },
+  {
+    provider: fontProviders.google(),
+    name: 'Figtree',
+    cssVariable: '--font-figtree',
+    weights: ['400 700'],
+    styles: ['normal'],
+  },
+];
+
+/** Rejected art-direction studies (B, C) — dev only, never in production. */
+/** @type {NonNullable<import('astro').AstroUserConfig['fonts']>} */
+const studyFonts = [
+  {
+    provider: fontProviders.google(),
+    name: 'Pixelify Sans',
+    cssVariable: '--font-b-display',
+    weights: ['400 700'],
+    styles: ['normal'],
+  },
+  {
+    provider: fontProviders.google(),
+    name: 'Space Grotesk',
+    cssVariable: '--font-b-body',
+    weights: ['400 700'],
+    styles: ['normal'],
+  },
+  {
+    provider: fontProviders.google(),
+    name: 'Unbounded',
+    cssVariable: '--font-c-display',
+    weights: ['400 900'],
+    styles: ['normal'],
+  },
+  {
+    provider: fontProviders.google(),
+    name: 'IBM Plex Mono',
+    cssVariable: '--font-c-body',
+    weights: ['400', '600'],
+    styles: ['normal'],
+    fallbacks: ['monospace'],
+  },
+];
 
 export default defineConfig({
   site: 'https://rdwlabz.com',
@@ -33,52 +88,5 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  fonts: [
-    // Study A — Workbench
-    {
-      provider: fontProviders.google(),
-      name: 'Bricolage Grotesque',
-      cssVariable: '--font-a-display',
-      weights: ['400 800'],
-      styles: ['normal'],
-    },
-    {
-      provider: fontProviders.google(),
-      name: 'Figtree',
-      cssVariable: '--font-a-body',
-      weights: ['400 700'],
-      styles: ['normal'],
-    },
-    // Study B — Arcade cartridge
-    {
-      provider: fontProviders.google(),
-      name: 'Pixelify Sans',
-      cssVariable: '--font-b-display',
-      weights: ['400 700'],
-      styles: ['normal'],
-    },
-    {
-      provider: fontProviders.google(),
-      name: 'Space Grotesk',
-      cssVariable: '--font-b-body',
-      weights: ['400 700'],
-      styles: ['normal'],
-    },
-    // Study C — Blueprint
-    {
-      provider: fontProviders.google(),
-      name: 'Unbounded',
-      cssVariable: '--font-c-display',
-      weights: ['400 900'],
-      styles: ['normal'],
-    },
-    {
-      provider: fontProviders.google(),
-      name: 'IBM Plex Mono',
-      cssVariable: '--font-c-body',
-      weights: ['400', '600'],
-      styles: ['normal'],
-      fallbacks: ['monospace'],
-    },
-  ],
+  fonts: devRoutesOn ? [...siteFonts, ...studyFonts] : siteFonts,
 });

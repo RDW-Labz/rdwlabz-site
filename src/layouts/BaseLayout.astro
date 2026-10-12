@@ -1,0 +1,118 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import { Font } from 'astro:assets';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { site } from '../lib/projects';
+
+interface Props {
+  title?: string;
+  description: string;
+  current: 'home' | 'projects' | null;
+  noindex?: boolean;
+}
+
+const { title, description, current, noindex = false } = Astro.props;
+const fullTitle = title
+  ? `${title} · ${site.name}`
+  : `${site.name} — software, games, mods & asset packs`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL('/og.png', Astro.site);
+const cfBeaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN as string | undefined;
+
+/** Main content slides between "rooms"; keyframes live in global.css. */
+const roomSwap = {
+  old: { name: 'vt-out', duration: '200ms', easing: 'ease-in', fillMode: 'both' },
+  new: {
+    name: 'vt-in',
+    duration: '420ms',
+    easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    fillMode: 'both',
+  },
+};
+const mainAnim = { forwards: roomSwap, backwards: roomSwap };
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    <meta name="theme-color" content="#fff6ea" />
+    <meta name="color-scheme" content="light" />
+
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="RDW Labz logo on a warm gradient workbench" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <Font cssVariable="--font-bricolage" preload />
+    <Font cssVariable="--font-figtree" preload />
+
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+    <ClientRouter fallback="animate" />
+
+    {cfBeaconToken && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={JSON.stringify({ token: cfBeaconToken })}
+      />
+    )}
+  </head>
+  <body>
+    <a href="#main" class="skip-link">
+      Skip to content
+    </a>
+    <Header current={current} />
+    <main id="main" tabindex="-1" transition:name="main" transition:animate={mainAnim}>
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      import { initMotion } from '../scripts/motion';
+      document.addEventListener('astro:page-load', initMotion);
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  .skip-link {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: var(--z-skip);
+    padding: 12px 20px;
+    border-radius: var(--radius-pill);
+    background: var(--color-ink);
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+    transform: translateY(-200%);
+  }
+  .skip-link:focus {
+    transform: none;
+  }
+  main:focus {
+    outline: none;
+  }
+</style>

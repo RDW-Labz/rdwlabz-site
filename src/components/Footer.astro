@@ -1,0 +1,105 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { site, isTodo } from '../lib/projects';
+
+const year = new Date().getFullYear();
+const hasEmail = !isTodo(site.contactEmail);
+---
+
+<footer class="site-footer on-ink">
+  <div class="container-lab site-footer__inner">
+    <div class="site-footer__brand">
+      <a href="/" aria-label="RDW Labz home" class="site-footer__home">
+        <Logo onInk />
+      </a>
+      <p>Software, games, mods and asset packs.</p>
+    </div>
+    <nav aria-label="Footer">
+      <ul>
+        <li>
+          <a class="link" href="/">
+            Home
+          </a>
+        </li>
+        <li>
+          <a class="link" href="/projects">
+            Projects
+          </a>
+        </li>
+        <li>
+          {hasEmail ? (
+            <a class="link site-footer__mail" href={`mailto:${site.contactEmail}`}>
+              <Icon name="mail" size={18} />
+              {site.contactEmail}
+            </a>
+          ) : (
+            <span class="site-footer__mail site-footer__mail--soon">
+              <Icon name="mail" size={18} />
+              Email address coming soon
+            </span>
+          )}
+        </li>
+      </ul>
+    </nav>
+    <p class="site-footer__legal">© {year} RDW Labz</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--color-ink);
+    color: var(--color-muted-on-ink);
+    padding: 48px 0 40px;
+  }
+  .site-footer__inner {
+    display: grid;
+    gap: 28px;
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  .site-footer__home {
+    display: inline-flex;
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+  }
+  .site-footer__brand p {
+    margin: 12px 0 0;
+  }
+  .site-footer ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .site-footer li {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .site-footer__mail {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .site-footer__mail--soon {
+    color: var(--color-muted-on-ink);
+    font-weight: 600;
+  }
+  .site-footer__legal {
+    margin: 0;
+    font-size: var(--text-small);
+  }
+  @media (min-width: 48rem) {
+    .site-footer__inner {
+      grid-template-columns: 1fr auto;
+    }
+    .site-footer__legal {
+      grid-column: 1 / -1;
+      padding-top: 20px;
+      border-top: 1px solid rgb(201 191 224 / 0.25);
+    }
+  }
+</style>

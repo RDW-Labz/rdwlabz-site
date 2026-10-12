@@ -1,0 +1,26 @@
+---
+/**
+ * Stacked "tray": rounded top, ink top border, own gradient. Each tray overlaps the
+ * previous one by its radius, so sections read as separate objects on the bench.
+ */
+interface Props {
+  tone: 'paper' | 'peach' | 'mint' | 'ink';
+  id?: string;
+  labelledby?: string;
+  class?: string;
+  /** Use a plain block instead of a tray (first section on a page). */
+  flat?: boolean;
+}
+
+const { tone, id, labelledby, class: className, flat = false } = Astro.props;
+---
+
+<section
+  id={id}
+  aria-labelledby={labelledby}
+  class:list={[!flat && 'tray', !flat && `tray--${tone}`, tone === 'ink' && 'on-ink', className]}
+>
+  <div class="container-lab">
+    <slot />
+  </div>
+</section>

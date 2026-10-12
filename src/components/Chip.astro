@@ -1,0 +1,24 @@
+---
+import Icon, { type IconName } from './Icon.astro';
+import type { Status } from '../lib/projects';
+
+/** Non-interactive chips: category (accent tint), status (dot), tag (platform). */
+interface Props {
+  kind: 'category' | 'status' | 'tag';
+  status?: Status;
+  accent?: string;
+  icon?: IconName;
+  class?: string;
+}
+
+const { kind, status, accent, icon, class: className } = Astro.props;
+---
+
+<span
+  class:list={['chip', `chip--${kind}`, status && `chip--${status}`, className]}
+  style={accent ? `--acc:${accent}` : undefined}
+>
+  {kind === 'status' && <span class="chip__dot" aria-hidden="true" />}
+  {icon && <Icon name={icon} size={14} />}
+  <slot />
+</span>

@@ -1,17 +1,255 @@
 ---
-import '../styles/global.css';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import ContactButton from '../components/ContactButton.astro';
+import Chip from '../components/Chip.astro';
+import FilterChip from '../components/FilterChip.astro';
+import Icon, { type IconName } from '../components/Icon.astro';
+import Logo from '../components/Logo.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import Section from '../components/Section.astro';
+import { allProjects, categories, categoryAccent, displayProject } from '../lib/projects';
+import type { Project } from '../lib/projects';
+
+/** Fixtures for state coverage only. Not real projects; never rendered on production pages. */
+const fixture = (over: Partial<Project>): Project => ({
+  slug: 'fixture',
+  name: 'Fixture project',
+  oneLiner: 'Fixture blurb for layout testing.',
+  category: 'games',
+  status: 'released',
+  platforms: ['Windows', 'macOS'],
+  url: 'https://example.com',
+  accentColor: '#ff4d2e',
+  image: null,
+  featured: false,
+  ...over,
+});
+const fixtures = [
+  displayProject(fixture({ slug: 'fx-released' })),
+  displayProject(
+    fixture({
+      slug: 'fx-long',
+      category: 'mods',
+      status: 'in-dev',
+      accentColor: '#16b67e',
+      name: 'An extraordinarily long project name that keeps going to test wrapping behaviour',
+      oneLiner:
+        'A deliberately long one-liner that runs over several lines so we can see how the card handles wrapping, spacing and alignment of the action at the bottom.',
+      platforms: ['Windows', 'Linux', 'Steam Deck', 'Web', 'Android', 'iOS'],
+      url: null,
+    }),
+  ),
+  ...allProjects().slice(0, 1),
+];
+const icons: IconName[] = [
+  'software',
+  'games',
+  'mods',
+  'asset-packs',
+  'arrow-right',
+  'arrow-up-right',
+  'mail',
+  'menu',
+  'close',
+  'sparkle',
+  'flask',
+  'clock',
+];
+const swatches = [
+  ['ink', '#1e1433'],
+  ['ink-soft', '#544a6b'],
+  ['paper', '#fff6ea'],
+  ['surface', '#ffffff'],
+  ['cream', '#ffe7c7'],
+  ['tomato', '#ff4d2e'],
+  ['tomato-700', '#d4321a'],
+  ['sun', '#ffc23d'],
+  ['sky', '#3d7bff'],
+  ['mint', '#16b67e'],
+  ['grape', '#b04cf0'],
+];
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex" />
-    <title>Gallery (dev only)</title>
-  </head>
-  <body>
-    <main>
-      <h1>Primitive gallery</h1>
-    </main>
-  </body>
-</html>
+<BaseLayout title="Gallery (dev only)" description="Primitive gallery" current={null} noindex>
+  <Section tone="paper" flat labelledby="g-title" class="py-12">
+    <h1 id="g-title" class="text-h1">
+      Primitive gallery
+    </h1>
+    <p class="mt-3 max-w-prose text-ink-soft">
+      Dev-only. Every primitive and state used on the site. Forced states use
+      <code>.is-hover / .is-focus / .is-active / .is-selected</code>.
+    </p>
+
+    <h2 class="mt-12 text-h2">Logo</h2>
+    <div class="mt-4 flex flex-wrap items-center gap-6">
+      <Logo />
+      <Logo variant="mark" size={56} />
+      <span class="rounded-[20px] bg-ink p-4">
+        <Logo onInk />
+      </span>
+    </div>
+
+    <h2 class="mt-12 text-h2">Color</h2>
+    <ul class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+      {swatches.map(([n, hex]) => (
+        <li class="sticker rounded-[20px] p-2">
+          <div class="h-14 rounded-[12px] border-2 border-ink" style={`background:${hex}`} />
+          <p class="mt-2 text-small font-bold">{n}</p>
+          <p class="text-small text-ink-soft">{hex}</p>
+        </li>
+      ))}
+    </ul>
+
+    <h2 class="mt-12 text-h2">Type</h2>
+    <div class="mt-4 space-y-2">
+      <p class="font-display text-display font-extrabold tracking-[-0.045em]">Display</p>
+      <p class="font-display text-h1 font-extrabold">Heading 1</p>
+      <p class="font-display text-h2 font-extrabold">Heading 2</p>
+      <p class="font-display text-h3 font-bold">Heading 3</p>
+      <p class="text-lead font-semibold">Lead — we build software, games, mods and asset packs.</p>
+      <p class="text-body">Body — Figtree 17/1.55 for paragraphs and UI.</p>
+      <p class="text-small text-ink-soft">Small — meta text</p>
+    </div>
+
+    <h2 class="mt-12 text-h2">Buttons</h2>
+    {(['primary', 'secondary', 'ink', 'sun', 'ghost'] as const).map((v) => (
+      <div class="mt-4 flex flex-wrap items-center gap-4">
+        <span class="w-24 text-small font-bold">{v}</span>
+        <Button variant={v} iconEnd="arrow-right">
+          Default
+        </Button>
+        <Button variant={v} state="hover">
+          Hover
+        </Button>
+        <Button variant={v} state="focus">
+          Focus
+        </Button>
+        <Button variant={v} state="active">
+          Active
+        </Button>
+        <Button variant={v} disabled>
+          Disabled
+        </Button>
+        <Button variant={v} size="sm">
+          Small
+        </Button>
+      </div>
+    ))}
+    <div class="mt-4 flex flex-wrap items-center gap-4">
+      <span class="w-24 text-small font-bold">contact</span>
+      <ContactButton variant="primary" />
+      <ContactButton variant="ink" size="sm" label="Contact" />
+    </div>
+
+    <h2 class="mt-12 text-h2">Chips</h2>
+    <div class="mt-4 flex flex-wrap gap-3">
+      {categories.map((c) => (
+        <Chip kind="category" accent={categoryAccent[c.id]} icon={c.id}>
+          {c.label}
+        </Chip>
+      ))}
+      <Chip kind="status" status="released">
+        Released
+      </Chip>
+      <Chip kind="status" status="in-dev">
+        In development
+      </Chip>
+      <Chip kind="status" status="coming-soon">
+        Coming soon
+      </Chip>
+      <Chip kind="tag">Windows</Chip>
+    </div>
+    <div class="mt-4 flex flex-wrap gap-3">
+      <FilterChip id="all" href="#" selected count={4}>
+        All
+      </FilterChip>
+      <FilterChip id="g1" href="#" icon="games" accent={categoryAccent.games} count={1}>
+        Default
+      </FilterChip>
+      <FilterChip id="g2" href="#" icon="mods" accent={categoryAccent.mods} state="hover">
+        Hover
+      </FilterChip>
+      <FilterChip id="g3" href="#" icon="software" accent={categoryAccent.software} state="focus">
+        Focus
+      </FilterChip>
+      <FilterChip
+        id="g4"
+        href="#"
+        icon="asset-packs"
+        accent={categoryAccent['asset-packs']}
+        state="active"
+      >
+        Active
+      </FilterChip>
+      <FilterChip id="g5" href="#" icon="games" accent={categoryAccent.games} selected>
+        Selected
+      </FilterChip>
+      <FilterChip id="g6" href="#" disabled>
+        Disabled
+      </FilterChip>
+    </div>
+
+    <h2 class="mt-12 text-h2">Links + icons</h2>
+    <p class="mt-4">
+      Inline{' '}
+      <a class="link" href="#g-title">
+        text link
+      </a>{' '}
+      in a sentence.
+    </p>
+    <ul class="mt-4 flex flex-wrap gap-4">
+      {icons.map((n) => (
+        <li class="sticker grid size-16 place-items-center rounded-[20px]" title={n}>
+          <Icon name={n} size={28} />
+        </li>
+      ))}
+    </ul>
+  </Section>
+
+  <Section tone="peach" labelledby="g-cards">
+    <h2 id="g-cards" class="text-h2">
+      Project cards
+    </h2>
+    <p class="mt-2 text-ink-soft">
+      Released with link · long content + no link · real placeholder from projects.json · forced
+      hover.
+    </p>
+    <ul class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {fixtures.map((p) => (
+        <li>
+          <ProjectCard project={p} />
+        </li>
+      ))}
+      <li>
+        <ProjectCard project={{ ...fixtures[0], slug: 'fx-hover' }} state="hover" />
+      </li>
+    </ul>
+  </Section>
+
+  <Section tone="mint" labelledby="g-mint">
+    <h2 id="g-mint" class="text-h2">
+      Tray: mint
+    </h2>
+    <p class="mt-2 text-ink-soft">Secondary text on gradient (contrast checked).</p>
+  </Section>
+
+  <Section tone="ink" labelledby="g-ink">
+    <h2 id="g-ink" class="text-h2">
+      Tray: ink
+    </h2>
+    <p class="mt-2 text-muted-on-ink">
+      Muted text on ink.{' '}
+      <a class="link" href="#g-title">
+        Link on ink
+      </a>
+      .
+    </p>
+    <div class="mt-6 flex flex-wrap gap-4">
+      <Button variant="sun" iconEnd="arrow-right">
+        Sun on ink
+      </Button>
+      <ContactButton variant="sun" />
+    </div>
+  </Section>
+</BaseLayout>

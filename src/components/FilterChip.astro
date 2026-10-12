@@ -1,0 +1,49 @@
+---
+import Icon, { type IconName } from './Icon.astro';
+
+/**
+ * Interactive filter chip. Without JS it is a plain link to `?c=<id>`;
+ * the Projects script upgrades it to a toggle (aria-pressed) without reloading.
+ */
+interface Props {
+  id: string;
+  href: string;
+  selected?: boolean;
+  count?: number;
+  icon?: IconName;
+  accent?: string;
+  disabled?: boolean;
+  /** Gallery only: force a visual state. */
+  state?: 'hover' | 'focus' | 'active';
+}
+
+const { id, href, selected = false, count, icon, accent, disabled = false, state } = Astro.props;
+---
+
+{disabled ? (
+  <span
+    class:list={['chip-filter', state && `is-${state}`]}
+    aria-disabled="true"
+    style={accent ? `--acc:${accent}` : undefined}
+  >
+    {icon && <Icon name={icon} size={18} class="chip-filter__icon" />}
+    <slot />
+  </span>
+) : (
+  <a
+    href={href}
+    class:list={['chip-filter', state && `is-${state}`]}
+    aria-pressed={selected ? 'true' : 'false'}
+    role="button"
+    data-filter={id}
+    style={accent ? `--acc:${accent}` : undefined}
+  >
+    {icon && <Icon name={icon} size={18} class="chip-filter__icon" />}
+    <slot />
+    {count !== undefined && (
+      <span class="chip-filter__count" aria-hidden="true">
+        {count}
+      </span>
+    )}
+  </a>
+)}

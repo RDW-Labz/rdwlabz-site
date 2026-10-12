@@ -7,6 +7,7 @@
 | 2026-10-12 | 2. Brief                   | Done   | `docs/BRIEF.md`: audiences, jobs, 3 journeys, facts, assumptions, open questions. |
 
 | 2026-10-12 | 3. Art direction            | Done   | 3 studies on `/_studies` (Workbench / Arcade cartridge / Blueprint), screenshots in `docs/screenshots/studies/`. Picked **A — Workbench** (27/20/23). Spec in `docs/ART-DIRECTION.md`. |
+| 2026-10-12 | 4. Tokens + primitives     | Done   | Tokens in `src/styles/global.css` (`@theme` + CSS vars). Primitives: Button, ContactButton, Chip, FilterChip, ProjectCard, ProjectArt, Section (tray), Header (+ mobile menu w/ focus trap), Footer, Logo, Icon, BaseLayout (ClientRouter, SEO, fonts). `/_gallery` screenshots in `docs/screenshots/gallery/`. |
 
 ## Baseline (step 1, run 2026-10-12)
 
@@ -26,11 +27,11 @@
 ## Environment notes (agent sandbox only)
 
 - Set `ASTRO_TELEMETRY_DISABLED=1` in the sandbox (telemetry writes outside the workspace).
-- Playwright/Lighthouse run outside the sandbox (the sandbox misreports CPU arch to Playwright).
+- Playwright/Lighthouse run outside the sandbox (the sandbox misreports CPU arch to Playwright), with `PLAYWRIGHT_BROWSERS_PATH=$HOME/Library/Caches/ms-playwright` (a browser copy inside the project was broken: missing ICU data → browser disconnects).
 
 ## Next
 
-- Step 4: tokens + primitives + `/_gallery`.
+- Step 5: Home → Projects → 404, SEO, analytics.
 
 ## Blockers / needs from Braden
 

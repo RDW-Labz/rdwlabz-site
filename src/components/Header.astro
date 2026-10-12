@@ -1,0 +1,229 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import ContactButton from './ContactButton.astro';
+
+interface Props {
+  current: 'home' | 'projects' | null;
+}
+
+const { current } = Astro.props;
+const links = [
+  { id: 'home', label: 'Home', href: '/' },
+  { id: 'projects', label: 'Projects', href: '/projects' },
+] as const;
+---
+
+<header
+  class="site-header"
+  data-site-header
+  transition:name="site-header"
+  transition:animate="none"
+>
+  <div class="container-lab">
+    <div class="site-header__bar">
+      <a href="/" class="site-header__home" aria-label="RDW Labz home">
+        <Logo />
+      </a>
+
+      <nav class="site-header__nav" aria-label="Main">
+        <ul>
+          {links.map((l) => (
+            <li>
+              <a
+                href={l.href}
+                class="nav-link"
+                aria-current={current === l.id ? 'page' : undefined}
+              >
+                {current === l.id && <span class="nav-link__pill" aria-hidden="true" />}
+                <span class="nav-link__text">{l.label}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <ContactButton variant="ink" size="sm" label="Contact" />
+      </nav>
+
+      <button
+        type="button"
+        class="menu-toggle"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        data-menu-toggle
+      >
+        <span class="menu-toggle__open">
+          <Icon name="menu" size={22} />
+        </span>
+        <span class="menu-toggle__close">
+          <Icon name="close" size={22} />
+        </span>
+        <span class="sr-only">Menu</span>
+      </button>
+    </div>
+
+    <div id="mobile-menu" class="mobile-menu" data-menu hidden>
+      <nav aria-label="Main (mobile)">
+        <ul>
+          {links.map((l) => (
+            <li>
+              <a
+                href={l.href}
+                class="mobile-menu__link"
+                aria-current={current === l.id ? 'page' : undefined}
+              >
+                {l.label}
+                <Icon name="arrow-right" size={20} />
+              </a>
+            </li>
+          ))}
+        </ul>
+        <ContactButton variant="primary" label="Get in touch" class="w-full" />
+      </nav>
+    </div>
+  </div>
+</header>
+
+<script>
+  import { initMenu } from '../scripts/menu';
+  document.addEventListener('astro:page-load', initMenu);
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    padding-top: 14px;
+    pointer-events: none;
+  }
+  .site-header__bar,
+  .mobile-menu {
+    pointer-events: auto;
+  }
+  .site-header__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 64px;
+    padding: 8px 8px 8px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: var(--shadow-pop-sm);
+  }
+  .site-header__home {
+    display: inline-flex;
+    padding: 4px;
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+  }
+  .site-header__nav {
+    display: none;
+    align-items: center;
+    gap: 8px;
+  }
+  .site-header__nav ul {
+    display: flex;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nav-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: var(--radius-pill);
+    color: var(--color-ink);
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color var(--dur-instant);
+  }
+  .nav-link:hover {
+    background: color-mix(in oklab, var(--color-cream), transparent 40%);
+  }
+  .nav-link__pill {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-cream);
+    border: 2px solid var(--color-ink);
+    view-transition-name: nav-pill;
+  }
+  .nav-link__text {
+    position: relative;
+  }
+  .menu-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid var(--color-ink);
+    background: var(--color-sun);
+    color: var(--color-ink);
+    cursor: pointer;
+    transition: transform var(--dur-instant) var(--ease-spring);
+  }
+  .menu-toggle:active {
+    transform: scale(0.92);
+  }
+  .menu-toggle__close,
+  .menu-toggle[aria-expanded='true'] .menu-toggle__open {
+    display: none;
+  }
+  .menu-toggle[aria-expanded='true'] .menu-toggle__close {
+    display: block;
+  }
+  .mobile-menu {
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: var(--shadow-pop);
+    transform-origin: top right;
+    animation: menu-in var(--dur-base) var(--ease-spring);
+  }
+  .mobile-menu ul {
+    margin: 0 0 12px;
+    padding: 0;
+    list-style: none;
+  }
+  .mobile-menu__link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 56px;
+    padding: 0 18px;
+    border-radius: var(--radius-md);
+    color: var(--color-ink);
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+  .mobile-menu__link:hover,
+  .mobile-menu__link[aria-current='page'] {
+    background: var(--color-cream);
+  }
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+      transform: scale(0.94) translateY(-6px);
+    }
+  }
+  @media (min-width: 48rem) {
+    .site-header__nav {
+      display: flex;
+    }
+    .menu-toggle,
+    .mobile-menu {
+      display: none;
+    }
+  }
+</style>

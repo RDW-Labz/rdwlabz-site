@@ -1,0 +1,155 @@
+---
+import Icon from './Icon.astro';
+import Chip from './Chip.astro';
+import ProjectArt from './ProjectArt.astro';
+import type { DisplayProject } from '../lib/projects';
+
+/**
+ * Sticker card in the project's accent. Whole card is NOT a link (avoids nested/duplicate
+ * targets); the single action is the pill at the bottom, or a "Coming soon" state.
+ */
+interface Props {
+  project: DisplayProject;
+  headingLevel?: 'h3' | 'h2';
+  /** Gallery only: force hover look. */
+  state?: 'hover';
+}
+
+const { project: p, headingLevel = 'h3', state } = Astro.props;
+const H = headingLevel;
+const titleId = `proj-${p.slug}-title`;
+---
+
+<article
+  class:list={['project-card', state && `is-${state}`, p.placeholder && 'is-placeholder']}
+  style={`--acc:${p.accent}; view-transition-name: card-${p.slug};`}
+  aria-labelledby={titleId}
+  data-category={p.category}
+  data-status={p.status}
+>
+  <ProjectArt
+    image={p.image}
+    accent={p.accent}
+    category={p.category}
+    alt={p.image ? '' : undefined}
+  />
+  <div class="project-card__body">
+    <div class="project-card__chips">
+      <Chip kind="category" accent={p.accent} icon={p.category}>
+        {p.categoryText}
+      </Chip>
+      <Chip kind="status" status={p.status}>
+        {p.statusText}
+      </Chip>
+    </div>
+    <H id={titleId} class="project-card__title">
+      {p.title}
+    </H>
+    <p class="project-card__blurb">{p.blurb}</p>
+    {p.platforms.length > 0 && (
+      <ul class="project-card__tags" aria-label="Platforms">
+        {p.platforms.map((t) => (
+          <li>
+            <Chip kind="tag">{t}</Chip>
+          </li>
+        ))}
+      </ul>
+    )}
+    <div class="project-card__action">
+      {p.href ? (
+        <a
+          class="btn btn--secondary btn--sm"
+          href={p.href}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          View project <Icon name="arrow-up-right" size={16} />
+          <span class="sr-only">: {p.title} (opens in a new tab)</span>
+        </a>
+      ) : (
+        <span class="project-card__soon">
+          <Icon name="clock" size={16} /> Link coming soon
+        </span>
+      )}
+    </div>
+  </div>
+</article>
+
+<style>
+  .project-card {
+    view-transition-class: project-card;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 10px;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: 0 6px 0 var(--acc);
+    transition:
+      transform 160ms var(--ease-spring),
+      box-shadow 160ms var(--ease-out-soft);
+  }
+  .project-card:hover,
+  .project-card:focus-within,
+  .project-card.is-hover {
+    transform: translateY(-6px) rotate(-1.2deg);
+    box-shadow: 0 12px 0 var(--acc);
+  }
+  .project-card:hover :global(.art__icon),
+  .project-card.is-hover :global(.art__icon) {
+    transform: scale(1.12) rotate(-6deg);
+  }
+  .project-card__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 16px 12px 12px;
+  }
+  .project-card__chips,
+  .project-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .project-card__tags {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+  }
+  .project-card__title {
+    margin: 14px 0 6px;
+    font-size: var(--text-h3);
+    line-height: var(--text-h3--line-height);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .project-card__blurb {
+    margin: 0;
+    color: var(--color-ink-soft);
+    overflow-wrap: anywhere;
+  }
+  .project-card__action {
+    margin-top: auto;
+    padding-top: 18px;
+  }
+  .project-card__soon {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: var(--radius-pill);
+    border: 2px dashed color-mix(in oklab, var(--color-ink), transparent 55%);
+    color: var(--color-ink-soft);
+    font-weight: 700;
+    font-size: 0.9375rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .project-card:hover,
+    .project-card:focus-within,
+    .project-card.is-hover {
+      transform: none;
+    }
+  }
+</style>
