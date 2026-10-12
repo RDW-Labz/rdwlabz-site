@@ -30,9 +30,10 @@
       "category": "games",
       "status": "in-dev",
       "platforms": ["Android"],
-      "url": "TODO: Putt Drop link",
+      "url": null,
       "accentColor": "TODO",
       "image": null,
+      "icon": null,
       "featured": true,
       "addedAt": "2026-10-12",
       "sync": {
