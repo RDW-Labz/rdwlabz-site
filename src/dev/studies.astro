@@ -1,5 +1,9 @@
 ---
+import { Font } from 'astro:assets';
 import '../styles/global.css';
+import StudyA from './studies/StudyA.astro';
+import StudyB from './studies/StudyB.astro';
+import StudyC from './studies/StudyC.astro';
 ---
 
 <html lang="en">
@@ -7,11 +11,34 @@ import '../styles/global.css';
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
-    <title>Studies (dev only)</title>
+    <title>Studies (dev only) · RDW Labz</title>
+    <Font cssVariable="--font-a-display" />
+    <Font cssVariable="--font-a-body" />
+    <Font cssVariable="--font-b-display" />
+    <Font cssVariable="--font-b-body" />
+    <Font cssVariable="--font-c-display" />
+    <Font cssVariable="--font-c-body" />
   </head>
-  <body>
+  <body class="m-0">
     <main>
-      <h1>Art direction studies</h1>
+      <h1 class="sr-only">Art direction studies</h1>
+      <div class="study-label">Study A — Workbench</div>
+      <StudyA />
+      <div class="study-label">Study B — Arcade cartridge</div>
+      <StudyB />
+      <div class="study-label">Study C — Blueprint</div>
+      <StudyC />
     </main>
   </body>
 </html>
+
+<style>
+  .study-label {
+    padding: 12px 20px;
+    font:
+      600 14px/1 ui-monospace,
+      monospace;
+    background: #000;
+    color: #fff;
+  }
+</style>

@@ -1,0 +1,390 @@
+---
+import Icon from '../../components/Icon.astro';
+import { featuredProjects, tagline, categories } from '../../lib/projects';
+
+const featured = featuredProjects();
+// 8×8 pixel flask
+const flask = [
+  '..XXXX..',
+  '...XX...',
+  '...XX...',
+  '..X..X..',
+  '.X.oo.X.',
+  'X.oooo.X',
+  'XoooooOX',
+  '.XXXXXX.',
+];
+---
+
+<section class="study-b" data-study="b" aria-labelledby="b-title">
+  <div class="b-scan" aria-hidden="true"></div>
+  <header class="b-header">
+    <a class="b-logo" href="#b-title">
+      <svg viewBox="0 0 8 8" width="36" height="36" shape-rendering="crispEdges" aria-hidden="true">
+        {flask.flatMap((row, y) =>
+          [...row].map((ch, x) =>
+            ch === '.' ? null : (
+              <rect
+                x={x}
+                y={y}
+                width="1"
+                height="1"
+                fill={ch === 'X' ? '#e8f0ff' : ch === 'O' ? '#ff3d9a' : '#c6ff3d'}
+              />
+            ),
+          ),
+        )}
+      </svg>
+      <span>RDW LABZ</span>
+    </a>
+    <nav aria-label="Study B">
+      <a href="#b-title" class="b-nav is-active">
+        Home
+      </a>
+      <a href="#b-proj" class="b-nav">
+        Projects
+      </a>
+      <a href="#b-title" class="b-pill b-pill--ghost">
+        Contact
+      </a>
+    </nav>
+  </header>
+
+  <div class="b-hero">
+    <p class="b-boot" aria-hidden="true">
+      {categories.map((c, i) => (
+        <span style={`--i:${i}`}>
+          &gt; loading {c.label.toLowerCase()} <b>OK</b>
+        </span>
+      ))}
+    </p>
+    <h2 id="b-title">
+      <span class="b-name" data-text="RDW LABZ">
+        RDW LABZ
+      </span>
+      <span class="b-tag">{tagline}</span>
+    </h2>
+    <div class="b-ctas">
+      <a href="#b-proj" class="b-pill b-pill--lime">
+        ▶ See our projects
+      </a>
+      <span class="b-pill b-pill--off" aria-disabled="true">
+        <Icon name="mail" size={18} /> Email coming soon
+      </span>
+    </div>
+  </div>
+
+  <div class="b-horizon" aria-hidden="true"></div>
+
+  <div class="b-proj" id="b-proj">
+    <h3>
+      <span class="b-blink">■</span> SELECT CARTRIDGE
+    </h3>
+    <ul class="b-grid">
+      {featured.map((p, i) => (
+        <li class="b-cart" style={`--acc:${p.accent}`}>
+          <div class="b-cart__notch" />
+          <div class="b-cart__label">
+            <span class="b-cart__no">0{i + 1}</span>
+            <Icon name={p.category} size={44} strokeWidth={1.6} />
+          </div>
+          <div class="b-cart__body">
+            <div class="b-chips">
+              <span class="b-chip">{p.categoryText}</span>
+              <span class="b-chip b-chip--status">{p.statusText}</span>
+            </div>
+            <h4>{p.title}</h4>
+            <p>{p.blurb}</p>
+          </div>
+          <div class="b-cart__ridges" />
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .study-b {
+    --bg: #110d24;
+    --lime: #c6ff3d;
+    --pink: #ff3d9a;
+    --cyan: #3de8ff;
+    --fg: #e8f0ff;
+    position: relative;
+    font-family: var(--font-b-body);
+    color: var(--fg);
+    background: radial-gradient(ellipse at 50% 0%, #2a1f5c 0%, var(--bg) 60%);
+    padding: 20px clamp(16px, 4vw, 48px) 80px;
+    overflow: hidden;
+  }
+  .b-scan {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, #0000 0 2px, #0004 2px 3px);
+    z-index: 2;
+  }
+  .b-header {
+    max-width: 1240px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+  .b-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-b-display);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--fg);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+  }
+  .b-header nav {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .b-nav {
+    padding: 10px 16px;
+    border-radius: 999px;
+    color: var(--fg);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .b-nav.is-active {
+    color: var(--lime);
+    background: #c6ff3d1a;
+  }
+  .b-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 24px;
+    border-radius: 999px;
+    font-family: var(--font-b-display);
+    font-size: 18px;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+  }
+  .b-pill--lime {
+    background: var(--lime);
+    color: #110d24;
+    box-shadow:
+      0 0 0 3px #110d24,
+      0 0 0 5px var(--lime),
+      0 0 30px #c6ff3d88;
+  }
+  .b-pill--ghost {
+    border: 2px solid var(--pink);
+    color: var(--pink);
+    min-height: 44px;
+  }
+  .b-pill--off {
+    border: 2px dashed #8a83b8;
+    color: #b9b3e0;
+  }
+  .b-hero {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 72px 0 40px;
+    text-align: center;
+  }
+  .b-boot {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    margin: 0 0 28px;
+    font-family: var(--font-b-display);
+    color: var(--cyan);
+    font-size: 15px;
+  }
+  .b-boot span {
+    opacity: 0;
+    animation: b-type 240ms steps(1) forwards;
+    animation-delay: calc(var(--i) * 260ms + 200ms);
+  }
+  .b-boot b {
+    color: var(--lime);
+    font-weight: 400;
+  }
+  .b-hero h2 {
+    margin: 0;
+  }
+  .b-name {
+    position: relative;
+    display: block;
+    font-family: var(--font-b-display);
+    font-weight: 700;
+    font-size: clamp(64px, 12vw, 168px);
+    line-height: 0.9;
+    color: var(--fg);
+    text-shadow:
+      4px 0 0 var(--pink),
+      -4px 0 0 var(--cyan);
+  }
+  .b-tag {
+    display: block;
+    margin: 24px auto 0;
+    max-width: 30ch;
+    font-size: clamp(20px, 2.2vw, 28px);
+    font-weight: 500;
+    color: #cfd6ff;
+  }
+  .b-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 36px;
+  }
+  .b-horizon {
+    height: 160px;
+    margin: 0 calc(-1 * clamp(16px, 4vw, 48px));
+    background:
+      linear-gradient(0deg, #110d24 0%, transparent 60%),
+      repeating-linear-gradient(90deg, #ff3d9a55 0 2px, transparent 2px 60px),
+      repeating-linear-gradient(0deg, #ff3d9a55 0 2px, transparent 2px 30px),
+      linear-gradient(180deg, #ff3d9a 0%, #7a2bff 45%, #110d24 100%);
+    transform: perspective(300px) rotateX(55deg);
+    transform-origin: top;
+    mask-image: linear-gradient(180deg, #000 30%, transparent);
+  }
+  .b-proj {
+    max-width: 1240px;
+    margin: -40px auto 0;
+    position: relative;
+  }
+  .b-proj h3 {
+    font-family: var(--font-b-display);
+    font-size: clamp(28px, 4vw, 44px);
+    margin: 0 0 28px;
+    color: var(--lime);
+  }
+  .b-blink {
+    animation: b-blink 1s steps(1) infinite;
+    color: var(--pink);
+  }
+  .b-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 28px;
+  }
+  .b-cart {
+    position: relative;
+    background: #262046;
+    border-radius: 28px 28px 14px 14px;
+    padding: 18px 18px 0;
+    box-shadow:
+      inset 0 2px 0 #ffffff1f,
+      0 0 0 2px #3a3270;
+    transition:
+      transform 150ms,
+      box-shadow 150ms;
+  }
+  .b-cart:hover {
+    transform: translateY(-8px);
+    box-shadow:
+      inset 0 2px 0 #ffffff1f,
+      0 0 0 2px var(--acc),
+      0 0 40px color-mix(in oklab, var(--acc), transparent 50%);
+  }
+  .b-cart__notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 80px;
+    height: 10px;
+    translate: -50% 0;
+    border-radius: 0 0 10px 10px;
+    background: var(--bg);
+  }
+  .b-cart__label {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16/10;
+    border-radius: 16px;
+    color: #110d24;
+    background: radial-gradient(circle at 30% 30%, #fff8, transparent 40%), var(--acc);
+  }
+  .b-cart__no {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    font-family: var(--font-b-display);
+    font-size: 18px;
+  }
+  .b-cart__body {
+    padding: 16px 4px 18px;
+  }
+  .b-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .b-chip {
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #ffffff14;
+    color: var(--fg);
+  }
+  .b-chip--status {
+    color: var(--lime);
+    background: #c6ff3d1a;
+  }
+  .b-cart h4 {
+    margin: 12px 0 4px;
+    font-family: var(--font-b-display);
+    font-size: 26px;
+  }
+  .b-cart p {
+    margin: 0;
+    color: #b9b3e0;
+  }
+  .b-cart__ridges {
+    height: 22px;
+    margin: 0 -18px;
+    border-radius: 0 0 14px 14px;
+    background: repeating-linear-gradient(90deg, #1a1536 0 6px, #2f2858 6px 12px);
+  }
+  @keyframes b-type {
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes b-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+  @media (max-width: 860px) {
+    .b-header nav .b-nav {
+      display: none;
+    }
+    .b-hero {
+      padding: 48px 0 24px;
+    }
+    .b-horizon {
+      height: 110px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .study-b * {
+      animation-duration: 1ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      transition: none !important;
+    }
+  }
+</style>

@@ -6,6 +6,8 @@
 
 | 2026-10-12 | 2. Brief                   | Done   | `docs/BRIEF.md`: audiences, jobs, 3 journeys, facts, assumptions, open questions. |
 
+| 2026-10-12 | 3. Art direction            | Done   | 3 studies on `/_studies` (Workbench / Arcade cartridge / Blueprint), screenshots in `docs/screenshots/studies/`. Picked **A — Workbench** (27/20/23). Spec in `docs/ART-DIRECTION.md`. |
+
 ## Baseline (step 1, run 2026-10-12)
 
 - `npm run lint`: pass (0 ESLint problems, Prettier clean).
@@ -28,7 +30,7 @@
 
 ## Next
 
-- Step 3: three art-direction studies on `/_studies`, pick one, write `docs/ART-DIRECTION.md`.
+- Step 4: tokens + primitives + `/_gallery`.
 
 ## Blockers / needs from Braden
 

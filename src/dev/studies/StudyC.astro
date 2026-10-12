@@ -1,0 +1,462 @@
+---
+import Icon from '../../components/Icon.astro';
+import { featuredProjects, tagline, categories } from '../../lib/projects';
+
+const featured = featuredProjects();
+const callouts = [
+  { x: 70, y: 70, lx: 20, ly: 30 },
+  { x: 330, y: 80, lx: 380, ly: 40 },
+  { x: 80, y: 300, lx: 20, ly: 360 },
+  { x: 320, y: 310, lx: 380, ly: 370 },
+];
+---
+
+<section class="study-c" data-study="c" aria-labelledby="c-title">
+  <header class="c-header">
+    <a class="c-logo" href="#c-title">
+      <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="none" stroke="#0b1b4d" stroke-width="2"></circle>
+        <path
+          d="M12 28V12h7a4 4 0 0 1 0 8h-7m7 0 6 8M26 12l2 16 2-10 2 10 2-16"
+          fill="none"
+          stroke="#0b1b4d"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></path>
+      </svg>
+      <span>RDW LABZ</span>
+    </a>
+    <nav aria-label="Study C">
+      <a href="#c-title" class="c-nav is-active">
+        Home
+      </a>
+      <a href="#c-proj" class="c-nav">
+        Projects
+      </a>
+      <a href="#c-title" class="c-pill c-pill--ink">
+        Contact
+      </a>
+    </nav>
+  </header>
+
+  <div class="c-hero">
+    <div class="c-copy">
+      <p class="c-fig">FIG. 01 — THE LAB</p>
+      <h2 id="c-title">
+        <span class="c-name">
+          RDW
+          <br />
+          Labz
+        </span>
+        <span class="c-tag">{tagline}</span>
+      </h2>
+      <div class="c-ctas">
+        <a href="#c-proj" class="c-pill c-pill--orange">
+          See our projects <Icon name="arrow-right" size={18} />
+        </a>
+        <span class="c-pill c-pill--off" aria-disabled="true">
+          Email coming soon
+        </span>
+      </div>
+    </div>
+    <div class="c-diagram" aria-hidden="true">
+      <svg viewBox="0 0 400 400" class="c-lines">
+        <rect x="140" y="140" width="120" height="120" rx="24" class="c-draw"></rect>
+        <path d="M200 120v-30M200 280v30M120 200H90M280 200h30" class="c-draw"></path>
+        {callouts.map((c) => (
+          <path d={`M${c.x} ${c.y} L${c.lx} ${c.ly}`} class="c-draw c-draw--thin" />
+        ))}
+        <text x="200" y="335" text-anchor="middle" class="c-dim">
+          ⟷ 4 disciplines
+        </text>
+      </svg>
+      <div class="c-core">
+        <Icon name="flask" size={56} strokeWidth={1.5} />
+      </div>
+      {categories.map((cat, i) => (
+        <div class={`c-part c-part--${i}`}>
+          <Icon name={cat.id} size={28} strokeWidth={1.6} />
+          <span>
+            <small>0{i + 1}</small>
+            {cat.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <div class="c-proj" id="c-proj">
+    <div class="c-proj__head">
+      <h3>Spec sheets</h3>
+      <p>SELECTED WORK · {featured.length} ENTRIES</p>
+    </div>
+    <ul class="c-grid">
+      {featured.map((p, i) => (
+        <li class="c-sheet" style={`--acc:${p.accent}`}>
+          <div class="c-sheet__top">
+            <span>SPEC-00{i + 1}</span>
+            <span class="c-dot" />
+          </div>
+          <div class="c-sheet__art">
+            <Icon name={p.category} size={52} strokeWidth={1.3} />
+          </div>
+          <h4>{p.title}</h4>
+          <p class="c-blurb">{p.blurb}</p>
+          <dl>
+            <div>
+              <dt>CATEGORY</dt>
+              <dd>
+                <span class="c-chip">{p.categoryText}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>STATUS</dt>
+              <dd>
+                <span class="c-chip c-chip--status">{p.statusText}</span>
+              </dd>
+            </div>
+          </dl>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .study-c {
+    --ink: #0b1b4d;
+    --blue: #2f5bff;
+    --orange: #ff6a1a;
+    --paper: #eef3ff;
+    font-family: var(--font-c-body);
+    color: var(--ink);
+    background:
+      linear-gradient(#2f5bff14 1px, transparent 1px) 0 0 / 32px 32px,
+      linear-gradient(90deg, #2f5bff14 1px, transparent 1px) 0 0 / 32px 32px,
+      var(--paper);
+    padding: 20px clamp(16px, 4vw, 48px) 0;
+    overflow: hidden;
+  }
+  .c-header {
+    max-width: 1240px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1.5px dashed #0b1b4d55;
+  }
+  .c-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-c-display);
+    font-weight: 800;
+    font-size: 20px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .c-header nav {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .c-nav {
+    padding: 10px 14px;
+    border-radius: 999px;
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .c-nav.is-active {
+    text-decoration: underline;
+    text-underline-offset: 6px;
+    text-decoration-thickness: 2px;
+  }
+  .c-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 22px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .c-pill--ink {
+    background: var(--ink);
+    color: #fff;
+    min-height: 44px;
+  }
+  .c-pill--orange {
+    background: var(--orange);
+    color: #1a0b00;
+  }
+  .c-pill--off {
+    border: 1.5px dashed var(--ink);
+    color: #3b4a7a;
+  }
+  .c-hero {
+    max-width: 1240px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    padding: 56px 0 80px;
+  }
+  .c-fig {
+    margin: 0 0 16px;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    color: var(--blue);
+  }
+  .c-copy h2 {
+    margin: 0;
+  }
+  .c-name {
+    display: block;
+    font-family: var(--font-c-display);
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: clamp(60px, 9vw, 128px);
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+  }
+  .c-tag {
+    display: block;
+    margin-top: 24px;
+    max-width: 28ch;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+  .c-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
+  }
+  .c-diagram {
+    position: relative;
+    aspect-ratio: 1;
+    max-width: 480px;
+    width: 100%;
+    justify-self: center;
+  }
+  .c-lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .c-draw {
+    fill: none;
+    stroke: var(--blue);
+    stroke-width: 1.5;
+    stroke-dasharray: 600;
+    stroke-dashoffset: 600;
+    animation: c-draw 1.6s ease-out forwards;
+  }
+  .c-draw--thin {
+    stroke-dasharray: 4 4;
+    stroke-dashoffset: 0;
+    animation: c-fade 1.2s 0.8s both;
+  }
+  .c-dim {
+    font-family: var(--font-c-body);
+    font-size: 12px;
+    fill: var(--blue);
+  }
+  .c-core {
+    position: absolute;
+    inset: 35%;
+    display: grid;
+    place-items: center;
+    color: var(--ink);
+  }
+  .c-part {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px 10px 12px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1.5px solid var(--ink);
+    font-size: 14px;
+    animation: c-fade 600ms both;
+  }
+  .c-part small {
+    display: block;
+    font-size: 10px;
+    color: var(--blue);
+  }
+  .c-part--0 {
+    left: -2%;
+    top: 0;
+    animation-delay: 900ms;
+  }
+  .c-part--1 {
+    right: -2%;
+    top: 4%;
+    animation-delay: 1000ms;
+  }
+  .c-part--2 {
+    left: -2%;
+    bottom: 4%;
+    animation-delay: 1100ms;
+  }
+  .c-part--3 {
+    right: -2%;
+    bottom: 2%;
+    animation-delay: 1200ms;
+  }
+  @keyframes c-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes c-fade {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+  .c-proj {
+    margin: 0 calc(-1 * clamp(16px, 4vw, 48px));
+    padding: 56px clamp(16px, 4vw, 48px) 80px;
+    background: linear-gradient(180deg, #d6e1ff 0%, #ffffff 70%);
+    border-radius: 40px 40px 0 0;
+  }
+  .c-proj__head {
+    max-width: 1240px;
+    margin: 0 auto 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .c-proj h3 {
+    margin: 0;
+    font-family: var(--font-c-display);
+    font-size: clamp(32px, 4.5vw, 54px);
+    text-transform: uppercase;
+  }
+  .c-proj__head p {
+    margin: 0;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: var(--blue);
+  }
+  .c-grid {
+    list-style: none;
+    margin: 0 auto;
+    padding: 0;
+    max-width: 1240px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .c-sheet {
+    background: #fff;
+    border: 1.5px solid var(--ink);
+    border-radius: 24px;
+    padding: 18px;
+    transition: transform 150ms;
+  }
+  .c-sheet:hover {
+    transform: translateY(-4px);
+  }
+  .c-sheet__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+  }
+  .c-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--acc);
+  }
+  .c-sheet__art {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16/9;
+    margin: 12px 0 16px;
+    border-radius: 16px;
+    color: var(--acc);
+    background:
+      linear-gradient(#0b1b4d10 1px, transparent 1px) 0 0 / 16px 16px,
+      linear-gradient(90deg, #0b1b4d10 1px, transparent 1px) 0 0 / 16px 16px,
+      color-mix(in oklab, var(--acc), #fff 88%);
+  }
+  .c-sheet h4 {
+    margin: 0 0 6px;
+    font-family: var(--font-c-display);
+    font-size: 20px;
+  }
+  .c-blurb {
+    margin: 0 0 16px;
+    font-size: 14px;
+  }
+  .c-sheet dl {
+    margin: 0;
+    display: grid;
+    gap: 8px;
+    border-top: 1.5px dashed #0b1b4d44;
+    padding-top: 12px;
+  }
+  .c-sheet dl div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .c-sheet dt {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: #3b4a7a;
+  }
+  .c-sheet dd {
+    margin: 0;
+  }
+  .c-chip {
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    border: 1.5px solid var(--ink);
+  }
+  .c-chip--status {
+    background: #fff3b0;
+  }
+  @media (max-width: 860px) {
+    .c-hero {
+      grid-template-columns: 1fr;
+      padding: 40px 0 56px;
+    }
+    .c-header nav .c-nav {
+      display: none;
+    }
+    .c-diagram {
+      max-width: 340px;
+    }
+    .c-part {
+      font-size: 12px;
+      padding: 6px 10px 6px 8px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .study-c * {
+      animation: none !important;
+      stroke-dashoffset: 0 !important;
+      transition: none !important;
+    }
+  }
+</style>
