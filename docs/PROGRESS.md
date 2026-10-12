@@ -14,7 +14,7 @@
 | 2026-10-12 | Content update 1          | Done   | DNS confirmed on Cloudflare. Putt Drop added (Games, in-dev, Android, featured; link and one-liner TODO). Placeholder projects removed and never counted; empty categories show "Coming soon"; Home uses the filler card. Email, tagline and project 2 were blank in the request, so they stay TODO. Lint clean, build 0 errors, e2e 30/30, Lighthouse medians unchanged (100s; 404 SEO 63). |
 | 2026-10-12 | Preview deploy            | Done   | Pushed to private repo github.com/RDW-Labz/rdwlabz-site (commit emails set to the GitHub noreply address). Direct-upload preview on Cloudflare Pages project `rdwlabz-site` (account "Shadetreerocketsurgeon84@gmail.com's Account", production branch `main`, nothing deployed to production): https://preview.rdwlabz-site.pages.dev. `/`, `/projects` return 200, unknown paths return the branded 404, and previews send `x-robots-tag: noindex`. No custom domain or DNS changes. |
 | 2026-10-12 | Round 2: motion + type    | Done   | Headings in **Bagel Fat One** (picked from a 3-font study on `/_studies#type`; 24 KB Latin subset, fonts 43 KB total). Hero word cycler, wordmark pop, pop-in headings, swaying bench with fizz and hover reactions, parallax, tile wiggle, sticker-peel cards, rising cards, scroll-driven tray slide, scroll-progress bar, and a Pause animations toggle. Everything is off under reduced motion. Lab activity strip on Home (build time). |
-| 2026-10-12 | Round 2: project tracker  | Done   | `scripts/sync-projects.mjs` (opt-in via `rdwlabz.json`, validation, private-repo guard, merge, auto-`released`), `.github/workflows/sync-projects.yml` (daily + manual, PR only), templates, README how-to. Not run on GitHub yet: needs the `RDWLABZ_SYNC_TOKEN` secret. |
+| 2026-10-12 | Round 2: project tracker  | Done   | `scripts/sync-projects.mjs` (opt-in via `rdwlabz.json`, validation, private-repo guard, merge, auto-`released`), `.github/workflows/sync-projects.yml` (daily + manual, PR only), templates, README how-to. Not run on GitHub yet: needs the `RDWLABZ_SYNC_TOKEN` secret. PR step later switched to `RDWLABZ_PR_TOKEN` (the enterprise blocks `GITHUB_TOKEN` from creating PRs); `GITHUB_TOKEN` is now read-only. |
 | 2026-10-12 | Round 2: checks           | Done   | Lint clean; build 0 errors; e2e 36/36 + sync 7/7 + screenshots 9/9; budgets OK (JS ≤ 7.3 KB gz); motion-check CLS 0, no leaks; Lighthouse medians 100s (404 SEO 63 by design). See `docs/REVIEWS.md` Round 2. Not pushed or deployed. |
 | 2026-10-12 | Contact email             | Done   | `site.contactEmail` = `devops@therdw.com`; all contact spots are real mailto links (header pill, mobile menu, hero, new Work with us button, CTA band, footer, new 404 button). e2e 40/40 + sync 7/7 + screenshots 9/9. |
 
@@ -40,7 +40,7 @@
 
 ## Next
 
-- Braden: create the `RDWLABZ_SYNC_TOKEN` secret, add `rdwlabz.json` to the Putt Drop repo, deploy a new preview, then fill in the content TODOs, run a screen-reader and Safari/iOS spot-check, then follow the go-live steps in the README.
+- Braden: create the `RDWLABZ_SYNC_TOKEN` and `RDWLABZ_PR_TOKEN` secrets, add `rdwlabz.json` to the Putt Drop repo, deploy a new preview, then fill in the content TODOs, run a screen-reader and Safari/iOS spot-check, then follow the go-live steps in the README.
 
 ## Blockers / needs from Braden
 

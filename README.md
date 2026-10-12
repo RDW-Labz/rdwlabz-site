@@ -64,6 +64,15 @@ Images go in `public/projects/` (16:10, about 1600×1000, ≤ 120 KB, WebP or AV
 4. Hand-written entries in `projects.json` are kept as-is. If a repo uses the same slug as one of them, the repo is skipped until you delete the hand-written entry (do this for Putt Drop once its repo has the file).
 5. Run it locally with `RDWLABZ_SYNC_TOKEN=… npm run sync -- --dry-run`, and see `scripts/sync-projects.mjs` for the rules. The Home "Lab activity" strip is built from the same data at build time.
 
+The workflow needs two repository secrets (in rdwlabz-site → Settings → Secrets and variables → Actions). Both are fine-grained personal access tokens with resource owner **RDW-Labz**:
+
+| Secret | Repository access | Permissions | Used for |
+|---|---|---|---|
+| `RDWLABZ_SYNC_TOKEN` | All repositories | Contents: **Read-only** (Metadata read is automatic) | Reading `rdwlabz.json` and releases |
+| `RDWLABZ_PR_TOKEN` | Only `rdwlabz-site` | Contents: **Read and write**, Pull requests: **Read and write** | Pushing the `bot/sync-projects` branch and opening the PR |
+
+The built-in `GITHUB_TOKEN` is read-only here, because the enterprise policy doesn't let it create PRs. PRs therefore appear as opened by the owner of `RDWLABZ_PR_TOKEN`. Set an expiry on both tokens and renew them before it hits; when one expires, the run fails with a clear error.
+
 The `site` block holds the tagline, contact email, launch date and an optional "work with us" line. Any value starting with `TODO` is hidden or replaced with a "coming soon" state. Build-time validation fails on an unknown category or status, or a duplicate slug.
 
 ## Analytics

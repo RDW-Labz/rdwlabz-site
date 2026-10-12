@@ -37,7 +37,7 @@ Status key: PASS · FAIL · BLOCKED · NOT RUN · N/A (with reason)
 | Review pass 1: art direction and craft | 1440 / 768 / 390 | PASS | `docs/REVIEWS.md`: 8 findings fixed | — |
 | Review pass 2: UX, states and a11y | 1440 / 768 / 390 + fixtures | PASS | `docs/REVIEWS.md`: 7 findings fixed | — |
 | Review pass 3: motion, perf and reliability | Production build | PASS | `docs/REVIEWS.md`: 4 findings fixed | — |
-| Project tracker | `scripts/sync-projects.mjs` + workflow | PASS (script) / NOT RUN (workflow) | 7 unit tests (validation, private-repo leak guard, merge, summary, templates). A live read-only dry run against RDW-Labz found 0 opted-in repos and wrote nothing | The workflow needs the `RDWLABZ_SYNC_TOKEN` secret and the Actions PR permission (see the README), then one manual run |
+| Project tracker | `scripts/sync-projects.mjs` + workflow | PASS (script) / NOT RUN (workflow) | 7 unit tests (validation, private-repo leak guard, merge, summary, templates). A live read-only dry run against RDW-Labz found 0 opted-in repos and wrote nothing | The workflow needs the `RDWLABZ_SYNC_TOKEN` (read) and `RDWLABZ_PR_TOKEN` (rdwlabz-site PR write) secrets (see the README), then one manual run |
 | DNS | rdwlabz.com | PASS (confirmed by Braden, 2026-10-12) | DNS is on Cloudflare | — |
 | Deploy | Cloudflare Pages | N/A | Out of the agent's permissions; Braden does this | See the go-live steps in the README |
 
