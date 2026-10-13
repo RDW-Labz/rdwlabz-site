@@ -306,8 +306,8 @@
         },
         "webm": "/library/packs/prehistoric/turntable.webm",
         "mp4": "/library/packs/prehistoric/turntable.mp4",
-        "webmBytes": 181131,
-        "mp4Bytes": 116607
+        "webmBytes": 181039,
+        "mp4Bytes": 117805
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -615,8 +615,8 @@
         },
         "webm": "/library/packs/egypt-and-bronze-age/turntable.webm",
         "mp4": "/library/packs/egypt-and-bronze-age/turntable.mp4",
-        "webmBytes": 174451,
-        "mp4Bytes": 111600
+        "webmBytes": 174109,
+        "mp4Bytes": 111663
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -925,8 +925,8 @@
         },
         "webm": "/library/packs/greece-and-rome/turntable.webm",
         "mp4": "/library/packs/greece-and-rome/turntable.mp4",
-        "webmBytes": 232490,
-        "mp4Bytes": 147429
+        "webmBytes": 232397,
+        "mp4Bytes": 147023
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -1235,8 +1235,8 @@
         },
         "webm": "/library/packs/ice-age-and-stone-age-tribes/turntable.webm",
         "mp4": "/library/packs/ice-age-and-stone-age-tribes/turntable.mp4",
-        "webmBytes": 172951,
-        "mp4Bytes": 108644
+        "webmBytes": 173181,
+        "mp4Bytes": 108838
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -1545,8 +1545,8 @@
         },
         "webm": "/library/packs/dinosaur-age-ii/turntable.webm",
         "mp4": "/library/packs/dinosaur-age-ii/turntable.mp4",
-        "webmBytes": 157725,
-        "mp4Bytes": 101264
+        "webmBytes": 157437,
+        "mp4Bytes": 102522
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -1855,8 +1855,8 @@
         },
         "webm": "/library/packs/vikings-and-dark-ages/turntable.webm",
         "mp4": "/library/packs/vikings-and-dark-ages/turntable.mp4",
-        "webmBytes": 134042,
-        "mp4Bytes": 94564
+        "webmBytes": 134290,
+        "mp4Bytes": 94309
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -2164,8 +2164,8 @@
         },
         "webm": "/library/packs/medieval-knights/turntable.webm",
         "mp4": "/library/packs/medieval-knights/turntable.mp4",
-        "webmBytes": 196865,
-        "mp4Bytes": 129031
+        "webmBytes": 196169,
+        "mp4Bytes": 129237
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -2474,8 +2474,8 @@
         },
         "webm": "/library/packs/feudal-japan-and-samurai/turntable.webm",
         "mp4": "/library/packs/feudal-japan-and-samurai/turntable.mp4",
-        "webmBytes": 192056,
-        "mp4Bytes": 118107
+        "webmBytes": 192196,
+        "mp4Bytes": 119154
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -2784,8 +2784,8 @@
         },
         "webm": "/library/packs/renaissance-and-age-of-sail-pirates/turntable.webm",
         "mp4": "/library/packs/renaissance-and-age-of-sail-pirates/turntable.mp4",
-        "webmBytes": 175539,
-        "mp4Bytes": 109566
+        "webmBytes": 175823,
+        "mp4Bytes": 111116
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -3094,8 +3094,8 @@
         },
         "webm": "/library/packs/wild-west-and-industrial-age/turntable.webm",
         "mp4": "/library/packs/wild-west-and-industrial-age/turntable.mp4",
-        "webmBytes": 217126,
-        "mp4Bytes": 144947
+        "webmBytes": 217341,
+        "mp4Bytes": 146200
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -3404,8 +3404,8 @@
         },
         "webm": "/library/packs/modern-day/turntable.webm",
         "mp4": "/library/packs/modern-day/turntable.mp4",
-        "webmBytes": 171724,
-        "mp4Bytes": 115897
+        "webmBytes": 171747,
+        "mp4Bytes": 116183
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -3714,8 +3714,8 @@
         },
         "webm": "/library/packs/prehistoric-iii/turntable.webm",
         "mp4": "/library/packs/prehistoric-iii/turntable.mp4",
-        "webmBytes": 147437,
-        "mp4Bytes": 100568
+        "webmBytes": 147376,
+        "mp4Bytes": 101522
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -4024,8 +4024,8 @@
         },
         "webm": "/library/packs/bronze-age-ii/turntable.webm",
         "mp4": "/library/packs/bronze-age-ii/turntable.mp4",
-        "webmBytes": 180072,
-        "mp4Bytes": 116407
+        "webmBytes": 180245,
+        "mp4Bytes": 117968
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -4333,8 +4333,8 @@
         },
         "webm": "/library/packs/greece-and-rome-ii/turntable.webm",
         "mp4": "/library/packs/greece-and-rome-ii/turntable.mp4",
-        "webmBytes": 175282,
-        "mp4Bytes": 111214
+        "webmBytes": 174476,
+        "mp4Bytes": 111907
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -7661,8 +7661,8 @@
         },
         "webm": "/library/packs/ice-age-ii/turntable.webm",
         "mp4": "/library/packs/ice-age-ii/turntable.mp4",
-        "webmBytes": 162057,
-        "mp4Bytes": 108807
+        "webmBytes": 161909,
+        "mp4Bytes": 109611
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -7970,8 +7970,8 @@
         },
         "webm": "/library/packs/dinosaur-age-iii/turntable.webm",
         "mp4": "/library/packs/dinosaur-age-iii/turntable.mp4",
-        "webmBytes": 170105,
-        "mp4Bytes": 108585
+        "webmBytes": 170515,
+        "mp4Bytes": 109684
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -8280,8 +8280,8 @@
         },
         "webm": "/library/packs/vikings-ii/turntable.webm",
         "mp4": "/library/packs/vikings-ii/turntable.mp4",
-        "webmBytes": 148911,
-        "mp4Bytes": 97271
+        "webmBytes": 149629,
+        "mp4Bytes": 97312
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -8590,8 +8590,8 @@
         },
         "webm": "/library/packs/medieval-ii/turntable.webm",
         "mp4": "/library/packs/medieval-ii/turntable.mp4",
-        "webmBytes": 229158,
-        "mp4Bytes": 149813
+        "webmBytes": 229540,
+        "mp4Bytes": 148571
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -8900,8 +8900,8 @@
         },
         "webm": "/library/packs/feudal-asia-ii/turntable.webm",
         "mp4": "/library/packs/feudal-asia-ii/turntable.mp4",
-        "webmBytes": 190117,
-        "mp4Bytes": 120942
+        "webmBytes": 190140,
+        "mp4Bytes": 120839
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -9210,8 +9210,8 @@
         },
         "webm": "/library/packs/pirates-ii/turntable.webm",
         "mp4": "/library/packs/pirates-ii/turntable.mp4",
-        "webmBytes": 160933,
-        "mp4Bytes": 105576
+        "webmBytes": 161393,
+        "mp4Bytes": 105540
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -9519,8 +9519,8 @@
         },
         "webm": "/library/packs/wild-west-ii/turntable.webm",
         "mp4": "/library/packs/wild-west-ii/turntable.mp4",
-        "webmBytes": 166842,
-        "mp4Bytes": 109623
+        "webmBytes": 166791,
+        "mp4Bytes": 111275
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -9829,8 +9829,8 @@
         },
         "webm": "/library/packs/modern-ii/turntable.webm",
         "mp4": "/library/packs/modern-ii/turntable.mp4",
-        "webmBytes": 194345,
-        "mp4Bytes": 125795
+        "webmBytes": 194467,
+        "mp4Bytes": 125894
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
