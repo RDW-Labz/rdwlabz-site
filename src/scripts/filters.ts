@@ -13,9 +13,6 @@ export function initFilters() {
   const chips = [...group.querySelectorAll<HTMLAnchorElement>('[data-filter]')];
   const items = () => [...grid.querySelectorAll<HTMLElement>(':scope > li')];
   const status = document.querySelector<HTMLElement>('[data-filter-status]');
-  const empty = document.querySelector<HTMLElement>('[data-empty]');
-  const emptyLabel = document.querySelector<HTMLElement>('[data-empty-label]');
-  const reset = document.querySelector<HTMLAnchorElement>('[data-filter-reset]');
   const valid = new Set(chips.map((c) => c.dataset.filter));
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -29,15 +26,10 @@ export function initFilters() {
       if (match) shown++;
     }
     for (const c of chips) c.setAttribute('aria-pressed', String(c.dataset.filter === id));
-    if (empty) empty.hidden = shown > 0;
-    grid.hidden = shown === 0;
-    if (emptyLabel)
-      emptyLabel.textContent = id === 'all' ? 'projects' : chipLabel(id).toLowerCase();
     if (status && announce) {
       const noun = `project${shown === 1 ? '' : 's'}`;
-      status.textContent = !items().length
-        ? 'No projects on the shelf yet.'
-        : id === 'all'
+      status.textContent =
+        id === 'all'
           ? `Showing ${shown === 1 ? '' : 'all '}${shown} ${noun}.`
           : `Showing ${shown} ${noun} in ${chipLabel(id)}.`;
     }
@@ -66,15 +58,8 @@ export function initFilters() {
     e.preventDefault();
     select(chip.dataset.filter ?? 'all');
   };
-  const onReset = (e: MouseEvent) => {
-    e.preventDefault();
-    select('all');
-    chips.find((c) => c.dataset.filter === 'all')?.focus();
-  };
-
   group.addEventListener('click', onClick);
   group.addEventListener('keydown', onKey);
-  reset?.addEventListener('click', onReset);
 
   const initial = new URL(window.location.href).searchParams.get('c') ?? 'all';
   apply(valid.has(initial) ? initial : 'all', initial !== 'all');
@@ -84,7 +69,6 @@ export function initFilters() {
     () => {
       group.removeEventListener('click', onClick);
       group.removeEventListener('keydown', onKey);
-      reset?.removeEventListener('click', onReset);
     },
     { once: true },
   );

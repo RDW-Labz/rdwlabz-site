@@ -62,39 +62,30 @@ const phrase = buildPhrase.charAt(0).toUpperCase() + buildPhrase.slice(1);
         : `Showing ${items.length === 1 ? '' : 'all '}${pluralProjects(items.length)}.`}
     </p>
 
-    <ul class="grid" data-project-grid>
-      {items.map((p, i) => (
-        <li data-category={p.category} data-reveal="rise" style={`--reveal-i:${i % 3}`}>
-          <ProjectCard project={p} headingLevel="h3" />
-        </li>
-      ))}
-    </ul>
-
-    <div class="empty sticker" data-empty hidden={!shelfEmpty}>
-      <div class="empty__art" aria-hidden="true">
-        <Icon name="flask" size={48} strokeWidth={1.6} />
-      </div>
-      <h3 class="empty__title">Nothing on this shelf yet.</h3>
-      {shelfEmpty ? (
+    {/* Chips exist only for categories with projects, so no filter can come up empty. */}
+    {shelfEmpty ? (
+      <div class="empty sticker" data-empty>
+        <div class="empty__art" aria-hidden="true">
+          <Icon name="flask" size={48} strokeWidth={1.6} />
+        </div>
+        <h3 class="empty__title">Nothing on this shelf yet.</h3>
         <p class="empty__text">
           We’re still building. The first projects land here soon, so check back, or say hi in the
           meantime.
         </p>
-      ) : (
-        <p class="empty__text">
-          We haven’t published any <strong data-empty-label>projects</strong> here so far. Check
-          back soon, or see everything else we’re building.
-        </p>
-      )}
-      <div class="empty__actions">
-        {!shelfEmpty && (
-          <a href="/projects" class="btn btn--primary" data-filter-reset>
-            Show all projects
-          </a>
-        )}
-        <ContactButton variant={shelfEmpty ? 'primary' : 'secondary'} />
+        <div class="empty__actions">
+          <ContactButton variant="primary" />
+        </div>
       </div>
-    </div>
+    ) : (
+      <ul class="grid" data-project-grid>
+        {items.map((p, i) => (
+          <li data-category={p.category} data-reveal="rise" style={`--reveal-i:${i % 3}`}>
+            <ProjectCard project={p} headingLevel="h3" />
+          </li>
+        ))}
+      </ul>
+    )}
   </Section>
 </BaseLayout>
 

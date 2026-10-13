@@ -1,5 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { escapeRe, settleMotion, shelf } from './helpers';
 import { categories, listPhrase, pickActive, type CategoryId } from '../src/lib/projects';
 
@@ -155,28 +159,50 @@ test('projects: filters by click and keyboard, reflect URL, and reset', async ({
   await expect(visible).toHaveCount(total);
 });
 
-test('projects: empty state when a category has no projects', async ({ page }) => {
-  test.skip(shelf.active.length === 0, 'shelf is empty; covered by the empty-shelf test');
-  const [id] = shelf.active;
-  const label = shelf.activeLabels[0];
-  await page.goto('/projects');
-  // Simulate the category emptying out (while another still has a card), then filtering.
-  await page.evaluate((c) => {
-    const grid = document.querySelector('[data-project-grid]')!;
-    const other = grid.firstElementChild!.cloneNode(true) as HTMLElement;
-    other.dataset.category = `not-${c}`;
-    grid.querySelectorAll(`:scope > li[data-category="${c}"]`).forEach((li) => li.remove());
-    grid.append(other);
-  }, id);
-  await page.locator(`[data-filter="${id}"]`).click();
-  await expect(page.locator('[data-empty]')).toBeVisible();
-  await expect(page.locator('[data-empty]')).toContainText(label.toLowerCase());
-  await expect(page.locator('[data-filter-status]')).toContainText(
-    `Showing 0 projects in ${label}`,
-  );
-  await page.locator('[data-filter-reset]').click();
-  await expect(page.locator('[data-empty]')).toBeHidden();
-  await expect(page.locator('[data-filter="all"]')).toBeFocused();
+/** Empty-state copy that must only ship in the HTML when there are no projects. */
+// Markup is matched as elements: the inlined filter script mentions these selectors too.
+const EMPTY_SHELF = [
+  'Nothing on this shelf yet',
+  'No projects on the shelf yet',
+  /<div[^>]*\bdata-empty\b/,
+];
+const EMPTY_FILTER = ['We haven’t published any', 'Show all projects', /<a[^>]*data-filter-reset/];
+const EMPTY_FEATURED = 'Featured projects are on their way';
+const GRID = /<ul[^>]*data-project-grid/;
+const has = (html: string, s: string | RegExp) =>
+  typeof s === 'string' ? html.includes(s) : s.test(html);
+
+test('empty states are not in the served HTML when projects exist', async ({ request }) => {
+  test.skip(shelf.projects.length === 0, 'shelf is empty; see the empty-build test');
+  const projects = await (await request.get('/projects')).text();
+  for (const s of [...EMPTY_SHELF, ...EMPTY_FILTER])
+    expect(has(projects, s), String(s)).toBe(false);
+  expect(has(projects, GRID)).toBe(true);
+  const home = await (await request.get('/')).text();
+  for (const s of EMPTY_SHELF) expect(has(home, s), String(s)).toBe(false);
+  if (shelf.projects.some((p) => p.featured)) expect(home).not.toContain(EMPTY_FEATURED);
+});
+
+test('empty states are in the built HTML when there are no projects', () => {
+  test.slow();
+  const tmp = mkdtempSync(join(tmpdir(), 'rdwlabz-empty-'));
+  try {
+    const data = JSON.parse(readFileSync('src/data/projects.json', 'utf8'));
+    const dataFile = join(tmp, 'projects.json');
+    writeFileSync(dataFile, JSON.stringify({ ...data, projects: [] }));
+    const outDir = join(tmp, 'dist');
+    execFileSync('npx', ['astro', 'build', '--outDir', outDir], {
+      env: { ...process.env, RDWLABZ_DATA: resolve(dataFile), ASTRO_TELEMETRY_DISABLED: '1' },
+      stdio: 'pipe',
+    });
+    const projects = readFileSync(join(outDir, 'projects.html'), 'utf8');
+    for (const s of EMPTY_SHELF) expect(has(projects, s), String(s)).toBe(true);
+    for (const s of EMPTY_FILTER) expect(has(projects, s), String(s)).toBe(false);
+    expect(has(projects, GRID)).toBe(false);
+    expect(readFileSync(join(outDir, 'index.html'), 'utf8')).toContain(EMPTY_FEATURED);
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 test('placeholder entries are never shown or counted', async ({ page }) => {
@@ -197,14 +223,13 @@ test('placeholder entries are never shown or counted', async ({ page }) => {
 });
 
 test('projects: an empty shelf says so and never links back to itself', async ({ page }) => {
+  test.skip(shelf.projects.length > 0, 'shelf has projects');
   await page.goto('/projects');
-  test.skip((await page.locator('[data-project-grid] > li').count()) > 0, 'shelf has projects');
   await expect(page.locator('[data-filter-status]')).toHaveText('No projects on the shelf yet.');
   await expect(page.locator('[data-empty]')).toBeVisible();
   await expect(page.locator('[data-filter-reset]')).toHaveCount(0);
   await expect(page.locator('[data-empty] a[href^="mailto:"]')).toHaveCount(1);
-  await page.locator('[data-filter="games"]').click();
-  await expect(page.locator('[data-filter-status]')).toHaveText('No projects on the shelf yet.');
+  await expect(page.locator('[data-filter]')).toHaveCount(1);
 });
 
 test('projects: unknown ?c= falls back to All', async ({ page }) => {

@@ -25,6 +25,7 @@ import {
   itchUrl,
 } from '../scripts/sync/stores.mjs';
 import { accessibleAccent, contrast, dominantColor, processIcon } from '../scripts/sync/images.mjs';
+import { waitForChecks } from '../scripts/wait-pr-checks.mjs';
 import {
   validateOverrides,
   resolveEntry,
@@ -735,5 +736,86 @@ test.describe('sync merge', () => {
       });
       expect(warnings, f).toEqual([]);
     }
+  });
+});
+
+type Check = { name: string; bucket: string };
+/** Plays back one `gh pr checks` result per poll (last one repeats) on a fake clock. */
+function checksScript(steps: (Check[] | Error)[]) {
+  let t = 0;
+  let i = 0;
+  const polls: number[] = [];
+  return {
+    polls,
+    opts: {
+      list: async () => {
+        polls.push(t);
+        const s = steps[Math.min(i++, steps.length - 1)];
+        if (s instanceof Error) throw s;
+        return s;
+      },
+      now: () => t,
+      sleep: async (ms: number) => {
+        t += ms;
+      },
+    },
+  };
+}
+const cf = (bucket: string) => ({ name: 'Cloudflare Pages', bucket });
+
+test.describe('sync auto-merge: waiting for PR checks', () => {
+  test('waits while the Cloudflare Pages preview is pending, then passes', async () => {
+    const s = checksScript([[cf('pending')], [cf('pending')], [cf('pending')], [cf('pass')]]);
+    expect(await waitForChecks(s.opts)).toMatchObject({ result: 'pass', failed: [] });
+    expect(s.polls).toEqual([0, 20_000, 40_000, 60_000]);
+  });
+
+  test('waits for a check that registers after the push', async () => {
+    const s = checksScript([[], [], [cf('pending')], [cf('pass')]]);
+    expect(await waitForChecks(s.opts)).toMatchObject({ result: 'pass' });
+    expect(s.polls).toHaveLength(4);
+  });
+
+  test('only a failed check blocks, with its name', async () => {
+    const s = checksScript([
+      [cf('pending'), { name: 'lint', bucket: 'pass' }],
+      [cf('fail'), { name: 'lint', bucket: 'pass' }],
+    ]);
+    expect(await waitForChecks(s.opts)).toEqual({
+      result: 'fail',
+      failed: ['Cloudflare Pages'],
+      pending: [],
+    });
+  });
+
+  test('cancelled and skipped checks do not block', async () => {
+    const s = checksScript([[cf('cancel'), { name: 'optional', bucket: 'skipping' }]]);
+    expect(await waitForChecks(s.opts)).toMatchObject({ result: 'pass' });
+  });
+
+  test('still pending after 10 minutes: stops waiting and does not block', async () => {
+    const s = checksScript([[cf('pending')]]);
+    expect(await waitForChecks(s.opts)).toEqual({
+      result: 'timeout',
+      failed: [],
+      pending: ['Cloudflare Pages'],
+    });
+    expect(s.polls.at(-1)).toBe(600_000);
+  });
+
+  test('no checks at all after the 2 minute grace period is fine', async () => {
+    const s = checksScript([[]]);
+    expect(await waitForChecks(s.opts)).toMatchObject({ result: 'none' });
+    expect(s.polls.at(-1)).toBe(120_000);
+  });
+
+  test('lookup errors are retried; never reading the checks blocks', async () => {
+    const flaky = checksScript([new Error('HTTP 502'), [cf('pass')]]);
+    expect(await waitForChecks(flaky.opts)).toMatchObject({ result: 'pass' });
+    const broken = checksScript([new Error('HTTP 401: Bad credentials')]);
+    expect(await waitForChecks(broken.opts)).toMatchObject({
+      result: 'fail',
+      failed: ['checks unreadable: HTTP 401: Bad credentials'],
+    });
   });
 });

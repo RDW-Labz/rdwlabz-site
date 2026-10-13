@@ -96,7 +96,7 @@ gh api repos/RDW-Labz/rdwlabz-site/dispatches -f event_type=rdwlabz-sync
 
 (The caller's token needs Contents write on rdwlabz-site; `RDWLABZ_PR_TOKEN` works.)
 
-**What happens next:** the run opens or updates one PR from `bot/sync-projects`. If the build and e2e tests pass **and** the PR only touches `src/data/projects.json` and `public/projects/*`, it merges itself. Otherwise it stays open with a comment saying why. It never pushes to main directly and never deploys. Hand-written entries in `projects.json` are left alone.
+**What happens next:** the run opens or updates one PR from `bot/sync-projects`. If the build and e2e tests pass **and** the PR only touches `src/data/projects.json` and `public/projects/*`, it merges itself. Before merging it waits up to 10 minutes for the PR's other checks (like the Cloudflare Pages preview) to finish; only a check that fails blocks, and one still pending after 10 minutes doesn't (`scripts/wait-pr-checks.mjs`). Otherwise it stays open with a comment saying why. It never pushes to main directly and never deploys. Hand-written entries in `projects.json` are left alone.
 
 **Reliability:** store lookups and repo scans are cached between runs (`.sync-cache/`, via the Actions cache). A repo or store that errors keeps its previous entry and is retried next run. Only "can't list the org" fails the run.
 

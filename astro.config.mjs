@@ -96,6 +96,11 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+    // RDWLABZ_DATA=<abs path> builds from another projects.json (tests build an empty shelf this
+    // way without touching the real file).
+    resolve: process.env.RDWLABZ_DATA
+      ? { alias: [{ find: /^\.\.\/data\/projects\.json$/, replacement: process.env.RDWLABZ_DATA }] }
+      : undefined,
   },
   // Site fonts are inline so each provider's options are type-checked.
   fonts: [

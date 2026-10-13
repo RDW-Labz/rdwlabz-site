@@ -134,8 +134,9 @@ jobs:
           [ "$TESTS" = "success" ] || leave "the e2e tests failed"
           other=$(gh pr diff "$BRANCH" --name-only | grep -Ev "$ALLOWED" || true)
           [ -z "$other" ] || leave "it changes files other than projects.json and public/projects/* ($(echo $other))"
-          # Wait for any checks other workflows run on the PR; none is fine.
-          if ! out=$(gh pr checks "$BRANCH" --watch --interval 20 2>&1); then
-            echo "$out" | grep -qi "no checks reported" || leave "a PR check failed"
+          # Waits up to 10 min for PR checks (Cloudflare Pages preview); only a failed check blocks.
+          failed_file="$RUNNER_TEMP/failed-checks.txt"
+          if ! node scripts/wait-pr-checks.mjs "$BRANCH" "$failed_file"; then
+            leave "a PR check failed ($(cat "$failed_file" 2>/dev/null || echo "see the run log"))"
           fi
           gh pr merge "$BRANCH" --squash --delete-branch || leave "GitHub refused the merge (branch protection?)"
