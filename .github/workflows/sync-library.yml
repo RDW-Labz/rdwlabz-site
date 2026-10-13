@@ -54,6 +54,18 @@ jobs:
           fi
           echo "ref=${SHA:-main}" >> "$GITHUB_OUTPUT"
 
+      - name: Check RDWLABZ_SYNC_TOKEN can read clay-asset-packs
+        env:
+          GH_TOKEN: ${{ secrets.RDWLABZ_SYNC_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::RDWLABZ_SYNC_TOKEN is not set (see docs/LIBRARY.md)"; exit 1
+          fi
+          if ! gh api repos/RDW-Labz/clay-asset-packs/contents/models --jq length > /dev/null; then
+            echo "::error::RDWLABZ_SYNC_TOKEN can't read RDW-Labz/clay-asset-packs. Give it that repo (or All repositories) with Contents: Read."
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
         with:
           repository: RDW-Labz/clay-asset-packs

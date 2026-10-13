@@ -106,10 +106,11 @@ function fixMimeTypes() {
 
 /**
  * @param {Uint8Array} glb source model
- * @param {{ texture?: number }} [opts] max texture edge in px
+ * @param {{ texture?: number, maxTriangles?: number }} [opts] max texture edge in px; with
+ *   maxTriangles, any model above it is decimated to about that many (for oversized previews)
  * @returns {Promise<Uint8Array>}
  */
-export async function optimizeGlb(glb, { texture = 512 } = {}) {
+export async function optimizeGlb(glb, { texture = 512, maxTriangles } = {}) {
   const io = await getIO();
   const doc = await io.readBinary(glb);
   doc.setLogger({ debug() {}, info() {}, warn() {}, error: console.error });
@@ -119,13 +120,14 @@ export async function optimizeGlb(glb, { texture = 512 } = {}) {
       tris += (p.getIndices()?.getCount() ?? p.getAttribute('POSITION')?.getCount() ?? 0) / 3;
     }
   }
+  const target = maxTriangles ?? (tris > DENSE_TRIANGLES ? PREVIEW_TRIANGLES : Infinity);
   const dense =
-    tris > DENSE_TRIANGLES
+    tris > target
       ? [
           simplify({
             simplifier: MeshoptSimplifier,
-            ratio: PREVIEW_TRIANGLES / tris,
-            error: 0.01,
+            ratio: target / tris,
+            error: maxTriangles ? 0.05 : 0.01,
             lockBorder: false,
           }),
         ]

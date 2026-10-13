@@ -49,6 +49,14 @@ viewers/<batch>.html (only checked for presence) .github/workflows/sync-library.
   chunk is misaligned) stays listed with its concept image, gets no triangle count and isn't
   offered in 3D. The sync summary lists it under Warnings. If no model in a pack is usable, the
   pack page says the 3D preview isn't ready yet.
+- **Cloudflare Pages limits** (25 MiB per file, 20,000 files): each 3D-preview GLB must fit in
+  20 MiB. If one doesn't, the sync decimates it in steps (20k, 8k, then 2k triangles, smaller
+  textures) and lists it under "Decimated for the web" in the PR; if it still doesn't fit, the
+  model stays listed but isn't offered in 3D, under "Skipped or broken files". `npm run build`
+  then checks the whole `dist/` with `scripts/pages-limits.mjs` and fails over either limit
+  (today: about 1,050 files, largest under 1 MiB).
+- **Skipped files are listed in the PR:** corrupt or unreadable GLBs, non-snake_case file names
+  and empty folders go under "Skipped or broken files" in the sync PR body.
 - **Re-render only what changed:** each pack has a `sourceHash` of its GLBs, previews and the
   render settings. `--force` re-renders everything (workflow_dispatch has a checkbox).
 - Locally: `node scripts/build-library.mjs --src ../clay-asset-packs` (needs ffmpeg on PATH or
@@ -70,7 +78,7 @@ viewers/<batch>.html (only checked for presence) .github/workflows/sync-library.
 
 | Repo | Secret | Access |
 | --- | --- | --- |
-| clay-asset-packs | `RDWLABZ_DISPATCH_TOKEN` | Fine-grained PAT, resource owner RDW-Labz, **only** rdwlabz-site, Contents: Read and write (needed for `repository_dispatch`). Without it, the push still shows up within 6 hours through the scheduled sync. |
+| clay-asset-packs | `LIBRARY_DISPATCH_TOKEN` | Fine-grained PAT, resource owner RDW-Labz, **only** rdwlabz-site, Contents: Read and write (needed for `repository_dispatch`). Without it, the push still shows up within 6 hours through the scheduled sync. |
 | rdwlabz-site | `RDWLABZ_SYNC_TOKEN` (existing) | Must include clay-asset-packs with Contents: Read. |
 | rdwlabz-site | `RDWLABZ_PR_TOKEN` (existing) | Unchanged: rdwlabz-site Contents + Pull requests write. |
 

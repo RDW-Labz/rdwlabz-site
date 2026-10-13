@@ -8,6 +8,7 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  truncateSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -20,11 +21,38 @@ import {
   prettify,
   themeOf,
 } from '../scripts/build-library.mjs';
+import { checkPagesLimits } from '../scripts/pages-limits.mjs';
 import { facets, modelCount, packs, validateLibrary, type LibraryPack } from '../src/lib/library';
 
 const realPacks: LibraryPack[] = JSON.parse(readFileSync('src/data/library.json', 'utf8')).packs;
 
 /* ───────────── Sync (scripts/build-library.mjs) against a fixture clay-asset-packs repo ───────────── */
+
+/** A bumpy n×n grid: 2·n² triangles, dense enough to need decimating under a small size cap. */
+async function gridGlb(n: number): Promise<Buffer> {
+  const doc = new Document();
+  const buf = doc.createBuffer();
+  const p = new Float32Array((n + 1) * (n + 1) * 3);
+  for (let y = 0; y <= n; y++)
+    for (let x = 0; x <= n; x++) {
+      const i = (y * (n + 1) + x) * 3;
+      p.set([x / n, Math.sin(x / 3) * Math.cos(y / 4) * 0.05, y / n], i);
+    }
+  const idx = new Uint32Array(n * n * 6);
+  for (let y = 0, k = 0; y < n; y++)
+    for (let x = 0; x < n; x++, k += 6) {
+      const a = y * (n + 1) + x;
+      idx.set([a, a + n + 1, a + 1, a + 1, a + n + 1, a + n + 2], k);
+    }
+  const prim = doc
+    .createPrimitive()
+    .setAttribute('POSITION', doc.createAccessor().setType('VEC3').setArray(p).setBuffer(buf))
+    .setIndices(doc.createAccessor().setType('SCALAR').setArray(idx).setBuffer(buf));
+  doc
+    .createScene()
+    .addChild(doc.createNode('grid').setMesh(doc.createMesh('grid').addPrimitive(prim)));
+  return Buffer.from(await new NodeIO().writeBinary(doc));
+}
 
 async function boxGlb(size = 1): Promise<Buffer> {
   const doc = new Document();
@@ -97,7 +125,7 @@ function put(root: string, rel: string, body: Buffer | string) {
   writeFileSync(join(root, rel), body);
 }
 
-function sync(src: string, out: string) {
+function sync(src: string, out: string, env: Record<string, string> = {}) {
   execFileSync(
     process.execPath,
     [
@@ -105,7 +133,7 @@ function sync(src: string, out: string) {
       ...['--src', src, '--data', join(out, 'library.json'), '--out', join(out, 'packs')],
       ...['--summary', join(out, 'summary.md')],
     ],
-    { stdio: 'pipe' },
+    { stdio: 'pipe', env: { ...process.env, ...env } },
   );
   return {
     data: JSON.parse(readFileSync(join(out, 'library.json'), 'utf8')) as { packs: LibraryPack[] },
@@ -234,6 +262,56 @@ test.describe('library sync', () => {
       rmSync(src, { recursive: true, force: true });
       rmSync(out, { recursive: true, force: true });
     }
+  });
+
+  test('oversized preview GLBs are decimated, or left out of 3D, and flagged', async () => {
+    test.slow();
+    const src = mkdtempSync(join(tmpdir(), 'clay-src-'));
+    const outs: string[] = [];
+    const fresh = () => {
+      const d = mkdtempSync(join(tmpdir(), 'clay-out-'));
+      outs.push(d);
+      return d;
+    };
+    try {
+      git(src, 'init', '-q', '-b', 'main');
+      put(src, 'models/batch070/prop_clay_terrain.glb', await gridGlb(160));
+      put(src, 'previews/batch070/prop_clay_terrain.jpg', await jpg('#7a5'));
+      git(src, 'add', '-A');
+      git(src, 'commit', '-q', '-m', 'batch070: Clay Terrain (1 model, 0 textures)');
+
+      const full = sync(src, fresh()).data.packs[0].viewer[0];
+      const cap = Math.floor(full.bytes / 3);
+      const small = sync(src, fresh(), { LIBRARY_VIEWER_MAX_BYTES: String(cap) });
+      const v = small.data.packs[0].viewer[0];
+      expect(v.bytes).toBeLessThanOrEqual(cap);
+      expect(small.summary).toMatch(/Decimated for the web[\s\S]*Clay Terrain: Clay terrain \(/);
+
+      const none = sync(src, fresh(), { LIBRARY_VIEWER_MAX_BYTES: '100' });
+      expect(none.data.packs[0].viewer).toEqual([]);
+      expect(none.data.packs[0].assets).toHaveLength(1);
+      expect(none.summary).toMatch(
+        /Skipped or broken files[\s\S]*Clay terrain is .* not offered in 3D/,
+      );
+    } finally {
+      rmSync(src, { recursive: true, force: true });
+      for (const d of outs) rmSync(d, { recursive: true, force: true });
+    }
+  });
+
+  test('Cloudflare Pages limits: 25 MiB per file, 20,000 files', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'pages-'));
+    try {
+      writeFileSync(join(dir, 'ok.glb'), 'x');
+      expect(checkPagesLimits(dir).problems).toEqual([]);
+      writeFileSync(join(dir, 'huge.glb'), '');
+      truncateSync(join(dir, 'huge.glb'), 25 * 1024 * 1024 + 1);
+      expect(checkPagesLimits(dir).problems.join()).toMatch(/huge\.glb is 25\.0 MiB/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+    const dist = checkPagesLimits('dist');
+    expect(dist.problems).toEqual([]);
   });
 });
 

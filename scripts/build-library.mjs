@@ -82,6 +82,29 @@ const arg = (name) => {
   const i = process.argv.indexOf(name);
   return i === -1 ? undefined : process.argv[i + 1];
 };
+const MiB = 1024 * 1024;
+/** Cloudflare Pages serves at most 25 MiB per file; keep 3D previews well under it. */
+export const PAGES_FILE_LIMIT = 25 * MiB;
+const VIEWER_MAX_BYTES = Number(process.env.LIBRARY_VIEWER_MAX_BYTES) || 20 * MiB;
+const DECIMATE_STEPS = [
+  [20_000, 512],
+  [8_000, 256],
+  [2_000, 256],
+];
+
+/** Web preview GLB under VIEWER_MAX_BYTES, decimating step by step if needed; null if it can't fit. */
+async function webGlb(source) {
+  let glb = await optimizeGlb(source, { texture: 512 });
+  if (glb.length <= VIEWER_MAX_BYTES) return { glb, decimated: false, first: glb.length };
+  const first = glb.length;
+  for (const [maxTriangles, texture] of DECIMATE_STEPS) {
+    glb = await optimizeGlb(source, { texture, maxTriangles });
+    if (glb.length <= VIEWER_MAX_BYTES) return { glb, decimated: true, first };
+  }
+  return { glb: null, decimated: true, first };
+}
+
+const mb = (n) => `${(n / MiB).toFixed(1)} MB`;
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
@@ -236,6 +259,7 @@ export async function readPacks(src) {
     // No git: only checked-out viewers count.
   }
   const warnings = [];
+  const skipped = [];
   const packs = [];
   for (const id of dirs) {
     const glbs = (await listFiles(join(modelsDir, id))).filter((f) => f.endsWith('.glb')).sort();
@@ -256,7 +280,7 @@ export async function readPacks(src) {
     for (const f of glbs) {
       const assetId = f.replace(/\.glb$/, '');
       if (!ASSET_ID.test(assetId)) {
-        warnings.push(`models/${id}/${f}: file name is not snake_case; skipped`);
+        skipped.push(`models/${id}/${f}: file name is not snake_case; skipped`);
         continue;
       }
       const file = join(modelsDir, id, f);
@@ -271,7 +295,7 @@ export async function readPacks(src) {
       }
       if (broken) {
         // Still listed (concept image + name) but never offered in the 3D viewer.
-        warnings.push(`models/${id}/${f}: ${broken}; no 3D preview or triangle count`);
+        skipped.push(`models/${id}/${f}: ${broken}; listed, but no 3D preview or triangle count`);
         triangles = null;
       }
       const preview = join(src, 'previews', id, `${assetId}.jpg`);
@@ -291,7 +315,7 @@ export async function readPacks(src) {
       });
     }
     if (!assets.length) {
-      warnings.push(`models/${id}: no readable models; skipped`);
+      skipped.push(`models/${id}: no readable models; skipped`);
       continue;
     }
     const texRoot = join(src, 'textures', id);
@@ -369,7 +393,7 @@ export async function readPacks(src) {
           : 'concept',
     });
     if (!usable.length && !assets.some((a) => a.preview)) {
-      warnings.push(
+      skipped.push(
         `models/${id}: no readable model and no preview image, so nothing to show; skipped`,
       );
       packs.pop();
@@ -381,7 +405,7 @@ export async function readPacks(src) {
     if (!SLUG.test(p.slug) || seen.has(p.slug)) p.slug = slugify(p.id);
     seen.set(p.slug, p.id);
   }
-  return { packs, warnings };
+  return { packs, warnings, skipped };
 }
 
 /** A gif counts as a turntable only if it really animates (some upstream gifs are 1-frame stubs). */
@@ -452,8 +476,8 @@ async function main() {
   const force = process.argv.includes('--force');
   const prev = existsSync(DATA) ? JSON.parse(await readFile(DATA, 'utf8')) : { packs: [] };
   const prevBySlug = new Map(prev.packs.map((p) => [p.slug, p]));
-  const { packs, warnings } = await readPacks(src);
-  const changes = { added: [], updated: [], removed: [], rendered: [] };
+  const { packs, warnings, skipped } = await readPacks(src);
+  const changes = { added: [], updated: [], removed: [], rendered: [], decimated: [], skipped };
   let renderer = null;
   const result = [];
 
@@ -507,9 +531,13 @@ async function main() {
           ...p.assets.filter((a) => a.preview).map((a) => `assets/${a.id}.webp`),
         ];
       }
-      outputs.push(...p.hero.map((h) => `${h}.glb`));
       const fresh =
-        !force && old?.sourceHash === hash && outputs.every((f) => existsSync(join(dir, f)));
+        !force &&
+        old?.sourceHash === hash &&
+        outputs.every((f) => existsSync(join(dir, f))) &&
+        old.viewer.every(
+          (v) => v.bytes <= VIEWER_MAX_BYTES && existsSync(join(dir, `${v.id}.glb`)),
+        );
       let media = old?.media;
       let viewer = old?.viewer;
       if (!fresh) {
@@ -582,7 +610,16 @@ async function main() {
         }
         viewer = [];
         for (const h of p.hero) {
-          const glb = await optimizeGlb(await readFile(byId.get(h).file), { texture: 512 });
+          const a = byId.get(h);
+          const { glb, decimated, first } = await webGlb(await readFile(a.file));
+          if (!glb) {
+            changes.skipped.push(
+              `${p.name}: ${a.name} is ${mb(first)} as a web preview even after decimating, over the ${mb(VIEWER_MAX_BYTES)} limit; not offered in 3D`,
+            );
+            continue;
+          }
+          if (decimated)
+            changes.decimated.push(`${p.name}: ${a.name} (${mb(first)} → ${mb(glb.length)})`);
           await writeFile(join(dir, `${h}.glb`), glb);
           viewer.push({ id: h, src: `${web}/${h}.glb`, bytes: glb.length });
         }
@@ -657,7 +694,11 @@ async function main() {
   list('Removed', changes.removed);
   list('Previews built', changes.rendered);
   lines.push(`${result.length} packs, ${models} models. Downloads are off for every pack.`);
-  if (warnings.length) lines.push('', '**Warnings**', ...warnings.map((w) => `- ${w}`));
+  const section = (title, xs) =>
+    xs.length && lines.push('', `**${title}**`, ...xs.map((x) => `- ${x}`));
+  section('Decimated for the web (preview GLB was too big)', changes.decimated);
+  section('Skipped or broken files', changes.skipped);
+  section('Warnings', warnings);
   const summary = lines.join('\n') + '\n';
   console.log(summary);
   const summaryPath = arg('--summary');
