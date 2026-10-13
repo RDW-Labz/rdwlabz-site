@@ -7,7 +7,7 @@ import { isTodo, site } from '../lib/projects';
 // device; purchases go through the store. Keep it true: update this page, App Store privacy
 // details and the Google Play Data safety form together before any product adds accounts,
 // analytics, ads or a new store, and move EFFECTIVE_DATE (YYYY-MM-DD) when the text changes.
-const EFFECTIVE_DATE = '2026-10-12';
+const EFFECTIVE_DATE = '2026-10-13';
 
 const effective = isTodo(EFFECTIVE_DATE)
   ? null
@@ -102,6 +102,10 @@ const cityLine = rest.join(', ');
     <p>
       Our apps and games do not show ads, do not use analytics or crash-reporting services, and do
       not track you across other companies’ apps or websites.
+    </p>
+    <p>
+      Our games use Google Play’s billing library to handle purchases. Google’s billing library may
+      send basic diagnostics to Google.
     </p>
 
     <h2>Website analytics</h2>
