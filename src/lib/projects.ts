@@ -1,5 +1,5 @@
 import data from '../data/projects.json' with { type: 'json' };
-import { freeCount, packs as libraryPacks, type LibraryPack } from './library';
+import { packs as libraryPacks, type LibraryPack } from './library';
 
 export type CategoryId = 'software' | 'games' | 'mods' | 'asset-packs';
 export type Status = 'released' | 'in-dev' | 'coming-soon';
@@ -103,18 +103,15 @@ const validated = validate(data);
  */
 export function libraryProject(list: LibraryPack[]): Project | null {
   if (!list.length) return null;
-  const free = freeCount(list);
   const formats = [...new Set(list.flatMap((p) => p.formats))];
   const withTextures = list.some((p) => p.textures.length > 0);
   return {
     slug: 'clay-asset-library',
     name: 'Clay Asset Library',
-    oneLiner: `${list.length} pack${list.length === 1 ? '' : 's'} of claymation-style 3D models${withTextures ? ' and tileable textures' : ''}, with turntable and 3D previews.`,
+    oneLiner: `${list.length} pack${list.length === 1 ? '' : 's'} of claymation-style 3D models${withTextures ? ' and tileable textures' : ''}, with 3D previews.`,
     category: 'asset-packs',
-    status: free ? 'released' : 'coming-soon',
-    statusLabel: free
-      ? `${free} free pack${free === 1 ? '' : 's'}`
-      : 'Previews live, downloads soon',
+    status: 'coming-soon',
+    statusLabel: 'Previews live, downloads soon',
     platforms: formats,
     url: '/library',
     cta: 'Enter the Library',

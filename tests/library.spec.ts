@@ -1,134 +1,239 @@
 import { test, expect, type Page } from '@playwright/test';
 import { astroBuild } from './helpers';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
-import { downloadFor, isAllowedDownload, validatePackJson } from '../scripts/library/validate.mjs';
-import { facets, packAction, packs, validateLibrary, type LibraryPack } from '../src/lib/library';
+import { dirname, join, resolve } from 'node:path';
+import { Document, NodeIO } from '@gltf-transform/core';
+import sharp from 'sharp';
+import {
+  glbGeometryProblem,
+  parseCommitTitle,
+  prettify,
+  themeOf,
+} from '../scripts/build-library.mjs';
+import { facets, modelCount, packs, validateLibrary, type LibraryPack } from '../src/lib/library';
 
 const realPacks: LibraryPack[] = JSON.parse(readFileSync('src/data/library.json', 'utf8')).packs;
 
-/** A minimal valid upstream pack.json (clay-asset-packs/packs/<batch>/pack.json). */
-const upstream = (over: Record<string, unknown> = {}) => ({
-  schemaVersion: 1,
-  id: 'batch001',
-  slug: 'test-pack',
-  name: 'Test pack',
-  description: 'Two clay models.',
-  category: 'Medieval',
-  style: 'Claymation',
-  tags: ['knight'],
-  formats: ['GLB'],
-  free: false,
-  price: null,
-  listed: true,
-  license: 'TODO: license',
-  aiGenerated: true,
-  assets: [
-    {
-      id: 'char_knight',
-      name: 'Knight',
-      kind: 'character',
-      file: 'models/batch001/char_knight.glb',
-      triangles: 9000,
-    },
-    {
-      id: 'prop_barrel',
-      name: 'Barrel',
-      kind: 'prop',
-      file: 'models/batch001/prop_barrel.glb',
-      triangles: null,
-    },
-  ],
-  hero: ['char_knight'],
-  textures: [],
-  files: [{ path: 'models/batch001/char_knight.glb', bytes: 1200 }],
-  totalBytes: 1200,
-  download: null,
-  ...over,
-});
+/* ───────────── Sync (scripts/build-library.mjs) against a fixture clay-asset-packs repo ───────────── */
 
-const SHA = 'a'.repeat(64);
+async function boxGlb(size = 1): Promise<Buffer> {
+  const doc = new Document();
+  const buf = doc.createBuffer();
+  const s = size;
+  const p = [
+    -s,
+    0,
+    -s,
+    s,
+    0,
+    -s,
+    s,
+    2 * s,
+    -s,
+    -s,
+    2 * s,
+    -s,
+    -s,
+    0,
+    s,
+    s,
+    0,
+    s,
+    s,
+    2 * s,
+    s,
+    -s,
+    2 * s,
+    s,
+  ];
+  const i = [
+    0, 2, 1, 0, 3, 2, 4, 5, 6, 4, 6, 7, 0, 1, 5, 0, 5, 4, 2, 3, 7, 2, 7, 6, 1, 2, 6, 1, 6, 5, 0, 4,
+    7, 0, 7, 3,
+  ];
+  const prim = doc
+    .createPrimitive()
+    .setAttribute(
+      'POSITION',
+      doc.createAccessor().setType('VEC3').setArray(new Float32Array(p)).setBuffer(buf),
+    )
+    .setIndices(doc.createAccessor().setType('SCALAR').setArray(new Uint16Array(i)).setBuffer(buf));
+  doc
+    .createScene()
+    .addChild(doc.createNode('box').setMesh(doc.createMesh('box').addPrimitive(prim)));
+  return Buffer.from(await new NodeIO().writeBinary(doc));
+}
 
-test.describe('manifest validation', () => {
-  test('a well-formed pack.json passes', () => {
-    expect(validatePackJson(upstream())).toEqual([]);
+/** A box whose vertex positions read as ~3e38, like the misaligned upstream batch048 files. */
+async function corruptGlb(): Promise<Buffer> {
+  const glb = await boxGlb(1);
+  const binAt = 20 + glb.readUInt32LE(12) + 8;
+  glb.fill(0x7f, binAt, binAt + 8 * 12);
+  return glb;
+}
+
+const jpg = (color: string) =>
+  sharp({ create: { width: 64, height: 64, channels: 3, background: color } })
+    .jpeg()
+    .toBuffer();
+
+function git(cwd: string, ...args: string[]) {
+  execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', '-C', cwd, ...args], {
+    stdio: 'pipe',
+  });
+}
+
+function put(root: string, rel: string, body: Buffer | string) {
+  mkdirSync(dirname(join(root, rel)), { recursive: true });
+  writeFileSync(join(root, rel), body);
+}
+
+function sync(src: string, out: string) {
+  execFileSync(
+    process.execPath,
+    [
+      'scripts/build-library.mjs',
+      ...['--src', src, '--data', join(out, 'library.json'), '--out', join(out, 'packs')],
+      ...['--summary', join(out, 'summary.md')],
+    ],
+    { stdio: 'pipe' },
+  );
+  return {
+    data: JSON.parse(readFileSync(join(out, 'library.json'), 'utf8')) as { packs: LibraryPack[] },
+    summary: readFileSync(join(out, 'summary.md'), 'utf8'),
+  };
+}
+
+test.describe('library sync', () => {
+  test('theme chips: crew packs get their own groups, everything else an era', () => {
+    expect(themeOf('Brainrot Clay Crew II (2026 roster)')).toBe('Clay Crews');
+    expect(themeOf('Clay Block-Build Trend Crew')).toBe('Trend Toys');
+    expect(themeOf('Clay Dance Crew')).toBe('Trend Toys');
+    expect(themeOf('Clay Brainrot Gods (hero/boss tier)')).toBe('Heroes & Gods');
+    expect(themeOf('Clay Hero Crew: heroes, idols and tricksters')).toBe('Heroes & Gods');
+    expect(themeOf('Medieval Knights')).toBe('Medieval');
+    expect(themeOf('Greece and Rome II: heroes, myths and Roman life')).toBe('Ancient world');
+    expect(themeOf('Something new')).toBe('Other');
   });
 
-  test('rejects unsafe or broken manifests', () => {
-    const bad: [Record<string, unknown>, RegExp][] = [
-      [{ slug: '../etc' }, /slug/],
-      [{ slug: 'Has Spaces' }, /slug/],
-      [{ schemaVersion: 2 }, /schemaVersion/],
-      [{ formats: [] }, /formats/],
-      [{ free: 'yes' }, /free/],
-      [{ free: true, price: 5, license: 'CC0' }, /free pack cannot have a price/],
-      [{ free: true }, /free pack needs a real license/],
-      [{ price: -1 }, /price/],
-      [{ hero: ['nope'] }, /hero/],
-      [{ hero: [] }, /hero/],
-      [{ listed: true, review: 'TODO: check names' }, /open review/],
-      [{ files: [{ path: '../secret', bytes: 1 }] }, /safe paths/],
-      [
-        {
-          assets: [
-            {
-              id: 'Bad-Id',
-              name: 'x',
-              kind: 'character',
-              file: 'models/batch001/x.glb',
-              triangles: 1,
-            },
-          ],
-          hero: ['Bad-Id'],
-        },
-        /snake_case/,
-      ],
-      [
-        {
-          assets: [
-            { id: 'a', name: 'A', kind: 'robot', file: 'models/batch001/a.glb', triangles: 1 },
-          ],
-          hero: ['a'],
-        },
-        /bad kind/,
-      ],
-      [{ download: { key: 'packs/x/../../evil.zip', bytes: 1, sha256: SHA } }, /download.key/],
-      [{ download: { key: 'packs/test-pack/test-pack.zip', bytes: 1, sha256: 'nope' } }, /sha256/],
-    ];
-    for (const [over, re] of bad) {
-      expect(validatePackJson(upstream(over)).join('\n'), JSON.stringify(over)).toMatch(re);
-    }
-    expect(validatePackJson(null)).toEqual(['not an object']);
-    expect(validatePackJson([])).toEqual(['not an object']);
-  });
-
-  test('downloads only for free, licensed, uploaded packs on our own hosts', () => {
-    const key = { key: 'packs/test-pack/test-pack.zip', bytes: 1000, sha256: SHA };
-    const base = 'https://assets.rdwlabz.com/';
-    expect(downloadFor(upstream({ free: true, license: 'CC0 1.0', download: key }), base)).toEqual({
-      url: 'https://assets.rdwlabz.com/packs/test-pack/test-pack.zip',
-      bytes: 1000,
-      sha256: SHA,
+  test('names come from the commit message when there is no manifest', () => {
+    expect(
+      parseCommitTitle('batch048: Clay Hero Crew: heroes (4 models, 4 textures)', 'batch048'),
+    ).toEqual({
+      title: 'Clay Hero Crew: heroes',
+      models: 4,
+      textures: 4,
     });
-    expect(
-      downloadFor(upstream({ free: false, license: 'CC0 1.0', download: key }), base),
-    ).toBeNull();
-    expect(
-      downloadFor(upstream({ free: true, license: 'TODO: pick', download: key }), base),
-    ).toBeNull();
-    expect(
-      downloadFor(upstream({ free: true, license: 'CC0 1.0', download: null }), base),
-    ).toBeNull();
-    expect(
-      downloadFor(
-        upstream({ free: true, license: 'CC0 1.0', download: key }),
-        'https://evil.example/',
-      ),
-    ).toBeNull();
-    expect(isAllowedDownload(`https://pub-${'0'.repeat(32)}.r2.dev/packs/a.zip`)).toBe(true);
-    expect(isAllowedDownload('http://assets.rdwlabz.com/packs/a.zip')).toBe(false);
-    expect(isAllowedDownload('https://assets.rdwlabz.com.evil.example/a.zip')).toBe(false);
+    expect(parseCommitTitle('batch050: Robots (1 model)', 'batch050')?.title).toBe('Robots');
+    expect(parseCommitTitle('batch049: Other pack (2 models)', 'batch050')).toBeNull();
+    expect(parseCommitTitle('viewers: batch050 offline 3D viewer', 'batch050')).toBeNull();
+    expect(prettify('batch050')).toBe('Batch 050');
+    expect(prettify('wild_west_ii')).toBe('Wild West II');
+  });
+
+  test('corrupt GLBs are caught by their vertex data', async () => {
+    expect(glbGeometryProblem(await boxGlb())).toBeNull();
+    expect(glbGeometryProblem(await corruptGlb())).toMatch(/corrupt|past the end/);
+  });
+
+  test('every models/ folder becomes a pack; new folders appear, removed ones vanish', async () => {
+    test.slow();
+    const src = mkdtempSync(join(tmpdir(), 'clay-src-'));
+    const out = mkdtempSync(join(tmpdir(), 'clay-out-'));
+    try {
+      git(src, 'init', '-q', '-b', 'main');
+      // batch060: no manifest, named by its commit; one corrupt model; a 1-frame stub gif.
+      put(src, 'models/batch060/char_clay_hero.glb', await boxGlb(1));
+      put(src, 'models/batch060/char_clay_robot.glb', await boxGlb(0.8));
+      put(src, 'models/batch060/char_clay_broken.glb', await corruptGlb());
+      put(src, 'previews/batch060/char_clay_hero.jpg', await jpg('#c86'));
+      put(src, 'previews/batch060/char_clay_broken.jpg', await jpg('#68c'));
+      put(
+        src,
+        'previews/batch060/char_clay_hero.gif',
+        await sharp({ create: { width: 8, height: 8, channels: 3, background: '#000' } })
+          .gif()
+          .toBuffer(),
+      );
+      git(src, 'add', '-A');
+      git(src, 'commit', '-q', '-m', 'batch060: Clay Robot Crew (3 models, 0 textures)');
+      // batch061: manifest title wins.
+      put(src, 'models/batch061/mob_polar_bear.glb', await boxGlb(1.2));
+      put(src, 'previews/batch061/mob_polar_bear.jpg', await jpg('#8ac'));
+      put(
+        src,
+        'manifests/batch061.json',
+        JSON.stringify({
+          title: 'Arctic Test Pack',
+          models: [{ id: 'mob_polar_bear', category: 'mob' }],
+        }),
+      );
+      git(src, 'add', '-A');
+      git(src, 'commit', '-q', '-m', 'batch061: add');
+
+      let { data, summary } = sync(src, out);
+      expect(data.packs.map((p) => p.slug)).toEqual(['clay-robot-crew', 'arctic-test-pack']);
+      const crew = data.packs[0];
+      expect(crew.name).toBe('Clay Robot Crew');
+      expect(crew.category).toBe('Clay Crews');
+      expect(crew.media.kind).toBe('concept');
+      expect(crew.media.webm).toBeNull();
+      expect(crew.assets.map((a) => a.id)).toEqual([
+        'char_clay_broken',
+        'char_clay_hero',
+        'char_clay_robot',
+      ]);
+      expect(crew.assets.find((a) => a.id === 'char_clay_robot')!.thumb).toBeNull();
+      expect(crew.assets.find((a) => a.id === 'char_clay_broken')!.triangles).toBeNull();
+      expect(crew.viewer.map((v) => v.id).sort()).toEqual(['char_clay_hero', 'char_clay_robot']);
+      expect(summary).toContain('char_clay_broken.glb: vertex positions are corrupt');
+      const arctic = data.packs[1];
+      expect(arctic.name).toBe('Arctic Test Pack');
+      expect(arctic.category).toBe('Arctic');
+      expect(arctic.assets[0].kind).toBe('creature');
+      for (const p of data.packs) {
+        expect(p).not.toHaveProperty('download');
+        expect(p).not.toHaveProperty('price');
+        expect(p).not.toHaveProperty('free');
+      }
+      expect(validateLibrary(data).length).toBe(2);
+      for (const f of ['thumb.webp', 'assets/char_clay_hero.webp', 'char_clay_hero.glb']) {
+        expect(existsSync(join(out, 'packs/clay-robot-crew', f)), f).toBe(true);
+      }
+
+      // A new batch pushed to main shows up on the next sync, with no other step.
+      put(src, 'models/batch062/prop_clay_rocket.glb', await boxGlb(0.5));
+      put(src, 'previews/batch062/prop_clay_rocket.jpg', await jpg('#c66'));
+      git(src, 'add', '-A');
+      git(src, 'commit', '-q', '-m', 'batch062: Clay Space Toys (1 model, 0 textures)');
+      ({ data, summary } = sync(src, out));
+      expect(data.packs.map((p) => p.slug)).toEqual([
+        'clay-robot-crew',
+        'arctic-test-pack',
+        'clay-space-toys',
+      ]);
+      expect(summary).toMatch(/\*\*Added:\*\* Clay Space Toys/);
+      expect(summary).not.toMatch(/Previews built:.*Clay Robot Crew/);
+
+      // Removed upstream: gone from the data and its previews deleted.
+      rmSync(join(src, 'models/batch061'), { recursive: true });
+      ({ data, summary } = sync(src, out));
+      expect(data.packs.map((p) => p.slug)).toEqual(['clay-robot-crew', 'clay-space-toys']);
+      expect(summary).toMatch(/\*\*Removed:\*\* Arctic Test Pack/);
+      expect(existsSync(join(out, 'packs/arctic-test-pack'))).toBe(false);
+    } finally {
+      rmSync(src, { recursive: true, force: true });
+      rmSync(out, { recursive: true, force: true });
+    }
   });
 });
 
@@ -140,36 +245,20 @@ test.describe('library.json validation', () => {
     expect(validateLibrary({ packs: realPacks }).length).toBe(realPacks.length);
   });
 
-  test('rejects packs that could ship a broken or unsafe page', () => {
+  test('rejects packs that could ship a broken or unsafe page, or a download', () => {
     const cases: [(p: LibraryPack) => void, RegExp][] = [
       [(p) => (p.slug = 'Bad Slug'), /invalid slug/],
       [(p) => (p.media.thumb.src = 'https://evil.example/x.webp'), /media outside/],
       [(p) => (p.media.webm = `/library/packs/${p.slug}/../../x.webm`), /media outside/],
       [(p) => (p.assets[0].thumb = '/elsewhere/x.webp'), /thumb is outside/],
       [(p) => (p.media.mp4Bytes = 2_000_000), /over 1.5 MB/],
-      [(p) => Object.assign(p, { free: true, price: 3 }), /free but has a price/],
+      [(p) => Object.assign(p.media, { kind: 'photo' }), /media kind/],
       [
-        (p) => (p.download = { url: 'https://assets.rdwlabz.com/a.zip', bytes: 1, sha256: SHA }),
-        /not free/,
+        (p) => Object.assign(p, { download: { url: 'https://assets.rdwlabz.com/a.zip' } }),
+        /download/,
       ],
-      [
-        (p) =>
-          Object.assign(p, {
-            free: true,
-            license: 'TODO: pick',
-            download: { url: 'https://assets.rdwlabz.com/a.zip', bytes: 1, sha256: SHA },
-          }),
-        /no license/,
-      ],
-      [
-        (p) =>
-          Object.assign(p, {
-            free: true,
-            license: 'CC0 1.0',
-            download: { url: 'https://evil.example/a.zip', bytes: 1, sha256: SHA },
-          }),
-        /allowed host/,
-      ],
+      [(p) => Object.assign(p, { price: 3 }), /price/],
+      [(p) => Object.assign(p, { free: true }), /free flag/],
     ];
     for (const [mutate, re] of cases) {
       const p = base();
@@ -179,17 +268,12 @@ test.describe('library.json validation', () => {
     expect(() => validateLibrary({ packs: [base(), base()] })).toThrow(/duplicate slug/);
   });
 
-  test('pack actions: download only when free + licensed + uploaded', () => {
-    const dl = { url: 'https://assets.rdwlabz.com/a.zip', bytes: 1, sha256: SHA };
-    expect(packAction({ free: true, license: 'CC0 1.0', download: dl }).kind).toBe('download');
-    expect(packAction({ free: true, license: 'TODO: x', download: dl }).kind).toBe('free-soon');
-    expect(packAction({ free: true, license: 'CC0 1.0', download: null }).kind).toBe('free-soon');
-    expect(packAction({ free: false, license: 'CC0 1.0', download: null }).kind).toBe('buy-soon');
-  });
-
   test('filter groups appear only when they can narrow the list', () => {
     const [a, b] = [base(), base()];
     b.slug = 'other';
+    b.category = a.category;
+    b.style = a.style;
+    b.formats = [...a.formats];
     expect(facets([a, b]).map((g) => g.id)).toEqual([]);
     b.category = 'Something else';
     b.style = 'Low poly';
@@ -250,73 +334,37 @@ test('build with 0 packs: no teaser, no library card or nav link, a friendly emp
   }
 });
 
-test('free vs paid: only free + licensed + uploaded packs get a download button', () => {
-  test.skip(realPacks.length < 3, 'needs 3 synced packs for the fixture');
-  test.slow();
-  const [free, paid, soon] = realPacks.slice(0, 3).map((p) => structuredClone(p));
-  Object.assign(free, {
-    free: true,
-    license: 'CC0 1.0 (test fixture)',
-    download: {
-      url: `https://assets.rdwlabz.com/packs/${free.slug}/${free.slug}.zip`,
-      bytes: 12_345_678,
-      sha256: SHA,
-    },
-  });
-  Object.assign(paid, { free: false, price: null, download: null });
-  Object.assign(soon, { free: true, license: 'TODO: pick', download: null, style: 'Low poly' });
-  soon.formats = [...soon.formats, 'FBX'];
-  const b = buildWith({ packs: [free, paid, soon] });
-  try {
-    const f = b.read(`library/${free.slug}.html`);
-    expect(f).toMatch(
-      new RegExp(
-        `<a[^>]+href="https://assets\\.rdwlabz\\.com/packs/${free.slug}/${free.slug}\\.zip"[^>]*data-pack-action="download"`,
-      ),
-    );
-    expect(f).toContain('Download free');
-    expect(f).toContain('CC0 1.0 (test fixture)');
-    const p = b.read(`library/${paid.slug}.html`);
-    expect(p).toContain('Buy — coming soon');
-    expect(p).not.toContain('data-pack-action="download"');
-    expect(p).not.toContain('.zip');
-    const s = b.read(`library/${soon.slug}.html`);
-    expect(s).toContain('Free download coming soon');
-    expect(s).not.toContain('data-pack-action="download"');
-    const lib = b.read('library.html');
-    for (const g of ['category', 'style', 'format'])
-      expect(lib).toContain(`aria-labelledby="facet-${g}"`);
-    const homeText = b
-      .read('index.html')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ');
-    expect(homeText).toMatch(/\b1 free pack\b/);
-    expect(homeText).not.toContain('Downloads coming soon');
-  } finally {
-    b.done();
-  }
-});
-
 /* ───────────── Browser tests against the real (production) build ───────────── */
 
 test.describe('library pages', () => {
   test.skip(packs.length === 0, 'no packs synced yet');
 
-  test('grid lists every pack with real renders and honest actions', async ({ page }) => {
+  test('grid lists every pack, with honest stats and no download or buy links', async ({
+    page,
+  }) => {
     await page.goto('/library');
     const cards = page.locator('[data-lib-grid] > li');
     await expect(cards).toHaveCount(packs.length);
-    for (const p of packs.slice(0, 3)) {
+    for (const p of [packs[0], packs.at(-1)!]) {
       const card = page.locator(`.pack-card:has(#pack-${p.slug}-title)`);
       await expect(card.locator(`img[src="${p.media.thumb.src}"]`)).toHaveAttribute('width', '800');
       await expect(card.getByRole('link', { name: p.name })).toHaveAttribute(
         'href',
         `/library/${p.slug}`,
       );
+      await expect(card).toContainText('Preview only');
+      await expect(card.locator('[data-turntable-media]')).toHaveCount(
+        p.media.webm || p.media.mp4 ? 1 : 0,
+      );
     }
-    for (const a of await page.locator('main a[href$=".zip"]').all()) {
-      expect(isAllowedDownload(await a.getAttribute('href'))).toBe(true);
-    }
+    const stats = page.locator('main').first();
+    await expect(stats).toContainText(`${packs.length} packs`);
+    await expect(stats).toContainText(`${modelCount(packs)} models`);
+    await expect(stats).toContainText('Downloads coming soon');
+    await expect(
+      page.locator('a[href$=".zip"], a[download], [data-pack-action="download"]'),
+    ).toHaveCount(0);
+    await expect(page.getByText(/\bbuy\b/i)).toHaveCount(0);
   });
 
   test('search, chips, URL state, no-match state and reset', async ({ page }) => {
@@ -386,13 +434,14 @@ test.describe('library pages', () => {
     await page.goto('/library');
     await page.waitForTimeout(500);
     expect(videos).toEqual([]);
-    const card = page.locator('.pack-card').first();
+    const card = page.locator('.pack-card[data-turntable]').first();
+    const spinner = packs.find((p) => p.media.webm || p.media.mp4)!;
     await card.hover();
     const video = card.locator('video');
     await expect(video).toHaveCount(1);
     await expect(video).toHaveAttribute(
       'src',
-      new RegExp(`/library/packs/${packs[0].slug}/turntable\\.(webm|mp4)$`),
+      new RegExp(`/library/packs/${spinner.slug}/turntable\\.(webm|mp4)$`),
     );
     await expect(card.locator('[data-turntable-media]')).toHaveClass(/is-spinning/);
     await page.mouse.move(0, 0);
@@ -421,23 +470,47 @@ test.describe('library pages', () => {
     expect(mv.every((u) => new URL(u).host === new URL(page.url()).host)).toBe(true);
   });
 
-  test('pack page: contents, stats and the coming-soon action', async ({ page }) => {
-    const p = packs[0];
-    await page.goto(`/library/${p.slug}`);
-    for (const a of p.assets.slice(0, 5))
-      await expect(page.locator('#contents')).toContainText(a.name);
-    const stats = page.locator('.pack-stats');
-    await expect(stats).toContainText(String(p.assets.length));
-    await expect(stats).toContainText(p.formats.join(', '));
-    const action = packAction(p);
-    if (action.kind === 'buy-soon') {
-      await expect(page.locator('[data-pack-action="buy-soon"]')).toHaveText(/Buy — coming soon/);
-      await expect(page.locator('[data-pack-action="buy-soon"]')).toHaveAttribute(
-        'aria-disabled',
-        'true',
-      );
+  test('pack page: concept-image packs load their real models in 3D', async ({ page }) => {
+    const p = packs.find((x) => x.media.kind === 'concept' && x.viewer.length > 0);
+    test.skip(!p, 'no concept pack with models');
+    await page.goto(`/library/${p!.slug}`);
+    await expect(page.locator('.pv__note')).toContainText('concept image');
+    await page.getByRole('button', { name: 'Spin it in 3D' }).click();
+    const root = page.locator('[data-model-preview]');
+    await expect(root).toHaveAttribute('data-state', /ready|error/, { timeout: 30_000 });
+    await expect(root).toHaveAttribute('data-state', 'ready');
+    await expect(page.locator('model-viewer')).toHaveAttribute('src', p!.viewer[0].src);
+  });
+
+  test('pack page: contents, stats, preview only, downloads coming soon', async ({ page }) => {
+    for (const p of [packs[0], packs.at(-1)!]) {
+      await page.goto(`/library/${p.slug}`);
+      for (const a of p.assets.slice(0, 5))
+        await expect(page.locator('#contents')).toContainText(a.name);
+      const stats = page.locator('.pack-stats');
+      await expect(stats).toContainText(String(p.assets.length));
+      await expect(stats).toContainText(p.formats.join(', '));
+      await expect(stats).toContainText('Preview only');
+      const action = page.locator('[data-pack-action="soon"]');
+      await expect(action).toHaveText(/Downloads coming soon/);
+      await expect(action).toHaveAttribute('aria-disabled', 'true');
+      await expect(page.locator('main a[href$=".zip"], main a[download]')).toHaveCount(0);
+      if (p.aiGenerated) await expect(page.locator('.pack-info')).toContainText('AI-generated');
     }
-    if (p.aiGenerated) await expect(page.locator('.pack-info')).toContainText('AI-generated');
+  });
+
+  test('a concept-image pack with no usable models says so instead of offering 3D', async ({
+    page,
+  }) => {
+    const p = packs.find((x) => x.media.kind === 'concept' && x.viewer.length === 0);
+    test.skip(!p, 'every concept pack has a 3D preview');
+    await page.goto(`/library/${p!.slug}`);
+    await expect(page.getByRole('button', { name: 'Spin it in 3D' })).toHaveCount(0);
+    await expect(page.locator('.pv')).toContainText('3D preview for this pack isn’t ready yet');
+    await expect(page.locator(`img[src="${p!.media.thumb.src}"]`).first()).toHaveAttribute(
+      'alt',
+      /Concept image/,
+    );
   });
 });
 

@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import data from '../data/library.json' with { type: 'json' };
-import { ASSET_ID, SLUG, isAllowedDownload, isTodo } from '../../scripts/library/validate.mjs';
+import { ASSET_ID, SLUG, isTodo } from '../../scripts/library/validate.mjs';
 
 export type AssetKind = 'character' | 'creature' | 'prop';
 
@@ -10,7 +10,8 @@ export interface LibraryAsset {
   name: string;
   kind: AssetKind;
   triangles: number | null;
-  thumb: string;
+  /** 256 px image (render or concept image); null when upstream has none. */
+  thumb: string | null;
 }
 
 export interface LibraryPack {
@@ -31,18 +32,17 @@ export interface LibraryPack {
   /** Web-optimized GLBs of the hero models, for the 3D preview. */
   viewer: { id: string; name: string; src: string; bytes: number }[];
   media: {
+    /** render: our studio render of the GLBs. concept: the images the models were made from. */
+    kind: 'render' | 'concept';
     thumb: { src: string; width: number; height: number };
-    webm: string;
-    mp4: string;
-    webmBytes: number;
-    mp4Bytes: number;
+    webm: string | null;
+    mp4: string | null;
+    webmBytes: number | null;
+    mp4Bytes: number | null;
   };
   aiGenerated: boolean;
   pipeline: string | null;
   license: string;
-  free: boolean;
-  price: number | null;
-  download: { url: string; bytes: number; sha256: string } | null;
   sourceHash: string;
 }
 
@@ -65,37 +65,24 @@ export function validateLibrary(raw: { packs: unknown[] }): LibraryPack[] {
       typeof src === 'string' && src.startsWith(base) && !src.includes('..');
     for (const a of p.assets) {
       if (!ASSET_ID.test(a.id)) fail(`asset "${a.id}" has an invalid id`);
-      if (!own(a.thumb)) fail(`asset "${a.id}" thumb is outside ${base}`);
+      if (a.thumb !== null && !own(a.thumb)) fail(`asset "${a.id}" thumb is outside ${base}`);
     }
-    if (![p.media.thumb.src, p.media.webm, p.media.mp4, ...p.viewer.map((v) => v.src)].every(own)) {
-      fail(`has media outside ${base}`);
-    }
-    if (p.media.webmBytes > VIDEO_MAX_BYTES || p.media.mp4Bytes > VIDEO_MAX_BYTES) {
+    const media = [p.media.thumb.src, ...p.viewer.map((v) => v.src)];
+    if (p.media.webm !== null || p.media.mp4 !== null) media.push(p.media.webm!, p.media.mp4!);
+    if (!media.every(own)) fail(`has media outside ${base}`);
+    if ((p.media.webmBytes ?? 0) > VIDEO_MAX_BYTES || (p.media.mp4Bytes ?? 0) > VIDEO_MAX_BYTES) {
       fail('has a turntable over 1.5 MB');
     }
-    if (p.free && p.price) fail('is free but has a price');
-    if (p.download) {
-      if (!p.free) fail('has a download but is not free');
-      if (isTodo(p.license)) fail('has a download but no license');
-      if (!isAllowedDownload(p.download.url)) fail('download is not on an allowed host');
-    }
+    if (!['render', 'concept'].includes(p.media.kind)) fail('has an unknown media kind');
+    // Downloads are off: the store isn't open yet, so no pack may carry a download or a price.
+    const raw = p as unknown as Record<string, unknown>;
+    if (raw.download || raw.price || raw.free) fail('has a download, price or free flag');
     return p;
   });
 }
 
 // Typed loosely: an empty `packs` array in the JSON would otherwise infer as never[].
 export const packs: LibraryPack[] = validateLibrary(data as unknown as { packs: unknown[] });
-
-export type PackAction =
-  { kind: 'download'; url: string; bytes: number } | { kind: 'free-soon' } | { kind: 'buy-soon' };
-
-/** What the pack's main button does. Downloads exist only for free, licensed, uploaded packs. */
-export function packAction(p: Pick<LibraryPack, 'free' | 'license' | 'download'>): PackAction {
-  if (p.free && !isTodo(p.license) && p.download && isAllowedDownload(p.download.url)) {
-    return { kind: 'download', url: p.download.url, bytes: p.download.bytes };
-  }
-  return p.free ? { kind: 'free-soon' } : { kind: 'buy-soon' };
-}
 
 export const licenseText = (p: Pick<LibraryPack, 'license'>): string | null =>
   isTodo(p.license) ? null : p.license;
@@ -178,5 +165,4 @@ export function libraryVideo(name: 'teaser-loop' | 'portal' | 'hero-loop'): Libr
   return v.webm || v.mp4 ? v : null;
 }
 
-export const freeCount = (list: LibraryPack[]) =>
-  list.filter((p) => packAction(p).kind === 'download').length;
+export const modelCount = (list: LibraryPack[]) => list.reduce((n, p) => n + p.assets.length, 0);

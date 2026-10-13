@@ -1,9 +1,10 @@
 # Clay Asset Library sync: when RDW-Labz/clay-asset-packs pushes to main it sends a
-# `rdwlabz-library-sync` repository_dispatch (with the commit sha). Also runs weekly and on demand.
-# Rebuilds src/data/library.json and re-renders previews only for packs whose source files
-# changed, then opens a PR. Same safety model as sync-projects.yml: the PR auto-merges only if
-# the build and e2e tests pass AND it touches nothing but src/data/library.json and
-# public/library/packs/*. Never pushes to main directly, never deploys, never uploads to R2.
+# `rdwlabz-library-sync` repository_dispatch (with the commit sha). Also runs every 6 hours (in
+# case a dispatch is missed) and on demand. Every models/<batch>/ folder becomes a pack with no
+# manual step; previews are rebuilt only for packs whose source files changed, then a PR opens.
+# Same safety model as sync-projects.yml: the PR auto-merges only if the build and e2e tests pass
+# AND it touches nothing but src/data/library.json and public/library/packs/*. Never pushes to
+# main directly, never deploys, never uploads anywhere. Downloads stay off for every pack.
 #
 # Secrets (least access each):
 # - RDWLABZ_SYNC_TOKEN: read-only Contents on RDW-Labz repos (clones clay-asset-packs).
@@ -12,7 +13,7 @@ name: Sync library
 
 on:
   schedule:
-    - cron: '41 5 * * 1'
+    - cron: '41 */6 * * *'
   workflow_dispatch:
     inputs:
       force:
@@ -60,10 +61,15 @@ jobs:
           token: ${{ secrets.RDWLABZ_SYNC_TOKEN }}
           path: .clay-src
           persist-credentials: false
+          # Full history (blobs fetched lazily) so a pack without a manifest can be named from
+          # its "batchNNN: Name (N models, N textures)" commit message.
+          fetch-depth: 0
           filter: blob:none
           sparse-checkout: |
-            packs
             models
+            manifests
+            previews
+            textures
           sparse-checkout-cone-mode: true
 
       - uses: actions/setup-node@v4

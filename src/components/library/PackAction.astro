@@ -1,43 +1,17 @@
 ---
 import Icon from '../Icon.astro';
-import { formatBytes, packAction, type LibraryPack } from '../../lib/library';
 
 /**
- * The pack's one action. A real download only for free, licensed, uploaded packs; every other
- * pack shows a non-interactive "coming soon" pill (never a dead link).
+ * Downloads are off for every pack until the store opens: a non-interactive pill, never a
+ * dead link, never a buy button.
  */
 interface Props {
-  pack: LibraryPack;
   size?: 'md' | 'sm';
 }
-const { pack, size = 'md' } = Astro.props;
-const action = packAction(pack);
+const { size = 'md' } = Astro.props;
 ---
 
-{action.kind === 'download' ? (
-  <a
-    class:list={['btn btn--primary', size === 'sm' && 'btn--sm']}
-    href={action.url}
-    download
-    data-pack-action="download"
-  >
-    <Icon name="download" size={18} />
-    Download free <span class="pack-action__size">({formatBytes(action.bytes)} zip)</span>
-  </a>
-) : (
-  <span
-    class:list={['btn', size === 'sm' && 'btn--sm']}
-    aria-disabled="true"
-    data-pack-action={action.kind}
-  >
-    <Icon name="clock" size={18} />
-    {action.kind === 'buy-soon' ? 'Buy — coming soon' : 'Free download coming soon'}
-  </span>
-)}
-
-<style>
-  .pack-action__size {
-    font-weight: 600;
-    opacity: 0.85;
-  }
-</style>
+<span class:list={['btn', size === 'sm' && 'btn--sm']} aria-disabled="true" data-pack-action="soon">
+  <Icon name="clock" size={18} />
+  Downloads coming soon
+</span>

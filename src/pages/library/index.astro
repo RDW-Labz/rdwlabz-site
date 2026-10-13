@@ -8,8 +8,8 @@ import PackCard from '../../components/library/PackCard.astro';
 import {
   facets,
   formatCount,
-  freeCount,
   libraryVideo,
+  modelCount,
   packs,
   plural,
   searchText,
@@ -17,9 +17,9 @@ import {
 
 const groups = facets(packs);
 const clip = libraryVideo('hero-loop');
-const models = packs.reduce((n, p) => n + p.assets.length, 0);
+const models = modelCount(packs);
 const textures = packs.reduce((n, p) => n + p.textures.length, 0);
-const free = freeCount(packs);
+const hasConcept = packs.some((p) => p.media.kind === 'concept');
 const aiPipeline = [...new Set(packs.filter((p) => p.aiGenerated).map((p) => p.pipeline))].filter(
   Boolean,
 );
@@ -55,7 +55,7 @@ const first = packs[0];
       </h1>
       <p class="lib-hero__lead">
         {packs.length > 0
-          ? 'Claymation-style 3D characters, creatures and props, sorted into themed packs. Hover a pack to spin it, open one to turn it around in 3D.'
+          ? 'Claymation-style 3D characters, creatures and props, sorted into themed packs. Open any pack to turn its models around in 3D.'
           : 'Claymation-style 3D characters, creatures and props. The shelves are being stocked.'}
       </p>
       {packs.length > 0 && (
@@ -71,15 +71,7 @@ const first = packs[0];
               <strong>{formatCount(textures)}</strong> textures
             </li>
           )}
-          <li>
-            {free > 0 ? (
-              <>
-                <strong>{free}</strong> free
-              </>
-            ) : (
-              'Downloads coming soon'
-            )}
-          </li>
+          <li>Downloads coming soon</li>
         </ul>
       )}
       {aiPipeline.length > 0 && (
@@ -221,16 +213,26 @@ const first = packs[0];
         </div>
         <ul class="lib-about__notes sticker">
           <li>
-            <strong>Previews are real renders.</strong> The pictures, spin videos and 3D views on
-            this site come straight from the model files, on a plain clay stand.
+            {hasConcept ? (
+              <>
+                <strong>Two kinds of pictures.</strong> Spinning cards are real renders of the model
+                files on a plain clay stand. Still cards show the concept image a pack’s models were
+                made from. Every pack’s 3D view is the actual model.
+              </>
+            ) : (
+              <>
+                <strong>Previews are real renders.</strong> The pictures, spin videos and 3D views
+                on this site come straight from the model files, on a plain clay stand.
+              </>
+            )}
           </li>
           <li>
             <strong>3D previews are lighter copies.</strong> Textures are scaled down so pages load
             fast; the pack files keep full detail.
           </li>
           <li>
-            <strong>Licenses and prices are on the way.</strong> Free packs get a download button
-            once their license is final. The rest will be for sale.
+            <strong>Preview only for now.</strong> Every pack can be browsed and spun in 3D.
+            Downloads come later, once licenses are final.
           </li>
         </ul>
       </div>

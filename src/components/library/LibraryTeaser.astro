@@ -2,7 +2,7 @@
 import Icon from '../Icon.astro';
 import PopHeading from '../PopHeading.astro';
 import ClayBlobs from './ClayBlobs.astro';
-import { formatCount, freeCount, libraryVideo, plural, type LibraryPack } from '../../lib/library';
+import { formatCount, libraryVideo, modelCount, plural, type LibraryPack } from '../../lib/library';
 
 /**
  * Home: full-width Clay Asset Library teaser. A looping background clip (or the CSS clay
@@ -14,9 +14,8 @@ interface Props {
 }
 const { packs } = Astro.props;
 const clip = libraryVideo('teaser-loop');
-const models = packs.reduce((n, p) => n + p.assets.length, 0);
+const models = modelCount(packs);
 const textures = packs.reduce((n, p) => n + p.textures.length, 0);
-const free = freeCount(packs);
 const seen = new Set<string>();
 const peek = packs.filter((p) => !seen.has(p.accent) && seen.add(p.accent)).slice(0, 3);
 ---
@@ -46,6 +45,9 @@ const peek = packs.filter((p) => !seen.has(p.accent) && seen.add(p.accent)).slic
       </p>
       <ul class="lib-teaser__stats" aria-label="In the library">
         <li>
+          <strong>{packs.length}</strong> {packs.length === 1 ? 'pack' : 'packs'}
+        </li>
+        <li>
           <strong>{formatCount(models)}</strong> models
         </li>
         {textures > 0 && (
@@ -53,15 +55,7 @@ const peek = packs.filter((p) => !seen.has(p.accent) && seen.add(p.accent)).slic
             <strong>{formatCount(textures)}</strong> textures
           </li>
         )}
-        <li>
-          {free > 0 ? (
-            <>
-              <strong>{free}</strong> free {free === 1 ? 'pack' : 'packs'}
-            </>
-          ) : (
-            'Downloads coming soon'
-          )}
-        </li>
+        <li>Downloads coming soon</li>
       </ul>
       <a href="/library" class="btn btn--primary lib-teaser__cta" data-portal>
         <Icon name="cube" size={20} />

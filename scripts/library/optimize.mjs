@@ -1,16 +1,22 @@
-// Web preview GLBs for the Clay Asset Library: adds smooth normals (the source meshes have
-// none), resizes textures to WebP and meshopt-compresses geometry. Used by build-library.mjs.
+// Web preview GLBs for the Clay Asset Library: decimates very dense meshes, adds smooth normals
+// (the source meshes have none), resizes textures to WebP and meshopt-compresses geometry.
+// Used by build-library.mjs.
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
-import { dedup, meshopt, prune, textureCompress, weld } from '@gltf-transform/functions';
-import { MeshoptDecoder, MeshoptEncoder } from 'meshoptimizer';
+import { dedup, meshopt, prune, simplify, textureCompress, weld } from '@gltf-transform/functions';
+import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer';
 import sharp from 'sharp';
+
+/** Previews above this many triangles are simplified to about PREVIEW_TRIANGLES. */
+const DENSE_TRIANGLES = 60_000;
+const PREVIEW_TRIANGLES = 40_000;
 
 let io;
 async function getIO() {
   if (io) return io;
   await MeshoptDecoder.ready;
   await MeshoptEncoder.ready;
+  await MeshoptSimplifier.ready;
   io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
     'meshopt.decoder': MeshoptDecoder,
     'meshopt.encoder': MeshoptEncoder,
@@ -84,6 +90,20 @@ function smoothNormals() {
   };
 }
 
+/** Some upstream GLBs label JPEG textures image/png; trust the bytes, not the label. */
+function fixMimeTypes() {
+  return (doc) => {
+    for (const t of doc.getRoot().listTextures()) {
+      const b = t.getImage();
+      if (!b || b.length < 12) continue;
+      if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) t.setMimeType('image/jpeg');
+      else if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47)
+        t.setMimeType('image/png');
+      else if (String.fromCharCode(...b.slice(8, 12)) === 'WEBP') t.setMimeType('image/webp');
+    }
+  };
+}
+
 /**
  * @param {Uint8Array} glb source model
  * @param {{ texture?: number }} [opts] max texture edge in px
@@ -93,9 +113,28 @@ export async function optimizeGlb(glb, { texture = 512 } = {}) {
   const io = await getIO();
   const doc = await io.readBinary(glb);
   doc.setLogger({ debug() {}, info() {}, warn() {}, error: console.error });
+  let tris = 0;
+  for (const m of doc.getRoot().listMeshes()) {
+    for (const p of m.listPrimitives()) {
+      tris += (p.getIndices()?.getCount() ?? p.getAttribute('POSITION')?.getCount() ?? 0) / 3;
+    }
+  }
+  const dense =
+    tris > DENSE_TRIANGLES
+      ? [
+          simplify({
+            simplifier: MeshoptSimplifier,
+            ratio: PREVIEW_TRIANGLES / tris,
+            error: 0.01,
+            lockBorder: false,
+          }),
+        ]
+      : [];
   await doc.transform(
+    fixMimeTypes(),
     dedup(),
     weld(),
+    ...dense,
     smoothNormals(),
     prune(),
     textureCompress({

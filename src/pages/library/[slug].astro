@@ -11,7 +11,6 @@ import {
   formatCount,
   kindCounts,
   licenseText,
-  packAction,
   packs,
   plural,
   type AssetKind,
@@ -28,7 +27,12 @@ interface Props {
 const { pack: p } = Astro.props;
 const k = kindCounts(p);
 const license = licenseText(p);
-const action = packAction(p);
+const concept = p.media.kind === 'concept';
+const posterAlt = concept
+  ? p.viewer[0]
+    ? `Concept image of ${p.viewer[0].name} from ${p.name}`
+    : `Concept image from ${p.name}`
+  : `Render of ${p.viewer.map((v) => v.name).join(', ')} from ${p.name}`;
 const KINDS: { id: AssetKind; label: string }[] = [
   { id: 'character', label: 'Characters' },
   { id: 'creature', label: 'Creatures' },
@@ -48,7 +52,6 @@ const more = [
   ...packs.filter((o) => o.slug !== p.slug && o.category === p.category),
   ...packs.filter((o) => o.slug !== p.slug && o.category !== p.category),
 ].slice(0, 3);
-const price = action.kind === 'buy-soon' ? null : 'Free';
 ---
 
 <BaseLayout
@@ -59,7 +62,7 @@ const price = action.kind === 'buy-soon' ? null : 'Free';
     src: p.media.thumb.src,
     width: p.media.thumb.width,
     height: p.media.thumb.height,
-    alt: `Clay render from ${p.name}`,
+    alt: concept ? `Concept image from ${p.name}` : `Clay render from ${p.name}`,
   }}
 >
   <div class="container-lab pack-top" style={`--acc:${p.accent}`}>
@@ -86,7 +89,7 @@ const price = action.kind === 'buy-soon' ? null : 'Free';
           <img
             class="pv__poster"
             src={p.media.thumb.src}
-            alt={`Render of ${p.viewer.map((v) => v.name).join(', ')} from ${p.name}`}
+            alt={posterAlt}
             width={p.media.thumb.width}
             height={p.media.thumb.height}
             fetchpriority="high"
@@ -113,8 +116,16 @@ const price = action.kind === 'buy-soon' ? null : 'Free';
           </div>
         )}
         <p class="pv__status" role="status" data-model-status />
+        {p.viewer.length === 0 && (
+          <p class="pv__note">
+            The 3D preview for this pack isn’t ready yet; the picture is the concept image its
+            models were made from.
+          </p>
+        )}
         {p.viewer.length > 0 && (
           <p class="pv__note">
+            {concept &&
+              'The picture is the concept image the models were made from; the 3D preview shows the actual model. '}
             {`The 3D preview loads about ${formatBytes(p.viewer.reduce((n, v) => n + v.bytes, 0))} and uses lighter textures than the pack files.`}
           </p>
         )}
@@ -130,6 +141,7 @@ const price = action.kind === 'buy-soon' ? null : 'Free';
               AI-generated
             </Chip>
           )}
+          <Chip kind="tag">Preview only</Chip>
         </div>
         <h1 class="pack-info__title">{p.name}</h1>
         <p class="pack-info__desc">{p.description}</p>
@@ -174,12 +186,14 @@ const price = action.kind === 'buy-soon' ? null : 'Free';
             <dd>{license ?? 'Coming soon'}</dd>
           </div>
           <div>
-            <dt>Price</dt>
-            <dd>{price ?? 'Coming soon'}</dd>
+            <dt>Availability</dt>
+            <dd>
+              Preview only <span>(downloads coming soon)</span>
+            </dd>
           </div>
         </dl>
         <div class="pack-info__action">
-          <PackAction pack={p} />
+          <PackAction />
         </div>
       </div>
     </div>
@@ -195,7 +209,20 @@ const price = action.kind === 'buy-soon' ? null : 'Free';
         <ul class="asset-grid">
           {g.items.map((a) => (
             <li class="asset" style={`--acc:${p.accent}`}>
-              <img src={a.thumb} alt="" width="256" height="256" loading="lazy" decoding="async" />
+              {a.thumb ? (
+                <img
+                  src={a.thumb}
+                  alt=""
+                  width="256"
+                  height="256"
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <span class="asset__blank" aria-hidden="true">
+                  <Icon name="cube" size={36} />
+                </span>
+              )}
               <span class="asset__name">{a.name}</span>
               {a.triangles != null && (
                 <span class="asset__tris">{formatCount(a.triangles)} triangles</span>
@@ -429,13 +456,19 @@ const price = action.kind === 'buy-soon' ? null : 'Free';
     background: var(--color-surface);
     box-shadow: 0 4px 0 var(--acc);
   }
-  .asset img {
+  .asset img,
+  .asset__blank {
     width: 100%;
     height: auto;
     aspect-ratio: 1;
     margin-bottom: 6px;
     border-radius: 14px;
     background: color-mix(in oklab, var(--acc), #fff 70%);
+  }
+  .asset__blank {
+    display: grid;
+    place-items: center;
+    color: var(--color-ink-soft);
   }
   .asset__name {
     font-weight: 700;

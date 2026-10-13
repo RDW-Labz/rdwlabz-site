@@ -1,11 +1,11 @@
 ---
 import Chip from '../Chip.astro';
 import Icon from '../Icon.astro';
-import { formatCount, kindCounts, packAction, plural, type LibraryPack } from '../../lib/library';
+import { formatCount, kindCounts, plural, type LibraryPack } from '../../lib/library';
 
 /**
  * Library sticker card. The title link stretches over the card (one tab stop); hovering or
- * focusing it spins the pack's real turntable render (scripts/turntables.ts).
+ * focusing it spins the pack's turntable when it has one (scripts/turntables.ts).
  */
 interface Props {
   pack: LibraryPack;
@@ -15,13 +15,12 @@ interface Props {
 const { pack: p, headingLevel = 'h3', eager = false } = Astro.props;
 const H = headingLevel;
 const k = kindCounts(p);
-const action = packAction(p);
-const badge =
-  action.kind === 'download'
-    ? 'Free download'
-    : action.kind === 'free-soon'
-      ? 'Free soon'
-      : 'Coming soon';
+const spins = Boolean(p.media.webm || p.media.mp4);
+const names = p.viewer.map((v) => v.name).join(', ');
+const alt =
+  p.media.kind === 'concept'
+    ? `Concept image of ${p.viewer[0]?.name ?? 'a model'} from ${p.name}`
+    : `Render of ${names} from ${p.name}`;
 const parts = [
   k.character && plural(k.character, 'character'),
   k.creature && plural(k.creature, 'creature'),
@@ -33,33 +32,35 @@ const parts = [
   class="pack-card"
   style={`--acc:${p.accent}; view-transition-name: pack-${p.slug};`}
   aria-labelledby={`pack-${p.slug}-title`}
-  data-turntable
+  data-turntable={spins ? '' : undefined}
 >
   <div
     class="pack-card__media"
-    data-turntable-media
-    data-webm={p.media.webm}
-    data-mp4={p.media.mp4}
+    data-turntable-media={spins ? '' : undefined}
+    data-webm={p.media.webm ?? undefined}
+    data-mp4={p.media.mp4 ?? undefined}
   >
     <img
       src={p.media.thumb.src}
-      alt={`Render of ${p.viewer.map((v) => v.name).join(', ')} from ${p.name}`}
+      alt={alt}
       width={p.media.thumb.width}
       height={p.media.thumb.height}
       loading={eager ? 'eager' : 'lazy'}
       fetchpriority={eager ? 'high' : undefined}
       decoding="async"
     />
-    <span class="pack-card__spin" aria-hidden="true">
-      <Icon name="play" size={16} /> Hover to spin
-    </span>
+    {spins && (
+      <span class="pack-card__spin" aria-hidden="true">
+        <Icon name="play" size={16} /> Hover to spin
+      </span>
+    )}
   </div>
   <div class="pack-card__body">
     <div class="pack-card__chips">
       <Chip kind="category" accent={p.accent}>
         {p.category}
       </Chip>
-      <Chip kind="tag">{badge}</Chip>
+      <Chip kind="tag">Preview only</Chip>
     </div>
     <H id={`pack-${p.slug}-title`} class="pack-card__title">
       <a href={`/library/${p.slug}`} class="pack-card__link">
