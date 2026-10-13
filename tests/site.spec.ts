@@ -382,7 +382,7 @@ test('privacy: RDW, LLC policy with the right contact, no leftovers, no motion',
   await expect(main.locator('address')).toContainText('1301 N Main St');
   await expect(main.locator('address')).toContainText('Harrison, AR 72601, United States');
   await expect(main).not.toContainText(/Cluer|operations@|601 US 62|\[DATE\]|TODO|GoDaddy|Draft/);
-  await expect(main.locator('.policy__date')).toHaveText('Effective date: October 12, 2026');
+  await expect(main.locator('.policy__date')).toHaveText('Effective date: October 13, 2026');
   // Only stores we ship on; no clauses for features no product has.
   await expect(main).not.toContainText(
     /Steam|Valve|Roblox|Mojang|Microsoft|username|your account/i,
