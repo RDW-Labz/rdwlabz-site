@@ -34,7 +34,9 @@ if (mode === 'studies') {
 }
 
 if (mode === 'site') {
-  const pages = (process.env.SHOT_PAGES ?? '/,/projects,/about,/privacy,/404').split(',');
+  const pages = (
+    process.env.SHOT_PAGES ?? '/,/projects,/about,/privacy,/404,/library,/library/medieval-knights'
+  ).split(',');
   for (const path of pages) {
     for (const vp of Object.keys(widths) as (keyof typeof widths)[]) {
       test(`page ${path} ${vp}`, async ({ page }) => {

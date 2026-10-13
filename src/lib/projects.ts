@@ -1,4 +1,5 @@
 import data from '../data/projects.json' with { type: 'json' };
+import { freeCount, packs as libraryPacks, type LibraryPack } from './library';
 
 export type CategoryId = 'software' | 'games' | 'mods' | 'asset-packs';
 export type Status = 'released' | 'in-dev' | 'coming-soon';
@@ -58,6 +59,14 @@ const CATEGORY_IDS: readonly CategoryId[] = ['software', 'games', 'mods', 'asset
 const STATUSES: readonly Status[] = ['released', 'in-dev', 'coming-soon'];
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
+/** Accent fallbacks per category, used when a project's accentColor is still TODO. */
+export const categoryAccent: Record<CategoryId, string> = {
+  software: '#2f6bff',
+  games: '#ff4d2e',
+  mods: '#12a150',
+  'asset-packs': '#c026d3',
+};
+
 /** A value still waiting on real content from Braden. */
 export const isTodo = (value: string | null | undefined): boolean =>
   !value || value.trim().toUpperCase().startsWith('TODO');
@@ -88,8 +97,38 @@ function validate(raw: typeof data): { projects: Project[]; categories: Category
 
 const validated = validate(data);
 
+/**
+ * The Clay Asset Library as one "Asset packs" project, built from library.json. It exists only
+ * while at least one pack is listed, so the category comes and goes with the library.
+ */
+export function libraryProject(list: LibraryPack[]): Project | null {
+  if (!list.length) return null;
+  const free = freeCount(list);
+  const formats = [...new Set(list.flatMap((p) => p.formats))];
+  const withTextures = list.some((p) => p.textures.length > 0);
+  return {
+    slug: 'clay-asset-library',
+    name: 'Clay Asset Library',
+    oneLiner: `${list.length} pack${list.length === 1 ? '' : 's'} of claymation-style 3D models${withTextures ? ' and tileable textures' : ''}, with turntable and 3D previews.`,
+    category: 'asset-packs',
+    status: free ? 'released' : 'coming-soon',
+    statusLabel: free
+      ? `${free} free pack${free === 1 ? '' : 's'}`
+      : 'Previews live, downloads soon',
+    platforms: formats,
+    url: '/library',
+    cta: 'Enter the Library',
+    accentColor: categoryAccent['asset-packs'],
+    image: list[0].media.thumb.src,
+    icon: null,
+    featured: true,
+  };
+}
+
+const library = libraryProject(libraryPacks);
+
 export const categories: Category[] = validated.categories;
-export const projects: Project[] = validated.projects;
+export const projects: Project[] = library ? [...validated.projects, library] : validated.projects;
 export const site: SiteInfo = data.site;
 
 export const categoryLabel = (id: CategoryId): string =>
@@ -99,14 +138,6 @@ export const statusLabel: Record<Status, string> = {
   released: 'Released',
   'in-dev': 'In development',
   'coming-soon': 'Coming soon',
-};
-
-/** Accent fallbacks per category, used when a project's accentColor is still TODO. */
-export const categoryAccent: Record<CategoryId, string> = {
-  software: '#2f6bff',
-  games: '#ff4d2e',
-  mods: '#12a150',
-  'asset-packs': '#c026d3',
 };
 
 const HEX = /^#[0-9a-f]{6}$/i;

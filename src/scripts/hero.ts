@@ -5,11 +5,14 @@
  * - "Pause animations" toggle (WCAG 2.2.2), remembered in localStorage
  * Nothing runs under reduced motion, while paused, offscreen or in a hidden tab.
  */
-const KEY = 'rdw-motion';
-let teardown: (() => void) | null = null;
+import {
+  MOTION_EVENT,
+  isPaused as paused,
+  prefersReduced as reduced,
+  setPaused,
+} from './motion-state';
 
-const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const paused = () => document.documentElement.dataset.motion === 'paused';
+let teardown: (() => void) | null = null;
 
 export function initHero() {
   teardown?.();
@@ -36,20 +39,17 @@ export function initHero() {
   };
   if (toggle) {
     sync();
-    const onToggle = () => {
-      const next = !paused();
-      if (next) document.documentElement.dataset.motion = 'paused';
-      else delete document.documentElement.dataset.motion;
-      try {
-        localStorage.setItem(KEY, next ? 'paused' : 'on');
-      } catch {
-        /* storage blocked: the choice lasts for this page only */
-      }
+    const onToggle = () => setPaused(!paused());
+    const onChange = () => {
       sync();
-      if (next) setVars(0, 0);
+      if (paused()) setVars(0, 0);
     };
     toggle.addEventListener('click', onToggle);
-    cleanups.push(() => toggle.removeEventListener('click', onToggle));
+    document.addEventListener(MOTION_EVENT, onChange);
+    cleanups.push(() => {
+      toggle.removeEventListener('click', onToggle);
+      document.removeEventListener(MOTION_EVENT, onChange);
+    });
   }
 
   // Word cycler

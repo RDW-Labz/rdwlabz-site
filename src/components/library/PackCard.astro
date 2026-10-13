@@ -1,0 +1,218 @@
+---
+import Chip from '../Chip.astro';
+import Icon from '../Icon.astro';
+import { formatCount, kindCounts, packAction, plural, type LibraryPack } from '../../lib/library';
+
+/**
+ * Library sticker card. The title link stretches over the card (one tab stop); hovering or
+ * focusing it spins the pack's real turntable render (scripts/turntables.ts).
+ */
+interface Props {
+  pack: LibraryPack;
+  headingLevel?: 'h2' | 'h3';
+  eager?: boolean;
+}
+const { pack: p, headingLevel = 'h3', eager = false } = Astro.props;
+const H = headingLevel;
+const k = kindCounts(p);
+const action = packAction(p);
+const badge =
+  action.kind === 'download'
+    ? 'Free download'
+    : action.kind === 'free-soon'
+      ? 'Free soon'
+      : 'Coming soon';
+const parts = [
+  k.character && plural(k.character, 'character'),
+  k.creature && plural(k.creature, 'creature'),
+  k.prop && plural(k.prop, 'prop'),
+].filter(Boolean);
+---
+
+<article
+  class="pack-card"
+  style={`--acc:${p.accent}; view-transition-name: pack-${p.slug};`}
+  aria-labelledby={`pack-${p.slug}-title`}
+  data-turntable
+>
+  <div
+    class="pack-card__media"
+    data-turntable-media
+    data-webm={p.media.webm}
+    data-mp4={p.media.mp4}
+  >
+    <img
+      src={p.media.thumb.src}
+      alt={`Render of ${p.viewer.map((v) => v.name).join(', ')} from ${p.name}`}
+      width={p.media.thumb.width}
+      height={p.media.thumb.height}
+      loading={eager ? 'eager' : 'lazy'}
+      fetchpriority={eager ? 'high' : undefined}
+      decoding="async"
+    />
+    <span class="pack-card__spin" aria-hidden="true">
+      <Icon name="play" size={16} /> Hover to spin
+    </span>
+  </div>
+  <div class="pack-card__body">
+    <div class="pack-card__chips">
+      <Chip kind="category" accent={p.accent}>
+        {p.category}
+      </Chip>
+      <Chip kind="tag">{badge}</Chip>
+    </div>
+    <H id={`pack-${p.slug}-title`} class="pack-card__title">
+      <a href={`/library/${p.slug}`} class="pack-card__link">
+        {p.name}
+      </a>
+    </H>
+    <p class="pack-card__meta">
+      {plural(p.assets.length, 'model')}
+      {p.textures.length > 0 && ` · ${plural(p.textures.length, 'texture')}`}
+      {p.triangles && ` · ~${formatCount(Math.round(p.triangles.average / 100) * 100)} tris each`}
+    </p>
+    {parts.length > 0 && <p class="pack-card__kinds">{parts.join(', ')}</p>}
+    <ul class="pack-card__formats" aria-label="Formats">
+      {p.formats.map((f) => (
+        <li>
+          <Chip kind="tag">{f}</Chip>
+        </li>
+      ))}
+    </ul>
+  </div>
+</article>
+
+<style>
+  .pack-card {
+    view-transition-class: pack-card;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 10px;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: 0 6px 0 var(--acc);
+    transition:
+      transform 160ms var(--ease-spring),
+      box-shadow 160ms var(--ease-out-soft);
+  }
+  .pack-card:hover,
+  .pack-card:focus-within {
+    transform: translateY(-8px) rotate(-1.5deg);
+    box-shadow: 0 13px 0 var(--acc);
+  }
+  .pack-card:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--acc);
+  }
+  .pack-card__media {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 24px;
+    border: 2px solid var(--color-ink);
+    background: color-mix(in oklab, var(--acc), #fff6ea 75%);
+  }
+  .pack-card__media img,
+  .pack-card__media :global(video) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .pack-card__media :global(video) {
+    opacity: 0;
+    transition: opacity var(--dur-fast);
+  }
+  .pack-card__media:global(.is-spinning) :global(video) {
+    opacity: 1;
+  }
+  .pack-card__spin {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    border: 1.5px solid var(--color-ink);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-size: var(--text-chip);
+    font-weight: 700;
+    opacity: 0;
+    translate: 0 6px;
+    transition:
+      opacity var(--dur-fast),
+      translate var(--dur-fast) var(--ease-spring);
+  }
+  .pack-card:hover .pack-card__spin,
+  .pack-card:focus-within .pack-card__spin {
+    opacity: 1;
+    translate: 0 0;
+  }
+  .pack-card__media:global(.is-spinning) .pack-card__spin {
+    opacity: 0;
+  }
+  @media (hover: none) {
+    .pack-card__spin {
+      display: none;
+    }
+  }
+  .pack-card__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 16px 12px 12px;
+  }
+  .pack-card__chips,
+  .pack-card__formats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .pack-card__formats {
+    list-style: none;
+    margin: auto 0 0;
+    padding: 14px 0 0;
+  }
+  .pack-card__title {
+    margin: 14px 0 6px;
+    font-size: var(--text-h3);
+    line-height: var(--text-h3--line-height);
+    overflow-wrap: anywhere;
+  }
+  .pack-card__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .pack-card__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+  }
+  .pack-card__link:focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 4px;
+    border-radius: 6px;
+  }
+  .pack-card__meta {
+    margin: 0;
+    font-weight: 700;
+  }
+  .pack-card__kinds {
+    margin: 4px 0 0;
+    color: var(--color-ink-soft);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pack-card:hover,
+    .pack-card:focus-within {
+      transform: none;
+    }
+  }
+</style>

@@ -1,0 +1,456 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Section from '../../components/Section.astro';
+import Icon from '../../components/Icon.astro';
+import PopHeading from '../../components/PopHeading.astro';
+import ClayBlobs from '../../components/library/ClayBlobs.astro';
+import PackCard from '../../components/library/PackCard.astro';
+import {
+  facets,
+  formatCount,
+  freeCount,
+  libraryVideo,
+  packs,
+  plural,
+  searchText,
+} from '../../lib/library';
+
+const groups = facets(packs);
+const clip = libraryVideo('hero-loop');
+const models = packs.reduce((n, p) => n + p.assets.length, 0);
+const textures = packs.reduce((n, p) => n + p.textures.length, 0);
+const free = freeCount(packs);
+const aiPipeline = [...new Set(packs.filter((p) => p.aiGenerated).map((p) => p.pipeline))].filter(
+  Boolean,
+);
+const description =
+  packs.length > 0
+    ? `${plural(packs.length, 'pack')} of claymation-style 3D models from RDW Labz: characters, creatures, props and textures you can spin in 3D.`
+    : 'Claymation-style 3D asset packs from RDW Labz. The shelves are being stocked.';
+const first = packs[0];
+---
+
+<BaseLayout
+  title="Clay Asset Library"
+  description={description}
+  current="library"
+  ogImage={
+    first
+      ? {
+          src: first.media.thumb.src,
+          width: first.media.thumb.width,
+          height: first.media.thumb.height,
+          alt: `Clay render from ${first.name}`,
+        }
+      : undefined
+  }
+>
+  <section class="lib-hero container-lab" aria-labelledby="lib-title">
+    <div class="lib-hero__copy">
+      <p class="eyebrow">
+        <Icon name="asset-packs" size={16} /> Asset packs
+      </p>
+      <h1 id="lib-title" class="lib-hero__title">
+        Clay Asset Library
+      </h1>
+      <p class="lib-hero__lead">
+        {packs.length > 0
+          ? 'Claymation-style 3D characters, creatures and props, sorted into themed packs. Hover a pack to spin it, open one to turn it around in 3D.'
+          : 'Claymation-style 3D characters, creatures and props. The shelves are being stocked.'}
+      </p>
+      {packs.length > 0 && (
+        <ul class="lib-hero__stats" aria-label="In the library">
+          <li>
+            <strong>{packs.length}</strong> {packs.length === 1 ? 'pack' : 'packs'}
+          </li>
+          <li>
+            <strong>{formatCount(models)}</strong> models
+          </li>
+          {textures > 0 && (
+            <li>
+              <strong>{formatCount(textures)}</strong> textures
+            </li>
+          )}
+          <li>
+            {free > 0 ? (
+              <>
+                <strong>{free}</strong> free
+              </>
+            ) : (
+              'Downloads coming soon'
+            )}
+          </li>
+        </ul>
+      )}
+      {aiPipeline.length > 0 && (
+        <p class="lib-hero__ai">
+          <Icon name="sparkle" size={16} /> Made with generative AI tools.{' '}
+          <a class="link" href="#about-models">
+            How these are made
+          </a>
+        </p>
+      )}
+    </div>
+    <div class="lib-hero__stage">
+      <div
+        class="lib-hero__media"
+        aria-hidden="true"
+        data-loop-media={clip ? '' : undefined}
+        data-webm={clip?.webm}
+        data-mp4={clip?.mp4}
+        data-poster={clip?.poster}
+      >
+        <ClayBlobs variant="hero" />
+      </div>
+      <button
+        type="button"
+        class="btn btn--ghost btn--sm lib-hero__pause"
+        aria-pressed="false"
+        data-loop-toggle
+      >
+        <Icon name="pause" size={18} />
+        <span data-loop-label>Pause animations</span>
+      </button>
+    </div>
+  </section>
+
+  <Section tone="peach" id="packs" labelledby="packs-title">
+    <div class="section-head">
+      <PopHeading id="packs-title" class="text-h2" text="Browse the packs" />
+    </div>
+
+    {packs.length > 0 ? (
+      <>
+        <form class="lib-tools" role="search" aria-label="Search and filter packs" data-lib-tools>
+          <div class="lib-search">
+            <label for="lib-q" class="lib-search__label">
+              Search packs
+            </label>
+            <span class="lib-search__field">
+              <Icon name="search" size={20} />
+              <input
+                id="lib-q"
+                type="search"
+                name="q"
+                maxlength="80"
+                autocomplete="off"
+                placeholder="Try “knight”, “dinosaur” or “barrel”"
+                data-lib-search
+              />
+            </span>
+          </div>
+          {groups.map((g) => (
+            <div class="lib-facet" role="group" aria-labelledby={`facet-${g.id}`}>
+              <span id={`facet-${g.id}`} class="lib-facet__label">
+                {g.label}
+              </span>
+              <div class="lib-facet__chips">
+                <button
+                  type="button"
+                  class="chip-filter"
+                  aria-pressed="true"
+                  data-facet={g.id}
+                  data-facet-value=""
+                >
+                  All
+                </button>
+                {g.options.map((o) => (
+                  <button
+                    type="button"
+                    class="chip-filter"
+                    aria-pressed="false"
+                    data-facet={g.id}
+                    data-facet-value={o.value}
+                  >
+                    {o.value}
+                    <span class="chip-filter__count" aria-label={`, ${plural(o.count, 'pack')}`}>
+                      {o.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </form>
+        <p class="lib-status" role="status" data-lib-status />
+        <ul class="lib-grid" data-lib-grid>
+          {packs.map((p, i) => (
+            <li
+              data-reveal="rise"
+              style={`--reveal-i:${i % 3}`}
+              data-category={p.category}
+              data-style={p.style}
+              data-formats={p.formats.join(' ')}
+              data-search={searchText(p)}
+            >
+              <PackCard pack={p} eager={i < 2} />
+            </li>
+          ))}
+        </ul>
+        <div class="lib-none sticker" hidden data-lib-none>
+          <p class="lib-none__title">No packs match that.</p>
+          <p>Try fewer filters or another word.</p>
+          <button type="button" class="btn btn--sm" data-lib-reset>
+            Clear search and filters
+          </button>
+        </div>
+      </>
+    ) : (
+      <div class="lib-empty sticker" data-lib-empty>
+        <span class="lib-empty__icon" aria-hidden="true">
+          <Icon name="asset-packs" size={40} strokeWidth={1.8} />
+        </span>
+        <p class="lib-empty__title">Coming soon</p>
+        <p>The first clay packs are being prepared. Check back soon.</p>
+        <a class="link" href="/projects">
+          Browse our other projects
+        </a>
+      </div>
+    )}
+  </Section>
+
+  {aiPipeline.length > 0 && (
+    <Section tone="paper" id="about-models" labelledby="about-title">
+      <div class="lib-about">
+        <div>
+          <PopHeading id="about-title" class="text-h2" text="How these are made" />
+          <p class="lib-about__lead">
+            Every model in the library is AI-generated. Each one starts as a generated image,
+            becomes a 3D shape, gets a generated texture, and then its mesh is cleaned up.
+          </p>
+        </div>
+        <ul class="lib-about__notes sticker">
+          <li>
+            <strong>Previews are real renders.</strong> The pictures, spin videos and 3D views on
+            this site come straight from the model files, on a plain clay stand.
+          </li>
+          <li>
+            <strong>3D previews are lighter copies.</strong> Textures are scaled down so pages load
+            fast; the pack files keep full detail.
+          </li>
+          <li>
+            <strong>Licenses and prices are on the way.</strong> Free packs get a download button
+            once their license is final. The rest will be for sale.
+          </li>
+        </ul>
+      </div>
+    </Section>
+  )}
+</BaseLayout>
+
+<script>
+  import { initLibraryFilters } from '../../scripts/library-filters';
+  import { initTurntables } from '../../scripts/turntables';
+  import { initLoopVideos } from '../../scripts/loop-video';
+  document.addEventListener('astro:page-load', () => {
+    if (!document.querySelector('[data-lib-grid], [data-lib-empty]')) return;
+    initLibraryFilters();
+    initTurntables();
+    initLoopVideos();
+  });
+</script>
+
+<style>
+  .lib-hero {
+    display: grid;
+    gap: clamp(24px, 4vw, 56px);
+    align-items: center;
+    padding-block: clamp(24px, 5vw, 64px) calc(var(--tray-r) + clamp(32px, 5vw, 64px));
+  }
+  @media (min-width: 900px) {
+    .lib-hero {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    }
+  }
+  .lib-hero__title {
+    margin: 16px 0 14px;
+    font-size: var(--text-h1);
+    line-height: var(--text-h1--line-height);
+  }
+  .lib-hero__lead {
+    margin: 0;
+    max-width: 36rem;
+    font-size: var(--text-lead);
+    line-height: var(--text-lead--line-height);
+  }
+  .lib-hero__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    margin: 24px 0 0;
+    padding: 0;
+  }
+  .lib-hero__stats li {
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    border: 2px solid var(--color-ink);
+    background: var(--color-surface);
+    box-shadow: 0 3px 0 var(--color-ink);
+    font-weight: 600;
+  }
+  .lib-hero__stats strong {
+    font-family: var(--font-bagel), system-ui, sans-serif;
+    font-weight: 400;
+  }
+  .lib-hero__ai {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 20px 0 0;
+    color: var(--color-ink-soft);
+    font-weight: 600;
+  }
+  .lib-hero__stage {
+    position: relative;
+  }
+  .lib-hero__media {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    border: 2px solid var(--color-ink);
+    box-shadow: var(--shadow-pop);
+  }
+  @media (max-width: 899px) {
+    .lib-hero__media {
+      aspect-ratio: 5 / 2;
+    }
+  }
+  .lib-hero__media :global(video) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .lib-hero__media:global(.is-playing) :global(.clay) {
+    visibility: hidden;
+  }
+  .lib-hero__pause {
+    margin-top: 10px;
+  }
+
+  .lib-tools {
+    display: none;
+    gap: 18px;
+    margin: 28px 0 18px;
+  }
+  :global(.js) .lib-tools {
+    display: grid;
+  }
+  .lib-search {
+    display: grid;
+    gap: 6px;
+    max-width: 34rem;
+  }
+  .lib-search__label,
+  .lib-facet__label {
+    font-weight: 700;
+  }
+  .lib-search__field {
+    position: relative;
+    display: block;
+    height: 52px;
+    border-radius: var(--radius-pill);
+    border: 2px solid var(--color-ink);
+    background: var(--color-surface);
+    box-shadow: 0 3px 0 var(--color-ink);
+  }
+  .lib-search__field :global(svg) {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    translate: 0 -50%;
+    pointer-events: none;
+  }
+  .lib-search__field input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 0 18px 0 48px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: none;
+    font: inherit;
+    font-size: 1.0625rem;
+    color: var(--color-ink);
+  }
+  .lib-search__field input:focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 4px;
+  }
+  .lib-search__field input::placeholder {
+    color: var(--color-ink-soft);
+  }
+  .lib-facet {
+    display: grid;
+    gap: 8px;
+  }
+  .lib-facet__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .lib-status {
+    min-height: 1.5em;
+    margin: 0 0 20px;
+    color: var(--color-ink-soft);
+    font-weight: 600;
+  }
+  .lib-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
+    gap: clamp(20px, 2.5vw, 32px);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .lib-grid > li[hidden] {
+    display: none;
+  }
+  .lib-none,
+  .lib-empty {
+    display: grid;
+    justify-items: start;
+    gap: 8px;
+    max-width: 34rem;
+    padding: 28px;
+    border-radius: var(--radius-lg);
+  }
+  .lib-none p,
+  .lib-empty p {
+    margin: 0;
+  }
+  .lib-none__title,
+  .lib-empty__title {
+    font-family: var(--font-bagel), system-ui, sans-serif;
+    font-size: var(--text-h3);
+  }
+  .lib-empty__icon {
+    color: var(--color-grape);
+  }
+
+  .lib-about {
+    display: grid;
+    gap: clamp(24px, 4vw, 48px);
+  }
+  @media (min-width: 900px) {
+    .lib-about {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+  .lib-about__lead {
+    margin: 14px 0 0;
+    font-size: 1.125rem;
+  }
+  .lib-about__notes {
+    display: grid;
+    gap: 16px;
+    margin: 0;
+    padding: 28px 28px 28px 48px;
+    border-radius: var(--radius-lg);
+  }
+</style>

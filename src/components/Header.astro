@@ -3,14 +3,17 @@ import Logo from './Logo.astro';
 import Icon from './Icon.astro';
 import ContactButton from './ContactButton.astro';
 
+import { packs } from '../lib/library';
+
 interface Props {
-  current: 'home' | 'projects' | 'about' | 'privacy' | null;
+  current: 'home' | 'projects' | 'library' | 'about' | 'privacy' | null;
 }
 
 const { current } = Astro.props;
 const links = [
   { id: 'home', label: 'Home', href: '/' },
   { id: 'projects', label: 'Projects', href: '/projects' },
+  ...(packs.length ? [{ id: 'library', label: 'Library', href: '/library' }] : []),
   { id: 'about', label: 'About', href: '/about' },
 ] as const;
 ---

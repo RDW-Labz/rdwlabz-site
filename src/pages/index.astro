@@ -8,6 +8,8 @@ import Icon from '../components/Icon.astro';
 import LabBench from '../components/home/LabBench.astro';
 import LabActivity from '../components/home/LabActivity.astro';
 import PopHeading from '../components/PopHeading.astro';
+import LibraryTeaser from '../components/library/LibraryTeaser.astro';
+import { packs as libraryPacks } from '../lib/library';
 import {
   activeCategories,
   allProjects,
@@ -162,6 +164,9 @@ const kinds = ['', 'One', 'Two', 'Three', 'Four'][activeCategories.length] ?? 'A
     </Section>
   ) : null}
 
+  <!-- 2b. Clay Asset Library teaser (only when the library has packs) -->
+  {libraryPacks.length > 0 && <LibraryTeaser packs={libraryPacks} />}
+
   <!-- 3. Featured projects (the spotlight above already shows them when there's one category) -->
   {!spotlight && (
     <Section tone="mint" id="featured" labelledby="featured-title">
@@ -259,7 +264,9 @@ const kinds = ['', 'One', 'Two', 'Three', 'Four'][activeCategories.length] ?? 'A
 
 <script>
   import { initHero } from '../scripts/hero';
+  import { initLoopVideos } from '../scripts/loop-video';
   document.addEventListener('astro:page-load', initHero);
+  document.addEventListener('astro:page-load', initLoopVideos);
 </script>
 
 <style>

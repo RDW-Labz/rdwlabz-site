@@ -4,20 +4,24 @@ import { Font } from 'astro:assets';
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import PortalOverlay from '../components/library/PortalOverlay.astro';
 import { buildPhrase, site } from '../lib/projects';
+import { packs as libraryPacks } from '../lib/library';
 
 interface Props {
   title?: string;
   description: string;
-  current: 'home' | 'projects' | 'about' | 'privacy' | null;
+  current: 'home' | 'projects' | 'library' | 'about' | 'privacy' | null;
   noindex?: boolean;
+  /** Social card image (absolute path on this site); defaults to /og.png. */
+  ogImage?: { src: string; width: number; height: number; alt: string };
 }
 
-const { title, description, current, noindex = false } = Astro.props;
+const { title, description, current, noindex = false, ogImage: og } = Astro.props;
 const fullTitle = title ? `${title} · ${site.name}` : `${site.name} — ${buildPhrase}`;
 const cleanPath = Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '/') || '/';
 const canonical = new URL(cleanPath, Astro.site);
-const ogImage = new URL('/og.png', Astro.site);
+const ogImage = new URL(og?.src ?? '/og.png', Astro.site);
 const cfBeaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN as string | undefined;
 
 /** Main content slides between "rooms"; keyframes live in global.css. */
@@ -57,9 +61,12 @@ const mainAnim = { forwards: roomSwap, backwards: roomSwap };
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="RDW Labz logo on a warm gradient workbench" />
+    <meta property="og:image:width" content={String(og?.width ?? 1200)} />
+    <meta property="og:image:height" content={String(og?.height ?? 630)} />
+    <meta
+      property="og:image:alt"
+      content={og?.alt ?? 'RDW Labz logo on a warm gradient workbench'}
+    />
     <meta name="twitter:card" content="summary_large_image" />
 
     <Font cssVariable="--font-bagel" preload />
@@ -101,9 +108,12 @@ const mainAnim = { forwards: roomSwap, backwards: roomSwap };
       <slot />
     </main>
     <Footer />
+    {libraryPacks.length > 0 && <PortalOverlay />}
     <script>
       import { initMotion } from '../scripts/motion';
+      import { initPortal } from '../scripts/portal';
       document.addEventListener('astro:page-load', initMotion);
+      document.addEventListener('astro:page-load', initPortal);
     </script>
   </body>
 </html>

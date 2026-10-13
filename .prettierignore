@@ -8,3 +8,6 @@ package-lock.json
 docs/
 *.md
 tests/fixtures/
+# Written by scripts/build-library.mjs (and the library sync bot)
+src/data/library.json
+.tmp/

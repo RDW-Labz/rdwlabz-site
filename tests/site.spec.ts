@@ -1,13 +1,21 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { escapeRe, settleMotion, shelf } from './helpers';
+import { astroBuild, escapeRe, settleMotion, shelf } from './helpers';
 import { categories, listPhrase, pickActive, type CategoryId } from '../src/lib/projects';
+import { packs } from '../src/lib/library';
 
-const PAGES = ['/', '/projects', '/about', '/privacy', '/404'];
+const PAGES = [
+  '/',
+  '/projects',
+  '/about',
+  '/privacy',
+  '/404',
+  '/library',
+  ...(packs[0] ? [`/library/${packs[0].slug}`] : []),
+];
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 function trackErrors(page: Page) {
@@ -190,11 +198,11 @@ test('empty states are in the built HTML when there are no projects', () => {
     const data = JSON.parse(readFileSync('src/data/projects.json', 'utf8'));
     const dataFile = join(tmp, 'projects.json');
     writeFileSync(dataFile, JSON.stringify({ ...data, projects: [] }));
+    // The library adds its own card, so the truly empty shelf needs an empty library too.
+    const libFile = join(tmp, 'library.json');
+    writeFileSync(libFile, JSON.stringify({ packs: [] }));
     const outDir = join(tmp, 'dist');
-    execFileSync('npx', ['astro', 'build', '--outDir', outDir], {
-      env: { ...process.env, RDWLABZ_DATA: resolve(dataFile), ASTRO_TELEMETRY_DISABLED: '1' },
-      stdio: 'pipe',
-    });
+    astroBuild(outDir, { RDWLABZ_DATA: resolve(dataFile), RDWLABZ_LIBRARY: resolve(libFile) });
     const projects = readFileSync(join(outDir, 'projects.html'), 'utf8');
     for (const s of EMPTY_SHELF) expect(has(projects, s), String(s)).toBe(true);
     for (const s of EMPTY_FILTER) expect(has(projects, s), String(s)).toBe(false);
@@ -247,7 +255,10 @@ test('projects: cards without a link say so plainly, never a dead link or filler
     const links = card.locator('a');
     const note = card.getByText(/^(Link coming soon|Not out yet)$/);
     expect((await links.count()) + (await note.count())).toBeGreaterThan(0);
-    for (const a of await links.all()) await expect(a).toHaveAttribute('href', /^https:\/\//);
+    // External store/repo links, or the site's own Clay Asset Library.
+    for (const a of await links.all()) {
+      await expect(a).toHaveAttribute('href', /^(https:\/\/|\/library$)/);
+    }
   }
 });
 
@@ -436,9 +447,10 @@ test('SEO: canonical, OG tags, sitemap, robots, favicons', async ({ page, reques
     expect((await request.get(p)).status(), p).toBe(200);
   }
   const sitemap = await (await request.get('/sitemap-0.xml')).text();
-  for (const p of ['/projects', '/about', '/privacy']) {
+  for (const p of ['/projects', '/about', '/privacy', '/library']) {
     expect(sitemap).toContain(`https://rdwlabz.com${p}`);
   }
+  for (const p of packs) expect(sitemap).toContain(`https://rdwlabz.com/library/${p.slug}`);
   expect(sitemap).not.toContain('404');
   expect(sitemap).not.toContain('_gallery');
 });

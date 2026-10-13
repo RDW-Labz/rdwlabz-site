@@ -18,6 +18,7 @@ interface Props {
 const { project: p, headingLevel = 'h3', state } = Astro.props;
 const H = headingLevel;
 const titleId = `proj-${p.slug}-title`;
+const internal = !!p.href?.startsWith('/');
 ---
 
 <article
@@ -58,7 +59,11 @@ const titleId = `proj-${p.slug}-title`;
       </ul>
     )}
     <div class="project-card__action">
-      {p.href ? (
+      {p.href && internal ? (
+        <a class="btn btn--secondary btn--sm" href={p.href}>
+          {p.ctaText} <Icon name="arrow-right" size={16} />
+        </a>
+      ) : p.href ? (
         <a
           class="btn btn--secondary btn--sm"
           href={p.href}

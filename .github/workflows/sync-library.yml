@@ -1,0 +1,165 @@
+# Clay Asset Library sync: when RDW-Labz/clay-asset-packs pushes to main it sends a
+# `rdwlabz-library-sync` repository_dispatch (with the commit sha). Also runs weekly and on demand.
+# Rebuilds src/data/library.json and re-renders previews only for packs whose source files
+# changed, then opens a PR. Same safety model as sync-projects.yml: the PR auto-merges only if
+# the build and e2e tests pass AND it touches nothing but src/data/library.json and
+# public/library/packs/*. Never pushes to main directly, never deploys, never uploads to R2.
+#
+# Secrets (least access each):
+# - RDWLABZ_SYNC_TOKEN: read-only Contents on RDW-Labz repos (clones clay-asset-packs).
+# - RDWLABZ_PR_TOKEN: rdwlabz-site only, Contents + Pull requests write (push bot branch, PR, merge).
+name: Sync library
+
+on:
+  schedule:
+    - cron: '41 5 * * 1'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Re-render every pack's previews
+        type: boolean
+        default: false
+  repository_dispatch:
+    types: [rdwlabz-library-sync]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-library
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      BRANCH: bot/sync-library
+      ASTRO_TELEMETRY_DISABLED: '1'
+      ALLOWED: '^(src/data/library\.json|public/library/packs/.+)$'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Pick the clay-asset-packs commit
+        id: src
+        env:
+          SHA: ${{ github.event.client_payload.sha }}
+        run: |
+          if [ -n "$SHA" ] && ! echo "$SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::client_payload.sha is not a commit sha"; exit 1
+          fi
+          echo "ref=${SHA:-main}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          repository: RDW-Labz/clay-asset-packs
+          ref: ${{ steps.src.outputs.ref }}
+          token: ${{ secrets.RDWLABZ_SYNC_TOKEN }}
+          path: .clay-src
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout: |
+            packs
+            models
+          sparse-checkout-cone-mode: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install ffmpeg + Chromium (headless preview renderer)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          npx playwright install --with-deps chromium
+
+      - name: Build library data and previews
+        env:
+          FORCE: ${{ inputs.force && '--force' || '' }}
+        run: |
+          sha=$(git -C .clay-src rev-parse HEAD)
+          node scripts/build-library.mjs --src .clay-src --sha "$sha" $FORCE \
+            --summary "$RUNNER_TEMP/summary.md"
+          cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          rm -rf .clay-src
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if [ -z "$(git status --porcelain -- src/data/library.json public/library/packs)" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git status --porcelain -- src/data/library.json public/library/packs | head -50
+          fi
+
+      - name: Build
+        id: build
+        if: steps.diff.outputs.changed == 'true'
+        continue-on-error: true
+        run: npm run build
+
+      - name: E2E tests
+        id: test
+        if: steps.diff.outputs.changed == 'true' && steps.build.outcome == 'success'
+        continue-on-error: true
+        run: npx playwright test --project=e2e
+
+      - name: Open or update the sync PR
+        id: pr
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          PR_TOKEN: ${{ secrets.RDWLABZ_PR_TOKEN }}
+          GH_TOKEN: ${{ secrets.RDWLABZ_PR_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$PR_TOKEN" ]; then
+            echo "::error::RDWLABZ_PR_TOKEN is not set (see docs/LIBRARY.md)"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$BRANCH"
+          paths="src/data/library.json"
+          if [ -n "$(git ls-files -cdo --exclude-standard -- public/library/packs)" ]; then
+            paths="$paths public/library/packs"
+          fi
+          git add -A -- $paths
+          git commit -m "Sync Clay Asset Library"
+          git push --force "https://x-access-token:${PR_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            "HEAD:refs/heads/$BRANCH"
+          if [ "$(gh pr list --head "$BRANCH" --state open --json number --jq length)" = "0" ]; then
+            gh pr create --base main --head "$BRANCH" \
+              --title "Sync Clay Asset Library" --body-file "$RUNNER_TEMP/summary.md"
+          else
+            gh pr edit "$BRANCH" --body-file "$RUNNER_TEMP/summary.md"
+          fi
+
+      - name: Auto-merge when green and data-only
+        if: steps.pr.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.RDWLABZ_PR_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          BUILD: ${{ steps.build.outcome }}
+          TESTS: ${{ steps.test.outcome }}
+        run: |
+          leave() {
+            echo "::warning::Left the library sync PR open for review: $1"
+            gh pr comment "$BRANCH" --body "Not auto-merged: $1. Review and merge by hand."
+            exit 0
+          }
+          [ "$BUILD" = "success" ] || leave "the build failed"
+          [ "$TESTS" = "success" ] || leave "the e2e tests failed"
+          other=$(gh pr diff "$BRANCH" --name-only | grep -Ev "$ALLOWED" || true)
+          [ -z "$other" ] || leave "it changes files other than library.json and public/library/packs/* ($(echo $other))"
+          failed_file="$RUNNER_TEMP/failed-checks.txt"
+          if ! node scripts/wait-pr-checks.mjs "$BRANCH" "$failed_file"; then
+            leave "a PR check failed ($(cat "$failed_file" 2>/dev/null || echo "see the run log"))"
+          fi
+          gh pr merge "$BRANCH" --squash --delete-branch || leave "GitHub refused the merge (branch protection?)"

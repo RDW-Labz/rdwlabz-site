@@ -1,0 +1,479 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Section from '../../components/Section.astro';
+import Icon from '../../components/Icon.astro';
+import Chip from '../../components/Chip.astro';
+import PopHeading from '../../components/PopHeading.astro';
+import PackAction from '../../components/library/PackAction.astro';
+import PackCard from '../../components/library/PackCard.astro';
+import {
+  formatBytes,
+  formatCount,
+  kindCounts,
+  licenseText,
+  packAction,
+  packs,
+  plural,
+  type AssetKind,
+  type LibraryPack,
+} from '../../lib/library';
+
+export function getStaticPaths() {
+  return packs.map((pack) => ({ params: { slug: pack.slug }, props: { pack } }));
+}
+
+interface Props {
+  pack: LibraryPack;
+}
+const { pack: p } = Astro.props;
+const k = kindCounts(p);
+const license = licenseText(p);
+const action = packAction(p);
+const KINDS: { id: AssetKind; label: string }[] = [
+  { id: 'character', label: 'Characters' },
+  { id: 'creature', label: 'Creatures' },
+  { id: 'prop', label: 'Props' },
+];
+const groups = KINDS.map((g) => ({ ...g, items: p.assets.filter((a) => a.kind === g.id) })).filter(
+  (g) => g.items.length > 0,
+);
+const kindLine = [
+  k.character && plural(k.character, 'character'),
+  k.creature && plural(k.creature, 'creature'),
+  k.prop && plural(k.prop, 'prop'),
+]
+  .filter(Boolean)
+  .join(', ');
+const more = [
+  ...packs.filter((o) => o.slug !== p.slug && o.category === p.category),
+  ...packs.filter((o) => o.slug !== p.slug && o.category !== p.category),
+].slice(0, 3);
+const price = action.kind === 'buy-soon' ? null : 'Free';
+---
+
+<BaseLayout
+  title={`${p.name} · Clay Asset Library`}
+  description={p.description}
+  current="library"
+  ogImage={{
+    src: p.media.thumb.src,
+    width: p.media.thumb.width,
+    height: p.media.thumb.height,
+    alt: `Clay render from ${p.name}`,
+  }}
+>
+  <div class="container-lab pack-top" style={`--acc:${p.accent}`}>
+    <nav aria-label="Breadcrumb" class="crumbs">
+      <ol>
+        <li>
+          <a class="link" href="/library">
+            Clay Asset Library
+          </a>
+        </li>
+        <li aria-current="page">{p.name}</li>
+      </ol>
+    </nav>
+
+    <div class="pack-top__grid">
+      <div
+        class="pv"
+        data-model-preview
+        data-state="idle"
+        data-src={p.viewer[0]?.src}
+        data-name={p.viewer[0]?.name}
+      >
+        <div class="pv__stage" data-model-stage>
+          <img
+            class="pv__poster"
+            src={p.media.thumb.src}
+            alt={`Render of ${p.viewer.map((v) => v.name).join(', ')} from ${p.name}`}
+            width={p.media.thumb.width}
+            height={p.media.thumb.height}
+            fetchpriority="high"
+          />
+          {p.viewer.length > 0 && (
+            <button type="button" class="btn btn--primary pv__load" data-model-load>
+              <Icon name="cube" size={20} /> Spin it in 3D
+            </button>
+          )}
+        </div>
+        {p.viewer.length > 1 && (
+          <div class="pv__pick" role="group" aria-label="Model to preview in 3D">
+            {p.viewer.map((v, i) => (
+              <button
+                type="button"
+                class="chip-filter"
+                aria-pressed={i === 0 ? 'true' : 'false'}
+                data-model-src={v.src}
+                data-model-name={v.name}
+              >
+                {v.name}
+              </button>
+            ))}
+          </div>
+        )}
+        <p class="pv__status" role="status" data-model-status />
+        {p.viewer.length > 0 && (
+          <p class="pv__note">
+            {`The 3D preview loads about ${formatBytes(p.viewer.reduce((n, v) => n + v.bytes, 0))} and uses lighter textures than the pack files.`}
+          </p>
+        )}
+      </div>
+
+      <div class="pack-info sticker">
+        <div class="pack-info__chips">
+          <Chip kind="category" accent={p.accent}>
+            {p.category}
+          </Chip>
+          {p.aiGenerated && (
+            <Chip kind="tag" icon="sparkle">
+              AI-generated
+            </Chip>
+          )}
+        </div>
+        <h1 class="pack-info__title">{p.name}</h1>
+        <p class="pack-info__desc">{p.description}</p>
+        <dl class="pack-stats">
+          <div>
+            <dt>Models</dt>
+            <dd>
+              {p.assets.length}
+              {kindLine && <span> ({kindLine})</span>}
+            </dd>
+          </div>
+          {p.textures.length > 0 && (
+            <div>
+              <dt>Textures</dt>
+              <dd>{p.textures.length}</dd>
+            </div>
+          )}
+          {p.triangles && (
+            <div>
+              <dt>Triangles</dt>
+              <dd>
+                ~{formatCount(Math.round(p.triangles.average / 100) * 100)} per model
+                <span>
+                  {' '}
+                  ({formatCount(p.triangles.min)}–{formatCount(p.triangles.max)})
+                </span>
+              </dd>
+            </div>
+          )}
+          <div>
+            <dt>Formats</dt>
+            <dd>{p.formats.join(', ')}</dd>
+          </div>
+          <div>
+            <dt>Size</dt>
+            <dd>
+              {formatBytes(p.totalBytes)} <span>({plural(p.fileCount, 'file')})</span>
+            </dd>
+          </div>
+          <div>
+            <dt>License</dt>
+            <dd>{license ?? 'Coming soon'}</dd>
+          </div>
+          <div>
+            <dt>Price</dt>
+            <dd>{price ?? 'Coming soon'}</dd>
+          </div>
+        </dl>
+        <div class="pack-info__action">
+          <PackAction pack={p} />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <Section tone="peach" id="contents" labelledby="contents-title">
+    <PopHeading id="contents-title" class="text-h2" text="What’s inside" />
+    {groups.map((g) => (
+      <section class="contents-group" aria-labelledby={`g-${g.id}`}>
+        <h3 id={`g-${g.id}`} class="contents-group__title">
+          {g.label} <span>{g.items.length}</span>
+        </h3>
+        <ul class="asset-grid">
+          {g.items.map((a) => (
+            <li class="asset" style={`--acc:${p.accent}`}>
+              <img src={a.thumb} alt="" width="256" height="256" loading="lazy" decoding="async" />
+              <span class="asset__name">{a.name}</span>
+              {a.triangles != null && (
+                <span class="asset__tris">{formatCount(a.triangles)} triangles</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+    {p.textures.length > 0 && (
+      <section class="contents-group" aria-labelledby="g-textures">
+        <h3 id="g-textures" class="contents-group__title">
+          Textures <span>{p.textures.length}</span>
+        </h3>
+        <ul class="texture-list">
+          {p.textures.map((t) => (
+            <li class="texture sticker">
+              <span class="texture__name">{t.name}</span>
+              <span class="texture__maps">
+                {t.maps.map((m) => (
+                  <Chip kind="tag">{m}</Chip>
+                ))}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </Section>
+
+  {more.length > 0 && (
+    <Section tone="mint" id="more" labelledby="more-title">
+      <div class="section-head section-head--split">
+        <PopHeading id="more-title" class="text-h2" text="More packs" />
+        <a class="btn btn--secondary btn--sm" href="/library">
+          All packs <Icon name="arrow-right" size={18} />
+        </a>
+      </div>
+      <ul class="more-grid">
+        {more.map((o) => (
+          <li>
+            <PackCard pack={o} />
+          </li>
+        ))}
+      </ul>
+    </Section>
+  )}
+</BaseLayout>
+
+<script>
+  import { initModelPreview } from '../../scripts/model-preview';
+  import { initTurntables } from '../../scripts/turntables';
+  document.addEventListener('astro:page-load', () => {
+    if (!document.querySelector('[data-model-preview]')) return;
+    initModelPreview();
+    initTurntables();
+  });
+</script>
+
+<style>
+  .pack-top {
+    padding-block: clamp(16px, 3vw, 32px) calc(var(--tray-r) + clamp(32px, 5vw, 56px));
+  }
+  .crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    margin: 0 0 20px;
+    padding: 0;
+    font-weight: 600;
+  }
+  .crumbs li + li::before {
+    content: '›';
+    margin-right: 8px;
+    color: var(--color-ink-soft);
+  }
+  .pack-top__grid {
+    display: grid;
+    gap: clamp(24px, 4vw, 48px);
+    align-items: start;
+  }
+  @media (min-width: 960px) {
+    .pack-top__grid {
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    }
+  }
+
+  .pv__stage {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    border: 2px solid var(--color-ink);
+    box-shadow: 0 8px 0 var(--acc);
+    background: radial-gradient(
+      90% 90% at 50% 40%,
+      color-mix(in oklab, var(--acc), #fff 70%),
+      color-mix(in oklab, var(--acc), #fff 35%)
+    );
+  }
+  .pv__poster {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .pv[data-state='ready'] .pv__poster {
+    visibility: hidden;
+  }
+  .pv__load {
+    display: none;
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    translate: -50% 0;
+  }
+  :global(.js) .pv__load {
+    display: inline-flex;
+  }
+  .pv:not([data-state='idle']):not([data-state='error']) .pv__load {
+    display: none;
+  }
+  .pv :global(.model-viewer) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    --poster-color: transparent;
+    --progress-bar-color: var(--color-ink);
+  }
+  .pv[data-state='loading'] :global(.model-viewer) {
+    opacity: 0;
+  }
+  .pv__pick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .pv__status {
+    min-height: 1.5em;
+    margin: 12px 0 0;
+    font-weight: 600;
+  }
+  .pv__note {
+    margin: 4px 0 0;
+    color: var(--color-ink-soft);
+    font-size: var(--text-small);
+  }
+
+  .pack-info {
+    padding: clamp(22px, 3vw, 36px);
+    border-radius: var(--radius-xl);
+  }
+  .pack-info__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .pack-info__title {
+    margin: 14px 0 10px;
+    font-size: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem);
+    line-height: 1;
+    overflow-wrap: anywhere;
+  }
+  .pack-info__desc {
+    margin: 0;
+    font-size: 1.125rem;
+  }
+  .pack-stats {
+    display: grid;
+    margin: 22px 0 24px;
+    border-top: 1.5px dashed color-mix(in oklab, var(--color-ink), transparent 60%);
+  }
+  .pack-stats > div {
+    display: grid;
+    grid-template-columns: 7.5rem 1fr;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1.5px dashed color-mix(in oklab, var(--color-ink), transparent 60%);
+  }
+  .pack-stats dt {
+    font-weight: 700;
+  }
+  .pack-stats dd {
+    margin: 0;
+  }
+  .pack-stats dd span {
+    color: var(--color-ink-soft);
+  }
+
+  .contents-group {
+    margin-top: clamp(24px, 3vw, 40px);
+  }
+  .contents-group__title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 14px;
+    font-size: var(--text-h3);
+  }
+  .contents-group__title span {
+    display: inline-grid;
+    place-items: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 8px;
+    border-radius: var(--radius-pill);
+    background: var(--color-ink);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+  .asset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .asset {
+    display: grid;
+    gap: 2px;
+    padding: 8px 8px 12px;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--color-ink);
+    background: var(--color-surface);
+    box-shadow: 0 4px 0 var(--acc);
+  }
+  .asset img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    margin-bottom: 6px;
+    border-radius: 14px;
+    background: color-mix(in oklab, var(--acc), #fff 70%);
+  }
+  .asset__name {
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  .asset__tris {
+    color: var(--color-ink-soft);
+    font-size: var(--text-small);
+  }
+  .texture-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: 12px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .texture {
+    display: grid;
+    gap: 8px;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-pop-xs);
+  }
+  .texture__name {
+    font-weight: 700;
+  }
+  .texture__maps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .more-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
+    gap: clamp(20px, 2.5vw, 32px);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+</style>

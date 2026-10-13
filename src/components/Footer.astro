@@ -2,6 +2,7 @@
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
 import { buildPhrase, site, isTodo } from '../lib/projects';
+import { packs } from '../lib/library';
 
 const year = new Date().getFullYear();
 const hasEmail = !isTodo(site.contactEmail);
@@ -28,6 +29,13 @@ const blurb = `We build ${buildPhrase}.`;
             Projects
           </a>
         </li>
+        {packs.length > 0 && (
+          <li>
+            <a class="link" href="/library">
+              Library
+            </a>
+          </li>
+        )}
         <li>
           <a class="link" href="/about">
             About

@@ -8,7 +8,13 @@ const dist = 'dist';
 const gz = (p) => gzipSync(readFileSync(p)).length;
 const kb = (n) => (n / 1024).toFixed(1) + ' KB';
 
-const pages = readdirSync(dist).filter((f) => f.endsWith('.html'));
+const htmlIn = (dir) =>
+  existsSync(join(dist, dir))
+    ? readdirSync(join(dist, dir))
+        .filter((f) => f.endsWith('.html'))
+        .map((f) => join(dir, f))
+    : [];
+const pages = [...htmlIn(''), ...htmlIn('library')];
 let fail = false;
 
 for (const page of pages) {
@@ -52,7 +58,21 @@ for (const page of pages) {
   const ok = jsGz <= 60 * 1024 && fontBytes <= 120 * 1024 && families.size <= 2;
   if (!ok) fail = true;
   console.log(
-    `${ok ? 'OK  ' : 'OVER'} ${page.padEnd(14)} JS ${kb(jsGz).padStart(8)} gz (${scripts.size} files) · CSS ${kb(cssGz).padStart(8)} gz · fonts ${kb(fontBytes).padStart(8)} (${fonts.size} files, ${families.size} families: ${[...families].join(', ')}) · HTML ${kb(gz(join(dist, page)))} gz`,
+    `${ok ? 'OK  ' : 'OVER'} ${page.padEnd(36)} JS ${kb(jsGz).padStart(8)} gz (${scripts.size} files) · CSS ${kb(cssGz).padStart(8)} gz · fonts ${kb(fontBytes).padStart(8)} (${fonts.size} files, ${families.size} families: ${[...families].join(', ')}) · HTML ${kb(gz(join(dist, page)))} gz`,
   );
+}
+// Library clips dropped into public/library/video/ (docs/LIBRARY-VIDEOS.md).
+const videoDir = 'public/library/video';
+const VIDEO_MAX = { 'teaser-loop': 2.5e6, 'hero-loop': 2.5e6, portal: 1.5e6 };
+if (existsSync(videoDir)) {
+  for (const f of readdirSync(videoDir)) {
+    const name = f.replace(/(-portrait)?(-poster)?\.(webm|mp4|webp|jpg)$/, '');
+    const max = /-poster\./.test(f) ? 120e3 : VIDEO_MAX[name];
+    if (!max) continue;
+    const size = statSync(join(videoDir, f)).size;
+    const ok = size <= max;
+    if (!ok) fail = true;
+    console.log(`${ok ? 'OK  ' : 'OVER'} ${f.padEnd(36)} ${kb(size)} (max ${kb(max)})`);
+  }
 }
 process.exit(fail ? 1 : 0);

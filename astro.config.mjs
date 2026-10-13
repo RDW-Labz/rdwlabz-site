@@ -90,17 +90,26 @@ export default defineConfig({
   trailingSlash: 'never',
   build: { format: 'file' },
   devToolbar: { enabled: false },
+  // Opt-in only: the library portal prefetches /library while its intro plays.
+  prefetch: true,
   integrations: [
     devRoutes(),
     sitemap({ filter: (page) => !page.includes('/_') && !page.includes('/404') }),
   ],
   vite: {
     plugins: [tailwindcss()],
-    // RDWLABZ_DATA=<abs path> builds from another projects.json (tests build an empty shelf this
-    // way without touching the real file).
-    resolve: process.env.RDWLABZ_DATA
-      ? { alias: [{ find: /^\.\.\/data\/projects\.json$/, replacement: process.env.RDWLABZ_DATA }] }
-      : undefined,
+    // RDWLABZ_DATA / RDWLABZ_LIBRARY=<abs path> build from another projects.json / library.json
+    // (tests build an empty shelf or fixture packs this way without touching the real files).
+    resolve: {
+      alias: [
+        ...(process.env.RDWLABZ_DATA
+          ? [{ find: /^\.\.\/data\/projects\.json$/, replacement: process.env.RDWLABZ_DATA }]
+          : []),
+        ...(process.env.RDWLABZ_LIBRARY
+          ? [{ find: /^\.\.\/data\/library\.json$/, replacement: process.env.RDWLABZ_LIBRARY }]
+          : []),
+      ],
+    },
   },
   // Site fonts are inline so each provider's options are type-checked.
   fonts: [

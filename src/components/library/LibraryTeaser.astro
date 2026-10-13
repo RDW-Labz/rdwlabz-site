@@ -1,0 +1,191 @@
+---
+import Icon from '../Icon.astro';
+import PopHeading from '../PopHeading.astro';
+import ClayBlobs from './ClayBlobs.astro';
+import { formatCount, freeCount, libraryVideo, plural, type LibraryPack } from '../../lib/library';
+
+/**
+ * Home: full-width Clay Asset Library teaser. A looping background clip (or the CSS clay
+ * placeholder) sits behind a solid sticker panel, so text contrast never depends on the video.
+ * The page's "Pause animations" toggle in the hero controls this loop too.
+ */
+interface Props {
+  packs: LibraryPack[];
+}
+const { packs } = Astro.props;
+const clip = libraryVideo('teaser-loop');
+const models = packs.reduce((n, p) => n + p.assets.length, 0);
+const textures = packs.reduce((n, p) => n + p.textures.length, 0);
+const free = freeCount(packs);
+const seen = new Set<string>();
+const peek = packs.filter((p) => !seen.has(p.accent) && seen.add(p.accent)).slice(0, 3);
+---
+
+<section class="tray on-ink lib-teaser" id="clay-library" aria-labelledby="lib-teaser-title">
+  <div
+    class="lib-teaser__bg"
+    aria-hidden="true"
+    data-loop-media={clip ? '' : undefined}
+    data-webm={clip?.webm}
+    data-mp4={clip?.mp4}
+    data-webm-portrait={clip?.webmPortrait}
+    data-mp4-portrait={clip?.mp4Portrait}
+    data-poster={clip?.poster}
+  >
+    <ClayBlobs />
+  </div>
+  <div class="container-lab lib-teaser__inner">
+    <div class="lib-teaser__panel sticker" data-reveal>
+      <p class="eyebrow">
+        <Icon name="asset-packs" size={16} /> Asset packs
+      </p>
+      <PopHeading id="lib-teaser-title" class="text-h2" text="Clay Asset Library" />
+      <p class="lib-teaser__lead">
+        {plural(packs.length, 'pack')} of claymation-style 3D characters, creatures and props. Spin
+        every model in 3D, right in your browser.
+      </p>
+      <ul class="lib-teaser__stats" aria-label="In the library">
+        <li>
+          <strong>{formatCount(models)}</strong> models
+        </li>
+        {textures > 0 && (
+          <li>
+            <strong>{formatCount(textures)}</strong> textures
+          </li>
+        )}
+        <li>
+          {free > 0 ? (
+            <>
+              <strong>{free}</strong> free {free === 1 ? 'pack' : 'packs'}
+            </>
+          ) : (
+            'Downloads coming soon'
+          )}
+        </li>
+      </ul>
+      <a href="/library" class="btn btn--primary lib-teaser__cta" data-portal>
+        <Icon name="cube" size={20} />
+        Enter the Library
+        <Icon name="arrow-right" size={18} />
+      </a>
+    </div>
+    <ul class="lib-teaser__peek" aria-hidden="true">
+      {peek.map((p, i) => (
+        <li style={`--acc:${p.accent}; --i:${i}`}>
+          <img
+            src={p.media.thumb.src}
+            alt=""
+            width={p.media.thumb.width}
+            height={p.media.thumb.height}
+            loading="lazy"
+            decoding="async"
+          />
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .lib-teaser {
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--color-ink);
+  }
+  .lib-teaser__bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+  .lib-teaser__bg :global(video) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .lib-teaser__bg:global(.is-playing) :global(.clay) {
+    visibility: hidden;
+  }
+  .lib-teaser__inner {
+    display: grid;
+    gap: clamp(28px, 4vw, 56px);
+    align-items: center;
+    min-height: clamp(420px, 52vw, 620px);
+  }
+  @media (min-width: 900px) {
+    .lib-teaser__inner {
+      grid-template-columns: minmax(0, 33rem) minmax(0, 1fr);
+    }
+  }
+  .lib-teaser__panel {
+    padding: clamp(24px, 3.5vw, 40px);
+    border-radius: var(--radius-xl);
+    color: var(--color-ink);
+  }
+  .lib-teaser__panel :global(.text-h2) {
+    margin: 16px 0 12px;
+  }
+  .lib-teaser__lead {
+    margin: 0;
+    font-size: 1.125rem;
+  }
+  .lib-teaser__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    margin: 20px 0 24px;
+    padding: 0;
+  }
+  .lib-teaser__stats li {
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    border: 1.5px solid var(--color-ink);
+    background: var(--color-cream);
+    font-weight: 600;
+  }
+  .lib-teaser__stats strong {
+    font-family: var(--font-bagel), system-ui, sans-serif;
+    font-weight: 400;
+  }
+  .lib-teaser__cta {
+    min-height: 56px;
+    padding-inline: 1.75rem;
+    font-size: 1.125rem;
+  }
+  .lib-teaser__peek {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .lib-teaser__peek li {
+    width: min(46%, 300px);
+    margin-inline: -4%;
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--color-ink);
+    overflow: hidden;
+    background: var(--color-surface);
+    box-shadow: 0 8px 0 var(--acc);
+    rotate: calc((var(--i) - 1) * 7deg);
+    translate: 0 calc((var(--i) - 1) * (var(--i) - 1) * 18px);
+  }
+  .lib-teaser__peek li:nth-child(2) {
+    z-index: 1;
+  }
+  .lib-teaser__peek img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  @media (max-width: 899px) {
+    .lib-teaser__peek {
+      order: -1;
+    }
+    .lib-teaser__peek li {
+      width: min(36%, 220px);
+    }
+  }
+</style>

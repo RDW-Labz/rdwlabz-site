@@ -1,0 +1,170 @@
+<!doctype html>
+<!-- Headless studio for Clay Asset Library previews (driven by scripts/library/render.mjs). -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      #stage {
+        position: relative;
+        background: radial-gradient(120% 95% at 50% 38%, #fffaf2 0%, var(--b1) 58%, var(--b2) 100%);
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/three/build/three.module.js",
+          "three/addons/": "/three/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script type="module">
+      import * as THREE from 'three';
+      import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+      import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+
+      const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+      let renderer, scene, camera, spin;
+
+      /** Lays models out on a clay turntable and frames them so every angle fits. */
+      window.setup = async ({ models, width, height, b1, b2, disc, rim }) => {
+        const stage = document.getElementById('stage');
+        stage.style.width = `${width}px`;
+        stage.style.height = `${height}px`;
+        stage.style.setProperty('--b1', b1);
+        stage.style.setProperty('--b2', b2);
+        stage.replaceChildren();
+        renderer?.dispose();
+        renderer = new THREE.WebGLRenderer({
+          antialias: true,
+          alpha: true,
+          preserveDrawingBuffer: true,
+        });
+        renderer.setPixelRatio(1);
+        renderer.setSize(width, height);
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.NeutralToneMapping;
+        renderer.toneMappingExposure = 1.25;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        stage.appendChild(renderer.domElement);
+
+        scene = new THREE.Scene();
+        scene.add(new THREE.HemisphereLight(0xffffff, 0xe3d2c4, 2.2));
+        const key = new THREE.DirectionalLight(0xfff1de, 2.8);
+        key.position.set(-2.5, 4.5, 3.5);
+        key.castShadow = true;
+        key.shadow.mapSize.set(1024, 1024);
+        key.shadow.radius = 6;
+        key.shadow.bias = -0.0005;
+        Object.assign(key.shadow.camera, {
+          left: -3,
+          right: 3,
+          top: 3,
+          bottom: -3,
+          near: 0.5,
+          far: 15,
+        });
+        scene.add(key);
+        const rimLight = new THREE.DirectionalLight(0xffe0ef, 1.1);
+        rimLight.position.set(3, 2, -3);
+        scene.add(rimLight);
+
+        spin = new THREE.Group();
+        scene.add(spin);
+
+        const gltfs = await Promise.all(models.map((url) => loader.loadAsync(url)));
+        const n = gltfs.length;
+        const slots =
+          n === 1
+            ? [[0, 0, 1]]
+            : n === 2
+              ? [
+                  [-0.62, 0, 1],
+                  [0.62, 0, 1],
+                ]
+              : [
+                  [0, -0.32, 1.08],
+                  [-0.9, 0.3, 0.9],
+                  [0.9, 0.3, 0.9],
+                ];
+        const discTop = 0.08;
+        gltfs.forEach((g, i) => {
+          const obj = g.scene;
+          obj.traverse((m) => {
+            if (m.isMesh) {
+              m.castShadow = true;
+              m.receiveShadow = true;
+              if (m.material) m.material.side = THREE.FrontSide;
+            }
+          });
+          const box = new THREE.Box3().setFromObject(obj);
+          const size = box.getSize(new THREE.Vector3());
+          const [x, z, s] = slots[i] ?? [0, 0, 1];
+          const scale = s / Math.max(size.x, size.y, size.z);
+          obj.scale.setScalar(scale);
+          const c = box.getCenter(new THREE.Vector3());
+          obj.position.set(x - c.x * scale, discTop - box.min.y * scale, z - c.z * scale);
+          spin.add(obj);
+        });
+
+        const content = new THREE.Box3().setFromObject(spin);
+        const radius =
+          Math.max(
+            0.5,
+            ...[content.min.x, content.max.x, content.min.z, content.max.z].map(Math.abs),
+          ) + (n === 1 ? 0.1 : 0.18);
+        const mat = (color, rough = 1) =>
+          new THREE.MeshStandardMaterial({ color, roughness: rough });
+        const discMesh = new THREE.Mesh(
+          new THREE.CylinderGeometry(radius, radius * 0.98, discTop, 96),
+          [mat(rim), mat(disc), mat(rim)],
+        );
+        discMesh.position.y = discTop / 2;
+        discMesh.receiveShadow = true;
+        spin.add(discMesh);
+
+        const ground = new THREE.Mesh(
+          new THREE.PlaneGeometry(20, 20),
+          new THREE.ShadowMaterial({ opacity: 0.16 }),
+        );
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // Fit the disc's width and the models' height. Models stay inside the disc as it spins,
+        // so a fit at one angle holds for every frame.
+        camera = new THREE.PerspectiveCamera(26, width / height, 0.1, 100);
+        const top = content.max.y;
+        const vHalf = THREE.MathUtils.degToRad(camera.fov / 2);
+        const hHalf = Math.atan(Math.tan(vHalf) * camera.aspect);
+        const dist = Math.max(
+          (radius * 1.06) / Math.tan(hHalf) + radius * 0.5,
+          ((top + 0.12) * 0.62) / Math.tan(vHalf) + radius * 0.5,
+        );
+        const elev = THREE.MathUtils.degToRad(14);
+        const target = new THREE.Vector3(0, top * 0.44, 0);
+        camera.position.set(0, target.y + Math.sin(elev) * dist, Math.cos(elev) * dist);
+        camera.lookAt(target);
+        return true;
+      };
+
+      window.frame = (deg) => {
+        spin.rotation.y = THREE.MathUtils.degToRad(deg);
+        renderer.render(scene, camera);
+        return true;
+      };
+      window.ready = true;
+    </script>
+  </body>
+</html>
