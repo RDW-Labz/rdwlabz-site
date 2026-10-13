@@ -1,5 +1,7 @@
 // Waits for a PR's checks (e.g. the Cloudflare Pages preview) to finish before auto-merge.
-// Usage: node scripts/wait-pr-checks.mjs <pr-or-branch> [failed-names-file]   (needs gh + GH_TOKEN/GH_REPO)
+// Usage: node scripts/wait-pr-checks.mjs <pr-or-branch> [failed-names-file]   (needs gh + GH_REPO)
+// Reads checks with CHECKS_TOKEN (the workflow's GITHUB_TOKEN with checks/statuses: read), falling
+// back to GH_TOKEN. Fine-grained PATs can't read check runs (statusCheckRollup).
 // Exit 0 = no check failed (merge). Exit 1 = a check failed; names go to the file, if given.
 // Only the "fail" bucket blocks. Cancelled runs (superseded by a force-push) and checks still
 // pending at the deadline don't: they say nothing about whether the change is broken.
@@ -62,14 +64,28 @@ export async function waitForChecks({
   }
 }
 
+/** Environment for the `gh pr checks` child: CHECKS_TOKEN wins over GH_TOKEN. */
+export function checksEnv(env = process.env) {
+  const token = env.CHECKS_TOKEN || env.GH_TOKEN;
+  const out = { ...env };
+  delete out.CHECKS_TOKEN;
+  if (token) out.GH_TOKEN = token;
+  return out;
+}
+
 /** `gh pr checks --json` exits 8 while checks are pending and 1 when none exist yet. */
 function ghChecks(pr) {
   return new Promise((resolve, reject) => {
-    execFile('gh', ['pr', 'checks', pr, '--json', 'name,bucket'], (err, stdout, stderr) => {
-      if (/no checks reported/i.test(stderr)) return resolve([]);
-      if (stdout.trim().startsWith('[')) return resolve(JSON.parse(stdout));
-      reject(new Error((stderr || err?.message || 'no output').trim()));
-    });
+    execFile(
+      'gh',
+      ['pr', 'checks', pr, '--json', 'name,bucket'],
+      { env: checksEnv() },
+      (err, stdout, stderr) => {
+        if (/no checks reported/i.test(stderr)) return resolve([]);
+        if (stdout.trim().startsWith('[')) return resolve(JSON.parse(stdout));
+        reject(new Error((stderr || err?.message || 'no output').trim()));
+      },
+    );
   });
 }
 

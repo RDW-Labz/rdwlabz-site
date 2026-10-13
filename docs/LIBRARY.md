@@ -80,7 +80,8 @@ viewers/<batch>.html (only checked for presence) .github/workflows/sync-library.
 | --- | --- | --- |
 | clay-asset-packs | `LIBRARY_DISPATCH_TOKEN` | Fine-grained PAT, resource owner RDW-Labz, **only** rdwlabz-site, Contents: Read and write (needed for `repository_dispatch`). Without it, the push still shows up within 6 hours through the scheduled sync. |
 | rdwlabz-site | `RDWLABZ_SYNC_TOKEN` (existing) | Must include clay-asset-packs with Contents: Read. |
-| rdwlabz-site | `RDWLABZ_PR_TOKEN` (existing) | Unchanged: rdwlabz-site Contents + Pull requests write. |
+| rdwlabz-site | `RDWLABZ_PR_TOKEN` (existing) | Unchanged: rdwlabz-site Contents + Pull requests write. Creates and merges the PR only. |
+| rdwlabz-site | `GITHUB_TOKEN` (built in) | Nothing to set up. Job permissions `contents`, `pull-requests`, `checks`, `statuses`: read. Reads the PR's checks before auto-merge, since fine-grained PATs can't read check runs. |
 
 ## License and IP notes (decide before selling or giving packs away)
 

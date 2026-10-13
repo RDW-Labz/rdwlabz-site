@@ -7,7 +7,8 @@
 # Secrets (least access each):
 # - RDWLABZ_SYNC_TOKEN: read-only Contents on all RDW-Labz repos (reads files, topics, releases).
 # - RDWLABZ_PR_TOKEN: rdwlabz-site only, Contents + Pull requests write (push bot branch, PR, merge).
-#   The enterprise policy blocks GITHUB_TOKEN from creating PRs, so it stays read-only here.
+#   The enterprise policy blocks GITHUB_TOKEN from creating PRs, so it stays read-only here and
+#   only reads the PR's checks before auto-merge (fine-grained PATs can't read check runs).
 # - CURSEFORGE_API_KEY (optional): enables CurseForge checks.
 name: Sync projects
 
@@ -29,6 +30,12 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    # GITHUB_TOKEN only reads the PR's checks before auto-merge (fine-grained PATs can't).
+    permissions:
+      contents: read
+      pull-requests: read
+      checks: read
+      statuses: read
     env:
       BRANCH: bot/sync-projects
       ASTRO_TELEMETRY_DISABLED: '1'
@@ -121,6 +128,7 @@ jobs:
         if: steps.pr.outcome == 'success'
         env:
           GH_TOKEN: ${{ secrets.RDWLABZ_PR_TOKEN }}
+          CHECKS_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           BUILD: ${{ steps.build.outcome }}
           TESTS: ${{ steps.test.outcome }}

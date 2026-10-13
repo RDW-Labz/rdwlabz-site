@@ -25,7 +25,7 @@ import {
   itchUrl,
 } from '../scripts/sync/stores.mjs';
 import { accessibleAccent, contrast, dominantColor, processIcon } from '../scripts/sync/images.mjs';
-import { waitForChecks } from '../scripts/wait-pr-checks.mjs';
+import { checksEnv, waitForChecks } from '../scripts/wait-pr-checks.mjs';
 import {
   validateOverrides,
   resolveEntry,
@@ -818,4 +818,35 @@ test.describe('sync auto-merge: waiting for PR checks', () => {
       failed: ['checks unreadable: HTTP 401: Bad credentials'],
     });
   });
+
+  test('checks are read with CHECKS_TOKEN, not the PR token', () => {
+    const env = checksEnv({ GH_TOKEN: 'pat', CHECKS_TOKEN: 'ghs', GH_REPO: 'o/r' });
+    expect(env).toEqual({ GH_TOKEN: 'ghs', GH_REPO: 'o/r' });
+    expect(checksEnv({ GH_TOKEN: 'pat' })).toEqual({ GH_TOKEN: 'pat' });
+  });
+
+  for (const wf of ['sync-projects.yml', 'sync-library.yml']) {
+    test(`${wf}: GITHUB_TOKEN reads checks, RDWLABZ_PR_TOKEN creates and merges`, () => {
+      const text = readFileSync(join('.github/workflows', wf), 'utf8');
+      const job = text.slice(text.indexOf('\n  sync:\n'));
+      const perms = job.match(/\n {4}permissions:\n((?: {6}.+\n)+)/)?.[1] ?? '';
+      expect(
+        perms
+          .trim()
+          .split(/\s*\n\s*/)
+          .sort(),
+      ).toEqual(['checks: read', 'contents: read', 'pull-requests: read', 'statuses: read']);
+      expect(text).not.toMatch(/: write/);
+      const steps = job.split(/\n {6}- /);
+      const step = (name: string) => steps.find((s) => s.startsWith(`name: ${name}`)) ?? '';
+      const merge = step('Auto-merge');
+      expect(merge).toContain('CHECKS_TOKEN: ${{ github.token }}');
+      expect(merge).toContain('GH_TOKEN: ${{ secrets.RDWLABZ_PR_TOKEN }}');
+      expect(merge).toContain('node scripts/wait-pr-checks.mjs');
+      expect(merge).toContain('gh pr merge');
+      const pr = step('Open or update');
+      expect(pr).toContain('GH_TOKEN: ${{ secrets.RDWLABZ_PR_TOKEN }}');
+      expect(pr).not.toContain('github.token');
+    });
+  }
 });

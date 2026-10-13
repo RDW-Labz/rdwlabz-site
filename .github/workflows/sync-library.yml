@@ -9,6 +9,7 @@
 # Secrets (least access each):
 # - RDWLABZ_SYNC_TOKEN: read-only Contents on RDW-Labz repos (clones clay-asset-packs).
 # - RDWLABZ_PR_TOKEN: rdwlabz-site only, Contents + Pull requests write (push bot branch, PR, merge).
+# - GITHUB_TOKEN: read-only; only reads the PR's checks before auto-merge (fine-grained PATs can't).
 name: Sync library
 
 on:
@@ -34,6 +35,12 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    # GITHUB_TOKEN only reads the PR's checks before auto-merge (fine-grained PATs can't).
+    permissions:
+      contents: read
+      pull-requests: read
+      checks: read
+      statuses: read
     env:
       BRANCH: bot/sync-library
       ASTRO_TELEMETRY_DISABLED: '1'
@@ -163,6 +170,7 @@ jobs:
         if: steps.pr.outcome == 'success'
         env:
           GH_TOKEN: ${{ secrets.RDWLABZ_PR_TOKEN }}
+          CHECKS_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           BUILD: ${{ steps.build.outcome }}
           TESTS: ${{ steps.test.outcome }}
