@@ -302,6 +302,7 @@ const more = [
   }
   .pack-top__grid {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: clamp(24px, 4vw, 48px);
     align-items: start;
   }
@@ -384,6 +385,13 @@ const more = [
     flex-wrap: wrap;
     gap: 6px;
   }
+  .pack-info__action :global(.btn) {
+    max-width: 100%;
+    padding-block: 6px;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+  }
   .pack-info__title {
     margin: 14px 0 10px;
     font-size: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem);
@@ -401,7 +409,7 @@ const more = [
   }
   .pack-stats > div {
     display: grid;
-    grid-template-columns: 7.5rem 1fr;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
     gap: 12px;
     padding: 10px 0;
     border-bottom: 1.5px dashed color-mix(in oklab, var(--color-ink), transparent 60%);
@@ -411,6 +419,7 @@ const more = [
   }
   .pack-stats dd {
     margin: 0;
+    overflow-wrap: anywhere;
   }
   .pack-stats dd span {
     color: var(--color-ink-soft);
@@ -473,6 +482,7 @@ const more = [
   .asset__name {
     font-weight: 700;
     line-height: 1.25;
+    overflow-wrap: anywhere;
   }
   .asset__tris {
     color: var(--color-ink-soft);
@@ -495,6 +505,7 @@ const more = [
   }
   .texture__name {
     font-weight: 700;
+    overflow-wrap: anywhere;
   }
   .texture__maps {
     display: flex;
