@@ -69,27 +69,27 @@
     {
       "slug": "putt-drop",
       "name": "Putt Drop",
-      "oneLiner": "One-thumb neon mini golf for phones: drag back to aim, release to putt. Each hole is a small puzzle of walls, bumpers, sand, water, slopes and moving bars.",
+      "oneLiner": "A cozy one-thumb mini golf park for phones: drag back to aim, release to putt. Hand-made holes with water, sand, slopes, bumpers and moving gates.",
       "category": "games",
       "status": "coming-soon",
       "statusLabel": "Coming to Google Play",
       "platforms": ["Android"],
       "url": null,
-      "accentColor": "TODO",
+      "accentColor": "#687a5b",
       "image": null,
-      "icon": null,
+      "icon": "/projects/putt-drop-icon.webp",
       "screenshots": [
         {
           "src": "/projects/putt-drop-shot-1.webp",
-          "width": 573,
+          "width": 540,
           "height": 960,
-          "alt": "Putt Drop, hole 1 (Dewdrop): aiming a putt up a narrow neon fairway"
+          "alt": "Putt Drop, hole 1 (Dewdrop): aiming a putt with power ring and dotted path on a cozy park fairway"
         },
         {
           "src": "/projects/putt-drop-shot-2.webp",
-          "width": 573,
+          "width": 540,
           "height": 960,
-          "alt": "Putt Drop, hole 9 (Undertow): a zigzag neon course, par 4"
+          "alt": "Putt Drop: hole complete card with three stars after a hole in one on hole 1"
         }
       ],
       "featured": true,
@@ -99,16 +99,16 @@
         "written": {
           "slug": "b78bb1c0",
           "name": "231940df",
-          "oneLiner": "b89dd11a",
+          "oneLiner": "19c33dcb",
           "category": "e69443fd",
           "status": "853495a5",
           "statusLabel": "6a3caec4",
           "platforms": "5b45ac66",
           "url": "74234e98",
-          "accentColor": "95c98b3d",
+          "accentColor": "33cd0f11",
           "image": "74234e98",
-          "icon": "74234e98",
-          "screenshots": "49ce2a2a",
+          "icon": "e8f88bc8",
+          "screenshots": "f38ffd49",
           "featured": "b5bea41b"
         }
       }
