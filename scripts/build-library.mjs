@@ -308,7 +308,10 @@ export async function readPacks(src) {
         hash: sha256(buf),
         triangles: triangles || null,
         broken,
-        watertight: meta.has(assetId) ? /^closed/.test(meta.get(assetId).mesh ?? '') : null,
+        watertight:
+          typeof meta.get(assetId)?.mesh === 'string'
+            ? /^closed/.test(meta.get(assetId).mesh)
+            : null,
         preview: existsSync(preview) ? preview : null,
         gif: existsSync(gif) ? gif : null,
       });

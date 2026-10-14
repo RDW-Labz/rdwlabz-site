@@ -424,6 +424,8 @@ test.describe('library sync', () => {
       expect(arctic.name).toBe('Arctic Test Pack');
       expect(arctic.category).toBe('Arctic');
       expect(arctic.assets[0].kind).toBe('creature');
+      // In the manifest, but without a "mesh" field: unknown, not open.
+      expect(arctic.quality!.mesh).toEqual({ type: null, watertight: 0 });
       expect(arctic).toMatchObject({
         tagline: 'Polar bears, remade',
         description: 'Re-sculpted with sharper fur & claws.',
