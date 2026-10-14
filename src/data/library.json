@@ -9,7 +9,56 @@
       "slug": "prehistoric",
       "id": "batch001",
       "name": "Prehistoric",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 818,
+          "avg": 7062,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 102156588,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 7,100 triangles each on average (818 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 102 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Prehistoric",
       "style": "Claymation",
       "tags": [
@@ -318,7 +367,56 @@
       "slug": "egypt-and-bronze-age",
       "id": "batch002",
       "name": "Egypt and Bronze Age",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 1094,
+          "avg": 8311,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 99365713,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 8,300 triangles each on average (1,094 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 99 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Ancient world",
       "style": "Claymation",
       "tags": [
@@ -627,7 +725,56 @@
       "slug": "greece-and-rome",
       "id": "batch003",
       "name": "Greece and Rome",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 1880,
+          "avg": 9184,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 99166253,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 9,200 triangles each on average (1,880 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 99 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Ancient world",
       "style": "Claymation",
       "tags": [
@@ -936,7 +1083,56 @@
       "slug": "ice-age-and-stone-age-tribes",
       "id": "batch004",
       "name": "Ice Age and Stone Age tribes (prehistoric II)",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 1014,
+          "avg": 7011,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 103958616,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 7,000 triangles each on average (1,014 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 104 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Prehistoric",
       "style": "Claymation",
       "tags": [
@@ -1245,7 +1441,56 @@
       "slug": "dinosaur-age-ii",
       "id": "batch005",
       "name": "Dinosaur Age II (Jurassic and Cretaceous)",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 1038,
+          "avg": 7734,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 96735605,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 7,700 triangles each on average (1,038 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 97 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Prehistoric",
       "style": "Claymation",
       "tags": [
@@ -1554,7 +1799,56 @@
       "slug": "vikings-and-dark-ages",
       "id": "batch006",
       "name": "Vikings and Dark Ages",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 1404,
+          "avg": 7959,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 102031245,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 8,000 triangles each on average (1,404 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 102 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Medieval",
       "style": "Claymation",
       "tags": [
@@ -1863,7 +2157,56 @@
       "slug": "medieval-knights",
       "id": "batch007",
       "name": "Medieval Knights",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 1090,
+          "avg": 7639,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 99067318,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 7,600 triangles each on average (1,090 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 99 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Medieval",
       "style": "Claymation",
       "tags": [
@@ -2172,7 +2515,56 @@
       "slug": "feudal-japan-and-samurai",
       "id": "batch008",
       "name": "Feudal Japan and Samurai",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 926,
+          "avg": 7919,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 99955006,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 7,900 triangles each on average (926 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 100 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Feudal Asia",
       "style": "Claymation",
       "tags": [
@@ -2481,7 +2873,56 @@
       "slug": "renaissance-and-age-of-sail-pirates",
       "id": "batch009",
       "name": "Renaissance and Age of Sail pirates",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 1788,
+          "avg": 9002,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 103131262,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 9,000 triangles each on average (1,788 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 103 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Age of Sail",
       "style": "Claymation",
       "tags": [
@@ -2790,7 +3231,56 @@
       "slug": "wild-west-and-industrial-age",
       "id": "batch010",
       "name": "Wild West and Industrial age",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 1320,
+          "avg": 8598,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 97311052,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 8,600 triangles each on average (1,320 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 97 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Wild West",
       "style": "Claymation",
       "tags": [
@@ -3099,7 +3589,56 @@
       "slug": "modern-day",
       "id": "batch011",
       "name": "Modern day",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 1006,
+          "avg": 7249,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 92850915,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 7,200 triangles each on average (1,006 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 93 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Modern day",
       "style": "Claymation",
       "tags": [
@@ -3408,7 +3947,56 @@
       "slug": "prehistoric-iii",
       "id": "batch012",
       "name": "Prehistoric III: Neolithic farmers and stone circles",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 878,
+          "avg": 7078,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 99379459,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 7,100 triangles each on average (878 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 99 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Prehistoric",
       "style": "Claymation",
       "tags": [
@@ -3717,7 +4305,56 @@
       "slug": "bronze-age-ii",
       "id": "batch013",
       "name": "Bronze Age II: Mesopotamia and Persia",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 976,
+          "avg": 7718,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 101978482,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 7,700 triangles each on average (976 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 102 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Ancient world",
       "style": "Claymation",
       "tags": [
@@ -4026,7 +4663,56 @@
       "slug": "greece-and-rome-ii",
       "id": "batch014",
       "name": "Greece and Rome II: heroes, myths and Roman life",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 921,
+          "avg": 7360,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 97845294,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 7,400 triangles each on average (921 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 98 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Ancient world",
       "style": "Claymation",
       "tags": [
@@ -4335,7 +5021,39 @@
       "slug": "brainrot-clay-crew",
       "id": "batch015",
       "name": "Brainrot Clay Crew",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 4332,
+          "avg": 4888,
+          "max": 5772
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 994968,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 4,900 triangles each on average (4,332 to 5,772). Every mesh is watertight and rig-ready. 1024 px preview images. 995 KB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -4456,7 +5174,39 @@
       "slug": "brainrot-clay-crew-ii",
       "id": "batch016",
       "name": "Brainrot Clay Crew II (2026 roster)",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 3636,
+          "avg": 4986,
+          "max": 5784
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 1116256,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 5,000 triangles each on average (3,636 to 5,784). Every mesh is watertight and rig-ready. 1024 px preview images. 1 MB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -4577,7 +5327,39 @@
       "slug": "brainrot-clay-crew-iii",
       "id": "batch017",
       "name": "Brainrot Clay Crew III (2026 spouse/edit roster)",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 4056,
+          "avg": 4785,
+          "max": 5484
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 1232456,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 4,800 triangles each on average (4,056 to 5,484). Every mesh is watertight and rig-ready. 1024 px preview images. 1 MB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -4698,7 +5480,39 @@
       "slug": "brainrot-clay-crew-iv",
       "id": "batch018",
       "name": "Brainrot Clay Crew IV (remaining 2026 roster)",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 4332,
+          "avg": 4546,
+          "max": 5772
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 932516,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 4,500 triangles each on average (4,332 to 5,772). Every mesh is watertight and rig-ready. 1024 px preview images. 933 KB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -4819,7 +5633,39 @@
       "slug": "clay-animatronic-crew",
       "id": "batch019",
       "name": "Clay Animatronic Crew",
-      "description": "8 claymation-style 3D models (6 characters and 2 props).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 6,
+          "creature": 0,
+          "prop": 2
+        },
+        "triangles": {
+          "min": 4332,
+          "avg": 5354,
+          "max": 6192
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 1290512,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (6 characters and 2 props), about 5,400 triangles each on average (4,332 to 6,192). Every mesh is watertight and rig-ready. 1024 px preview images. 1 MB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -4941,7 +5787,39 @@
       "slug": "clay-block-build-trend-crew",
       "id": "batch020",
       "name": "Clay Block-Build Trend Crew",
-      "description": "8 claymation-style 3D models (6 characters and 2 props).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 6,
+          "creature": 0,
+          "prop": 2
+        },
+        "triangles": {
+          "min": 1524,
+          "avg": 2109,
+          "max": 5844
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 487484,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (6 characters and 2 props), about 2,100 triangles each on average (1,524 to 5,844). Every mesh is watertight and rig-ready. 1024 px preview images. 487 KB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Trend Toys",
       "style": "Claymation",
       "tags": [
@@ -5063,7 +5941,39 @@
       "slug": "clay-blocky-adventure-crew",
       "id": "batch021",
       "name": "Clay Blocky Adventure Crew",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 1536,
+          "avg": 1814,
+          "max": 2418
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 453484,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 1,800 triangles each on average (1,536 to 2,418). Every mesh is watertight and rig-ready. 1024 px preview images. 453 KB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -5184,7 +6094,39 @@
       "slug": "clay-blocky-adventure-crew-ii",
       "id": "batch022",
       "name": "Clay Blocky Adventure Crew II",
-      "description": "8 claymation-style 3D models (6 characters and 2 props).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 6,
+          "creature": 0,
+          "prop": 2
+        },
+        "triangles": {
+          "min": 1524,
+          "avg": 2107,
+          "max": 3932
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 6,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 517636,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (6 characters and 2 props), about 2,100 triangles each on average (1,524 to 3,932). Every mesh is watertight and rig-ready. 1024 px preview images. 518 KB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -5306,7 +6248,39 @@
       "slug": "clay-blocky-noob-crew",
       "id": "batch023",
       "name": "Clay Blocky Noob Crew",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 84,
+          "avg": 233,
+          "max": 1224
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 146488,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 200 triangles each on average (84 to 1,224). Every mesh is watertight and rig-ready. 1024 px preview images. 146 KB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -5427,7 +6401,39 @@
       "slug": "clay-brainrot-gods",
       "id": "batch024",
       "name": "Clay Brainrot Gods (hero/boss tier)",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 4332,
+          "avg": 4672,
+          "max": 5164
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 970592,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 4,700 triangles each on average (4,332 to 5,164). Every mesh is watertight and rig-ready. 1024 px preview images. 971 KB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Heroes & Gods",
       "style": "Claymation",
       "tags": [
@@ -5548,7 +6554,39 @@
       "slug": "clay-dance-crew",
       "id": "batch025",
       "name": "Clay Dance Crew",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 2904,
+          "avg": 3630,
+          "max": 6492
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 751124,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 3,600 triangles each on average (2,904 to 6,492). Every mesh is watertight and rig-ready. 1024 px preview images. 751 KB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Trend Toys",
       "style": "Claymation",
       "tags": [
@@ -5669,7 +6707,39 @@
       "slug": "clay-food-crew",
       "id": "batch026",
       "name": "Clay Food Crew",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 2952,
+          "avg": 6567,
+          "max": 11664
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 1432268,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 6,600 triangles each on average (2,952 to 11,664). Every mesh is watertight and rig-ready. 1024 px preview images. 1 MB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -5790,7 +6860,39 @@
       "slug": "clay-noob-adventure-crew",
       "id": "batch027",
       "name": "Clay Noob Adventure Crew",
-      "description": "8 claymation-style 3D models (6 characters and 2 props).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 6,
+          "creature": 0,
+          "prop": 2
+        },
+        "triangles": {
+          "min": 1524,
+          "avg": 1844,
+          "max": 2676
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 509184,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (6 characters and 2 props), about 1,800 triangles each on average (1,524 to 2,676). Every mesh is watertight and rig-ready. 1024 px preview images. 509 KB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -5912,7 +7014,39 @@
       "slug": "clay-pet-crew",
       "id": "batch028",
       "name": "Clay Pet Crew",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 5822,
+          "avg": 6335,
+          "max": 6912
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 1354264,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 6,300 triangles each on average (5,822 to 6,912). Every mesh is watertight and rig-ready. 1024 px preview images. 1 MB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -6033,7 +7167,39 @@
       "slug": "clay-plumber-and-crew",
       "id": "batch029",
       "name": "Clay Plumber and Crew",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 4332,
+          "avg": 4788,
+          "max": 7212
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 995424,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 4,800 triangles each on average (4,332 to 7,212). Every mesh is watertight and rig-ready. 1024 px preview images. 995 KB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -6154,7 +7320,39 @@
       "slug": "clay-school-crew",
       "id": "batch030",
       "name": "Clay School Crew",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 5772,
+          "avg": 6359,
+          "max": 8188
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 1458340,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 6,400 triangles each on average (5,772 to 8,188). Every mesh is watertight and rig-ready. 1024 px preview images. 1 MB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -6275,7 +7473,39 @@
       "slug": "clay-space-crew",
       "id": "batch031",
       "name": "Clay Space Crew",
-      "description": "8 claymation-style 3D models (3 characters and 5 props).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 3,
+          "creature": 0,
+          "prop": 5
+        },
+        "triangles": {
+          "min": 5784,
+          "avg": 6430,
+          "max": 8168
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 1438976,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (3 characters and 5 props), about 6,400 triangles each on average (5,784 to 8,168). Every mesh is watertight and rig-ready. 1024 px preview images. 1 MB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -6397,7 +7627,39 @@
       "slug": "clay-spooky-crew",
       "id": "batch032",
       "name": "Clay Spooky Crew",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 5822,
+          "avg": 6874,
+          "max": 11520
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 1420720,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 6,900 triangles each on average (5,822 to 11,520). Every mesh is watertight and rig-ready. 1024 px preview images. 1 MB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -6518,7 +7780,39 @@
       "slug": "clay-sports-and-dance-crew",
       "id": "batch033",
       "name": "Clay Sports and Dance Crew",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 4332,
+          "avg": 5025,
+          "max": 6192
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 1073980,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 5,000 triangles each on average (4,332 to 6,192). Every mesh is watertight and rig-ready. 1024 px preview images. 1 MB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Trend Toys",
       "style": "Claymation",
       "tags": [
@@ -6639,7 +7933,39 @@
       "slug": "clay-toilet-crew",
       "id": "batch034",
       "name": "Clay Toilet Crew",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 1576,
+          "avg": 2925,
+          "max": 4568
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 654556,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 2,900 triangles each on average (1,576 to 4,568). Every mesh is watertight and rig-ready. 1024 px preview images. 655 KB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -6760,7 +8086,39 @@
       "slug": "clay-trend-toys-crew",
       "id": "batch035",
       "name": "Clay Trend Toys Crew",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 2880,
+          "avg": 3788,
+          "max": 7200
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 771568,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 3,800 triangles each on average (2,880 to 7,200). Every mesh is watertight and rig-ready. 1024 px preview images. 772 KB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Trend Toys",
       "style": "Claymation",
       "tags": [
@@ -6881,7 +8239,39 @@
       "slug": "clay-vehicle-crew",
       "id": "batch036",
       "name": "Clay Vehicle Crew",
-      "description": "8 claymation-style 3D models (8 characters).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 8,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": {
+          "min": 2904,
+          "avg": 3325,
+          "max": 5052
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 709536,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (8 characters), about 3,300 triangles each on average (2,904 to 5,052). Every mesh is watertight and rig-ready. 1024 px preview images. 710 KB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Clay Crews",
       "style": "Claymation",
       "tags": [
@@ -7002,7 +8392,39 @@
       "slug": "gaming-clay-crew",
       "id": "batch037",
       "name": "Gaming Clay Crew",
-      "description": "6 claymation-style 3D models (5 characters and 1 prop).",
+      "quality": {
+        "models": {
+          "total": 6,
+          "character": 5,
+          "creature": 0,
+          "prop": 1
+        },
+        "triangles": {
+          "min": 4332,
+          "avg": 4530,
+          "max": 5472
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 6
+        },
+        "textures": null,
+        "previews": {
+          "count": 6,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 742984,
+        "files": 6
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "6 models (5 characters and 1 prop), about 4,500 triangles each on average (4,332 to 5,472). Every mesh is watertight and rig-ready. 1024 px preview images. 743 KB in 6 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Trend Toys",
       "style": "Claymation",
       "tags": [
@@ -7110,7 +8532,39 @@
       "slug": "clay-gaming-youtuber-trend-crew",
       "id": "batch038",
       "name": "Clay Gaming-YouTuber Trend Crew",
-      "description": "8 claymation-style 3D models (4 characters and 4 props).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 4,
+          "creature": 0,
+          "prop": 4
+        },
+        "triangles": {
+          "min": 1574,
+          "avg": 2380,
+          "max": 3696
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 608576,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (4 characters and 4 props), about 2,400 triangles each on average (1,574 to 3,696). Every mesh is watertight and rig-ready. 1024 px preview images. 609 KB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Trend Toys",
       "style": "Claymation",
       "tags": [
@@ -7232,7 +8686,39 @@
       "slug": "clay-trend-toys-crew-ii",
       "id": "batch039",
       "name": "Clay Trend Toys Crew II",
-      "description": "8 claymation-style 3D models (2 characters and 6 props).",
+      "quality": {
+        "models": {
+          "total": 8,
+          "character": 2,
+          "creature": 0,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 1500,
+          "avg": 2807,
+          "max": 4932
+        },
+        "mesh": {
+          "type": "watertight",
+          "watertight": 8
+        },
+        "textures": null,
+        "previews": {
+          "count": 8,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": null,
+        "bytes": 609580,
+        "files": 8
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "8 models (2 characters and 6 props), about 2,800 triangles each on average (1,500 to 4,932). Every mesh is watertight and rig-ready. 1024 px preview images. 610 KB in 8 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Trend Toys",
       "style": "Claymation",
       "tags": [
@@ -7354,7 +8840,56 @@
       "slug": "ice-age-ii",
       "id": "batch040",
       "name": "Ice Age II: Arctic peoples and polar animals",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 908,
+          "avg": 6679,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 79943626,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 6,700 triangles each on average (908 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 80 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Arctic",
       "style": "Claymation",
       "tags": [
@@ -7663,7 +9198,56 @@
       "slug": "dinosaur-age-iii",
       "id": "batch041",
       "name": "Dinosaur Age III: cretaceous, seas and sky",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 1684,
+          "avg": 7312,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 95644351,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 7,300 triangles each on average (1,684 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 96 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Prehistoric",
       "style": "Claymation",
       "tags": [
@@ -7972,7 +9556,56 @@
       "slug": "vikings-ii",
       "id": "batch042",
       "name": "Vikings II: Norse myth and the Celtic fringe",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 1160,
+          "avg": 9144,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 106072410,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 9,100 triangles each on average (1,160 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 106 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Medieval",
       "style": "Claymation",
       "tags": [
@@ -8281,7 +9914,56 @@
       "slug": "medieval-ii",
       "id": "batch043",
       "name": "Medieval II: castle life and fairy tales",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 714,
+          "avg": 8108,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 102607823,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 8,100 triangles each on average (714 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 103 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Medieval",
       "style": "Claymation",
       "tags": [
@@ -8590,7 +10272,56 @@
       "slug": "feudal-asia-ii",
       "id": "batch044",
       "name": "Feudal Asia II: Imperial China and the Mongol steppe",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 1402,
+          "avg": 8381,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 99780535,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 8,400 triangles each on average (1,402 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 100 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Feudal Asia",
       "style": "Claymation",
       "tags": [
@@ -8888,7 +10619,7 @@
         "webm": "/library/packs/feudal-asia-ii/turntable.webm",
         "mp4": "/library/packs/feudal-asia-ii/turntable.mp4",
         "webmBytes": 190576,
-        "mp4Bytes": 120169
+        "mp4Bytes": 120558
       },
       "aiGenerated": true,
       "pipeline": "Qwen-Image 2.1 (clay LoRA) image, Hunyuan3D 2.1 shape, Hunyuan Paint texture, cleaned mesh",
@@ -8899,7 +10630,56 @@
       "slug": "pirates-ii",
       "id": "batch045",
       "name": "Pirates II: Caribbean islands and the Royal Navy",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 910,
+          "avg": 8032,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 93966445,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 8,000 triangles each on average (910 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 94 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Age of Sail",
       "style": "Claymation",
       "tags": [
@@ -9208,7 +10988,56 @@
       "slug": "wild-west-ii",
       "id": "batch046",
       "name": "Wild West II: frontier and the age of steam",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 1074,
+          "avg": 7911,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 100349741,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 7,900 triangles each on average (1,074 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 100 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Wild West",
       "style": "Claymation",
       "tags": [
@@ -9517,7 +11346,56 @@
       "slug": "modern-ii",
       "id": "batch047",
       "name": "Modern II: city life, sports and school",
-      "description": "24 claymation-style 3D models (6 characters, 12 creatures and 6 props), plus 8 tileable 1024 px textures (albedo, normal and roughness maps).",
+      "quality": {
+        "models": {
+          "total": 24,
+          "character": 6,
+          "creature": 12,
+          "prop": 6
+        },
+        "triangles": {
+          "min": 816,
+          "avg": 6409,
+          "max": 10000
+        },
+        "mesh": {
+          "type": "open",
+          "watertight": 0
+        },
+        "textures": {
+          "sets": 8,
+          "maps": [
+            "albedo",
+            "normal",
+            "roughness"
+          ],
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "previews": {
+          "count": 24,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 24,
+          "px": {
+            "min": 768,
+            "max": 768
+          }
+        },
+        "bytes": 93946192,
+        "files": 48
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "24 models (6 characters, 12 creatures and 6 props), about 6,400 triangles each on average (816 to 10,000). 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images and 768 px turntables. 94 MB in 48 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Modern day",
       "style": "Claymation",
       "tags": [
@@ -9826,7 +11704,41 @@
       "slug": "clay-hero-crew",
       "id": "batch048",
       "name": "Clay Hero Crew: heroes, idols and tricksters",
-      "description": "4 claymation-style 3D models (4 characters).",
+      "quality": {
+        "models": {
+          "total": 4,
+          "character": 4,
+          "creature": 0,
+          "prop": 0
+        },
+        "triangles": null,
+        "mesh": {
+          "type": "watertight",
+          "watertight": 4
+        },
+        "textures": null,
+        "previews": {
+          "count": 4,
+          "px": {
+            "min": 1024,
+            "max": 1024
+          }
+        },
+        "turntables": {
+          "count": 4,
+          "px": {
+            "min": 256,
+            "max": 256
+          }
+        },
+        "bytes": 125758828,
+        "files": 4
+      },
+      "changes": [],
+      "tagline": null,
+      "description": "4 models (4 characters). Every mesh is watertight and rig-ready. 1024 px preview images and 256 px turntables. 126 MB in 4 files.",
+      "highlights": [],
+      "updated": null,
       "category": "Heroes & Gods",
       "style": "Claymation",
       "tags": [
