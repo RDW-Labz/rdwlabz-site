@@ -302,6 +302,11 @@
   .chip--coming-soon {
     --dot: var(--color-grape);
   }
+  .chip--updated {
+    border-color: var(--color-ink);
+    background: var(--color-ink);
+    color: #fff;
+  }
 
   /* Filter chip (interactive) */
   .chip-filter {

@@ -22,7 +22,17 @@ import {
   themeOf,
 } from '../scripts/build-library.mjs';
 import { checkPagesLimits } from '../scripts/pages-limits.mjs';
-import { facets, modelCount, packs, validateLibrary, type LibraryPack } from '../src/lib/library';
+import { manifestCopy, plainText } from '../scripts/library/validate.mjs';
+import {
+  facets,
+  formatDate,
+  modelCount,
+  packs,
+  recentlyUpdated,
+  searchText,
+  validateLibrary,
+  type LibraryPack,
+} from '../src/lib/library';
 
 const realPacks: LibraryPack[] = JSON.parse(readFileSync('src/data/library.json', 'utf8')).packs;
 
@@ -168,6 +178,54 @@ test.describe('library sync', () => {
     expect(prettify('wild_west_ii')).toBe('Wild West II');
   });
 
+  test('manifest copy: plain text only, within limits, bad fields dropped with a warning', () => {
+    expect(plainText('<p>Sharper <em>clay</em></p>')).toBe('Sharper clay');
+    expect(plainText('a<!-- x --><style>p{}</style>b')).toBe('a b');
+    expect(
+      plainText('&lt;script&gt;alert(1)&lt;/script&gt; ok &#39;hi&#39; &#x2014; &nbsp;x'),
+    ).toBe("scriptalert(1)/script ok 'hi' — x");
+    expect(plainText('unclosed <img src=x onerror=alert(1)')).toBe('unclosed');
+    expect(plainText('  \n\t ')).toBeNull();
+    expect(plainText(42)).toBeNull();
+    expect(plainText('one two three four', 12)).toBe('one two…');
+
+    expect(manifestCopy(null)).toEqual({
+      tagline: null,
+      description: null,
+      highlights: [],
+      updated: null,
+      warnings: [],
+    });
+    const long = manifestCopy({
+      tagline: 'word '.repeat(40),
+      highlights: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'a', '<br>'],
+      updated: '2026-02-30',
+      description: ['not', 'text'],
+    });
+    expect(long.tagline!.length).toBeLessThanOrEqual(120);
+    expect(long.tagline).toMatch(/word…$/);
+    expect(long.highlights).toEqual(['a', 'b', 'c', 'd', 'e', 'f']);
+    expect(long.updated).toBeNull();
+    expect(long.description).toBeNull();
+    expect(long.warnings.join('\n')).toMatch(/"tagline" is over 120[\s\S]*"description" is empty/);
+    expect(long.warnings.join('\n')).toMatch(/more than 6[\s\S]*"updated" is not a YYYY-MM-DD/);
+    expect(manifestCopy({ highlights: 'Sharper' }).warnings).toEqual([
+      '"highlights" is not a list; ignored',
+    ]);
+  });
+
+  test('"Updated" badge window: the last 30 days of the build date', () => {
+    const now = new Date('2026-10-14T18:00:00Z');
+    expect(recentlyUpdated('2026-10-14', now)).toBe(true);
+    expect(recentlyUpdated('2026-10-15', now)).toBe(true);
+    expect(recentlyUpdated('2026-09-14', now)).toBe(true);
+    expect(recentlyUpdated('2026-09-13', now)).toBe(false);
+    expect(recentlyUpdated('2026-10-20', now)).toBe(false);
+    expect(recentlyUpdated(null, now)).toBe(false);
+    expect(recentlyUpdated('Oct 1', now)).toBe(false);
+    expect(formatDate('2026-10-01')).toBe('Oct 1, 2026');
+  });
+
   test('corrupt GLBs are caught by their vertex data', async () => {
     expect(glbGeometryProblem(await boxGlb())).toBeNull();
     expect(glbGeometryProblem(await corruptGlb())).toMatch(/corrupt|past the end/);
@@ -194,7 +252,7 @@ test.describe('library sync', () => {
       );
       git(src, 'add', '-A');
       git(src, 'commit', '-q', '-m', 'batch060: Clay Robot Crew (3 models, 0 textures)');
-      // batch061: manifest title wins.
+      // batch061: manifest title and copy win.
       put(src, 'models/batch061/mob_polar_bear.glb', await boxGlb(1.2));
       put(src, 'previews/batch061/mob_polar_bear.jpg', await jpg('#8ac'));
       put(
@@ -202,6 +260,10 @@ test.describe('library sync', () => {
         'manifests/batch061.json',
         JSON.stringify({
           title: 'Arctic Test Pack',
+          tagline: '<b>Polar</b> bears, <script>alert(1)</script>remade',
+          description: 'Re-sculpted with <a href="https://x.example">sharper</a> fur &amp; claws.',
+          highlights: ['Higher-res turntables', '<img src=x onerror=alert(1)>', 'Sharper textures'],
+          updated: '2026-10-01',
           models: [{ id: 'mob_polar_bear', category: 'mob' }],
         }),
       );
@@ -224,10 +286,19 @@ test.describe('library sync', () => {
       expect(crew.assets.find((a) => a.id === 'char_clay_broken')!.triangles).toBeNull();
       expect(crew.viewer.map((v) => v.id).sort()).toEqual(['char_clay_hero', 'char_clay_robot']);
       expect(summary).toContain('char_clay_broken.glb: vertex positions are corrupt');
+      // No manifest copy: generated description, no tagline, highlights or date.
+      expect(crew.description).toMatch(/^3 claymation-style 3D models \(3 characters\)\.$/);
+      expect(crew).toMatchObject({ tagline: null, highlights: [], updated: null });
       const arctic = data.packs[1];
       expect(arctic.name).toBe('Arctic Test Pack');
       expect(arctic.category).toBe('Arctic');
       expect(arctic.assets[0].kind).toBe('creature');
+      expect(arctic).toMatchObject({
+        tagline: 'Polar bears, remade',
+        description: 'Re-sculpted with sharper fur & claws.',
+        highlights: ['Higher-res turntables', 'Sharper textures'],
+        updated: '2026-10-01',
+      });
       for (const p of data.packs) {
         expect(p).not.toHaveProperty('download');
         expect(p).not.toHaveProperty('price');
@@ -337,6 +408,9 @@ test.describe('library.json validation', () => {
       ],
       [(p) => Object.assign(p, { price: 3 }), /price/],
       [(p) => Object.assign(p, { free: true }), /free flag/],
+      [(p) => Object.assign(p, { updated: '14/10/2026' }), /not YYYY-MM-DD/],
+      [(p) => Object.assign(p, { highlights: 'Sharper' }), /non-list highlights/],
+      [(p) => Object.assign(p, { description: '<br>' }), /no description/],
     ];
     for (const [mutate, re] of cases) {
       const p = base();
@@ -344,6 +418,26 @@ test.describe('library.json validation', () => {
       expect(() => validateLibrary({ packs: [p] })).toThrow(re);
     }
     expect(() => validateLibrary({ packs: [base(), base()] })).toThrow(/duplicate slug/);
+  });
+
+  test('copy fields are optional and come out as plain text', () => {
+    const old = base() as unknown as Record<string, unknown>;
+    delete old.tagline;
+    delete old.highlights;
+    delete old.updated;
+    expect(validateLibrary({ packs: [old] })[0]).toMatchObject({
+      tagline: null,
+      highlights: [],
+      updated: null,
+    });
+    const p = Object.assign(base(), {
+      tagline: '<i>Fresh</i> clay',
+      highlights: ['<b>Sharper</b> textures', ''],
+    });
+    expect(validateLibrary({ packs: [p] })[0]).toMatchObject({
+      tagline: 'Fresh clay',
+      highlights: ['Sharper textures'],
+    });
   });
 
   test('filter groups appear only when they can narrow the list', () => {
@@ -412,6 +506,58 @@ test('build with 0 packs: no teaser, no library card or nav link, a friendly emp
   }
 });
 
+test('manifest copy on the pack page and card; "Updated" only within 30 days', () => {
+  test.skip(realPacks.length < 2, 'needs two synced packs');
+  test.slow();
+  const day = (offset: number) =>
+    new Date(Date.now() - offset * 86_400_000).toISOString().slice(0, 10);
+  const [fresh, stale] = [structuredClone(realPacks[0]), structuredClone(realPacks[1])];
+  Object.assign(fresh, {
+    tagline: 'Remade with <b>sharper</b> clay',
+    description: 'Every model re-sculpted <script>alert(1)</script>with finer detail.',
+    highlights: ['Higher-res turntables', 'Sharper textures'],
+    updated: day(2),
+  });
+  Object.assign(stale, { tagline: null, highlights: [], updated: day(60) });
+  const b = buildWith({ packs: [fresh, stale] });
+  try {
+    const infoOf = (slug: string) => {
+      const page = b.read(`library/${slug}.html`);
+      return page.slice(page.indexOf('class="pack-info'), page.indexOf('class="pack-stats'));
+    };
+    const info = infoOf(fresh.slug);
+    expect(info).toContain('Remade with sharper clay');
+    expect(info).toContain('Every model re-sculpted with finer detail.');
+    expect(info).not.toMatch(/<script>alert|&lt;script|&lt;b&gt;/);
+    expect(info).toMatch(
+      /aria-label="Highlights"[\s\S]*Higher-res turntables[\s\S]*Sharper textures/,
+    );
+    expect(info).toMatch(
+      new RegExp(`Updated <time datetime="${day(2)}"[^>]*>${formatDate(day(2))}</time>`),
+    );
+    expect(info.indexOf('Remade with')).toBeLessThan(info.indexOf('Every model'));
+
+    const other = infoOf(stale.slug);
+    expect(other).not.toContain('chip--updated');
+    expect(other).not.toContain('aria-label="Highlights"');
+    expect(other).not.toContain('pack-info__tagline');
+    expect(other).toContain(stale.description);
+
+    const lib = b.read('library.html');
+    const card = (slug: string) => {
+      const at = lib.indexOf(`aria-labelledby="pack-${slug}-title"`);
+      return lib.slice(at, lib.indexOf('</article>', at));
+    };
+    expect(card(fresh.slug)).toContain('<p class="pack-card__tagline"');
+    expect(card(fresh.slug)).toContain('Remade with sharper clay');
+    expect(card(fresh.slug)).toContain('chip--updated');
+    expect(card(stale.slug)).not.toContain('pack-card__tagline');
+    expect(card(stale.slug)).not.toContain('chip--updated');
+  } finally {
+    b.done();
+  }
+});
+
 /* ───────────── Browser tests against the real (production) build ───────────── */
 
 test.describe('library pages', () => {
@@ -451,20 +597,7 @@ test.describe('library pages', () => {
     const visible = page.locator('[data-lib-grid] > li:visible');
     const status = page.locator('[data-lib-status]');
     const word = packs[0].assets[0].name.split(' ').pop()!.toLowerCase();
-    const expected = packs.filter((p) =>
-      [
-        p.name,
-        p.description,
-        p.category,
-        p.style,
-        ...p.tags,
-        ...p.formats,
-        ...p.assets.map((a) => a.name),
-      ]
-        .join(' ')
-        .toLowerCase()
-        .includes(word),
-    ).length;
+    const expected = packs.filter((p) => searchText(p).includes(word)).length;
     await page.getByLabel('Search packs').fill(word);
     await expect(visible).toHaveCount(expected);
     await expect(page).toHaveURL(new RegExp(`\\?q=${word}`));

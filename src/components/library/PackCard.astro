@@ -1,7 +1,14 @@
 ---
 import Chip from '../Chip.astro';
 import Icon from '../Icon.astro';
-import { formatCount, kindCounts, plural, type LibraryPack } from '../../lib/library';
+import {
+  formatCount,
+  formatDate,
+  kindCounts,
+  plural,
+  recentlyUpdated,
+  type LibraryPack,
+} from '../../lib/library';
 
 /**
  * Library sticker card. The title link stretches over the card (one tab stop); hovering or
@@ -26,6 +33,7 @@ const parts = [
   k.creature && plural(k.creature, 'creature'),
   k.prop && plural(k.prop, 'prop'),
 ].filter(Boolean);
+const fresh = recentlyUpdated(p.updated);
 ---
 
 <article
@@ -61,12 +69,18 @@ const parts = [
         {p.category}
       </Chip>
       <Chip kind="tag">Preview only</Chip>
+      {fresh && (
+        <Chip kind="tag" icon="clock" class="chip--updated">
+          Updated <time datetime={p.updated}>{formatDate(p.updated!)}</time>
+        </Chip>
+      )}
     </div>
     <H id={`pack-${p.slug}-title`} class="pack-card__title">
       <a href={`/library/${p.slug}`} class="pack-card__link">
         {p.name}
       </a>
     </H>
+    {p.tagline && <p class="pack-card__tagline">{p.tagline}</p>}
     <p class="pack-card__meta">
       {plural(p.assets.length, 'model')}
       {p.textures.length > 0 && ` · ${plural(p.textures.length, 'texture')}`}
@@ -201,6 +215,10 @@ const parts = [
     outline: 3px solid var(--color-ink);
     outline-offset: 4px;
     border-radius: 6px;
+  }
+  .pack-card__tagline {
+    margin: 0 0 8px;
+    overflow-wrap: anywhere;
   }
   .pack-card__meta {
     margin: 0;

@@ -34,6 +34,8 @@ viewers/<batch>.html (only checked for presence) .github/workflows/sync-library.
   exists; otherwise from the latest commit that touched the folder, in the form
   `batchNNN: Name (N models, N textures)`; otherwise from the folder name ("Batch 060"). Model
   counts are the GLBs actually in the folder.
+- **Pack copy (optional):** see [Manifest copy fields](#manifest-copy-fields). Without it, the
+  description is built from the counts, as before.
 - **Themes (filter chips):** era themes from the title (Prehistoric, Ancient world, Medieval,
   Feudal Asia, Age of Sail, Wild West, Modern day, Arctic), and for the crew packs: **Heroes &
   Gods** (gods, heroes, idols), **Trend Toys** (trend, toys, gaming, YouTuber, dance,
@@ -63,6 +65,42 @@ viewers/<batch>.html (only checked for presence) .github/workflows/sync-library.
   `FFMPEG=…`, and Playwright Chromium). The checkout needs `models`, `manifests`, `previews` and
   `textures`, plus history for the commit-message fallback. A full re-render of the 22 render
   packs takes about 8 minutes; the concept packs take seconds.
+
+## Manifest copy fields
+
+Use these to show a quality upgrade on the site. Add any of them to
+`clay-asset-packs/manifests/batchNNN.json` next to `title` and `models`, and push to main. The
+next sync copies them into `src/data/library.json`.
+
+```json
+{
+  "title": "Prehistoric",
+  "tagline": "Re-sculpted cave crew with real fur and stone detail",
+  "description": "Every model was re-sculpted at a higher resolution and re-textured, and the turntables are now rendered in HD.",
+  "highlights": ["Higher-res turntables", "Sharper textures"],
+  "updated": "2026-10-14",
+  "models": []
+}
+```
+
+| Field         | Type                         | Limit                       | Where it shows                                                                     | When missing                    |
+| ------------- | ---------------------------- | --------------------------- | ---------------------------------------------------------------------------------- | ------------------------------- |
+| `tagline`     | string, one line             | 120 characters              | Pack page under the title; pack card under the title                               | Nothing shown                   |
+| `description` | string, short paragraph      | 400 characters              | Pack page above the stats (replaces the generated text); page meta description     | Generated from the counts       |
+| `highlights`  | array of short strings       | 6 items, 40 characters each | Pack page, chips between the description and the stats                             | Nothing shown                   |
+| `updated`     | `YYYY-MM-DD` (calendar date) | a real date                 | "Updated Oct 14, 2026" badge on the pack page and card for 30 days after that date | No badge                        |
+
+- **Plain text only.** HTML tags, comments, `<script>`/`<style>` blocks and control characters
+  are removed, entities are decoded (`&amp;` → `&`), and whitespace is collapsed. Longer text is
+  cut at a word with "…". Duplicate or empty highlights are dropped. The site checks the same
+  rules again at build time.
+- **Bad values never break the sync.** A wrong type, an empty string or a date that isn't
+  `YYYY-MM-DD` is skipped (that field falls back), and the PR body lists it under Warnings
+  (`manifests/batchNNN.json: "updated" is not a YYYY-MM-DD date; ignored`).
+- **The 30 days count from the site build**, not from the visitor's clock. The site is static, so
+  the badge stays up until the next deploy after day 30; any sync or push to main rebuilds it.
+- These fields don't change the previews, so editing them doesn't re-render anything. The sync
+  lists the pack under "Updated" in the PR.
 
 ## Safety model (same as the project sync)
 

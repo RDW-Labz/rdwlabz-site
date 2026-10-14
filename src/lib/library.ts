@@ -1,7 +1,14 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import data from '../data/library.json' with { type: 'json' };
-import { ASSET_ID, SLUG, isTodo } from '../../scripts/library/validate.mjs';
+import {
+  ASSET_ID,
+  COPY_LIMITS,
+  SLUG,
+  isDate,
+  isTodo,
+  plainText,
+} from '../../scripts/library/validate.mjs';
 
 export type AssetKind = 'character' | 'creature' | 'prop';
 
@@ -18,7 +25,14 @@ export interface LibraryPack {
   slug: string;
   id: string;
   name: string;
+  /** One line from the manifest; null when upstream has none. */
+  tagline: string | null;
+  /** The manifest's paragraph, else generated from the counts. */
   description: string;
+  /** Short quality notes from the manifest ("Sharper textures"); may be empty. */
+  highlights: string[];
+  /** YYYY-MM-DD of the pack's last quality upgrade, from the manifest; null when not given. */
+  updated: string | null;
   category: string;
   style: string;
   tags: string[];
@@ -77,9 +91,44 @@ export function validateLibrary(raw: { packs: unknown[] }): LibraryPack[] {
     // Downloads are off: the store isn't open yet, so no pack may carry a download or a price.
     const raw = p as unknown as Record<string, unknown>;
     if (raw.download || raw.price || raw.free) fail('has a download, price or free flag');
-    return p;
+    // Manifest copy is plain text (older library.json files don't have it at all).
+    const description = plainText(p.description, COPY_LIMITS.description);
+    if (!description) fail('has no description');
+    if (raw.updated != null && !isDate(raw.updated))
+      fail('has an "updated" that is not YYYY-MM-DD');
+    if (raw.highlights != null && !Array.isArray(raw.highlights)) fail('has non-list highlights');
+    return {
+      ...p,
+      tagline: plainText(p.tagline, COPY_LIMITS.tagline),
+      description: description!,
+      highlights: ((raw.highlights as unknown[] | undefined) ?? [])
+        .map((h) => plainText(h, COPY_LIMITS.highlight))
+        .filter((h): h is string => Boolean(h))
+        .slice(0, COPY_LIMITS.highlights),
+      updated: (raw.updated as string | undefined) ?? null,
+    };
   });
 }
+
+const DAY = 86_400_000;
+/** Days a pack keeps its "Updated" badge after its manifest's `updated` date. */
+export const UPDATED_BADGE_DAYS = 30;
+
+/** True when `updated` is within the last 30 days of `now` (the build time; a day of slack ahead). */
+export function recentlyUpdated(updated: string | null, now: Date = new Date()): boolean {
+  if (!updated || !isDate(updated)) return false;
+  const age = (now.getTime() - Date.parse(`${updated}T00:00:00Z`)) / DAY;
+  return age >= -1 && age < UPDATED_BADGE_DAYS + 1;
+}
+
+/** "2026-10-14" -> "Oct 14, 2026" (UTC, so the build machine's zone never shifts the day). */
+export const formatDate = (iso: string): string =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
 
 // Typed loosely: an empty `packs` array in the JSON would otherwise infer as never[].
 export const packs: LibraryPack[] = validateLibrary(data as unknown as { packs: unknown[] });
@@ -122,7 +171,9 @@ export function facets(list: LibraryPack[]): Facet[] {
 export const searchText = (p: LibraryPack): string =>
   [
     p.name,
+    p.tagline ?? '',
     p.description,
+    ...p.highlights,
     p.category,
     p.style,
     ...p.tags,

@@ -9,10 +9,12 @@ import PackCard from '../../components/library/PackCard.astro';
 import {
   formatBytes,
   formatCount,
+  formatDate,
   kindCounts,
   licenseText,
   packs,
   plural,
+  recentlyUpdated,
   type AssetKind,
   type LibraryPack,
 } from '../../lib/library';
@@ -27,6 +29,7 @@ interface Props {
 const { pack: p } = Astro.props;
 const k = kindCounts(p);
 const license = licenseText(p);
+const fresh = recentlyUpdated(p.updated);
 const concept = p.media.kind === 'concept';
 const posterAlt = concept
   ? p.viewer[0]
@@ -142,9 +145,26 @@ const more = [
             </Chip>
           )}
           <Chip kind="tag">Preview only</Chip>
+          {fresh && (
+            <Chip kind="tag" icon="clock" class="chip--updated">
+              Updated <time datetime={p.updated}>{formatDate(p.updated!)}</time>
+            </Chip>
+          )}
         </div>
         <h1 class="pack-info__title">{p.name}</h1>
+        {p.tagline && <p class="pack-info__tagline">{p.tagline}</p>}
         <p class="pack-info__desc">{p.description}</p>
+        {p.highlights.length > 0 && (
+          <ul class="pack-info__highlights" aria-label="Highlights">
+            {p.highlights.map((h) => (
+              <li>
+                <Chip kind="tag" icon="sparkle">
+                  {h}
+                </Chip>
+              </li>
+            ))}
+          </ul>
+        )}
         <dl class="pack-stats">
           <div>
             <dt>Models</dt>
@@ -398,9 +418,29 @@ const more = [
     line-height: 1;
     overflow-wrap: anywhere;
   }
+  .pack-info__tagline {
+    margin: 0 0 10px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
   .pack-info__desc {
     margin: 0;
     font-size: 1.125rem;
+    overflow-wrap: anywhere;
+  }
+  .pack-info__highlights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
+  }
+  .pack-info__highlights :global(.chip) {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
   .pack-stats {
     display: grid;

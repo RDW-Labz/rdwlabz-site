@@ -5,6 +5,8 @@
 // Per pack (models/<id>/):
 //   name, counts   manifests/<id>.json when present, else the latest commit message touching the
 //                  folder ("batchNNN: Name (N models, N textures)"), else the folder name
+//   copy           optional manifest "tagline", "description", "highlights", "updated" (plain
+//                  text only, see docs/LIBRARY.md); description falls back to one built from counts
 //   card media     "render": packs with texture sets or an offline viewer get a real render of
 //                  their hero models (800×600 WebP + 3 s turntable, scripts/library/render.mjs)
 //                  "concept": other packs use previews/<id>/*.jpg (the images the models were made
@@ -26,7 +28,7 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { optimizeGlb } from './library/optimize.mjs';
 import { RENDER_VERSION, THUMB, VIDEO_MAX_BYTES, createRenderer } from './library/render.mjs';
-import { ASSET_ID, SLUG } from './library/validate.mjs';
+import { ASSET_ID, SLUG, manifestCopy } from './library/validate.mjs';
 
 const run = promisify(execFile);
 const FFMPEG = process.env.FFMPEG ?? 'ffmpeg';
@@ -275,6 +277,8 @@ export async function readPacks(src) {
     }
     const commit = manifest?.title ? null : commitTitle(src, id);
     const title = (manifest?.title ?? commit?.title ?? prettify(id)).trim();
+    const copy = manifestCopy(manifest);
+    for (const w of copy.warnings) warnings.push(`manifests/${id}.json: ${w}`);
     const meta = new Map((manifest?.models ?? []).map((m) => [m.id, m]));
     const assets = [];
     for (const f of glbs) {
@@ -354,7 +358,10 @@ export async function readPacks(src) {
       id,
       slug: slugify(title.split(/[:(]/)[0]) || slugify(id),
       name: title,
-      description: describe(assets, textures),
+      tagline: copy.tagline,
+      description: copy.description ?? describe(assets, textures),
+      highlights: copy.highlights,
+      updated: copy.updated,
       category,
       style: 'Claymation',
       tags: [
@@ -629,7 +636,10 @@ async function main() {
         slug: p.slug,
         id: p.id,
         name: p.name,
+        tagline: p.tagline,
         description: p.description,
+        highlights: p.highlights,
+        updated: p.updated,
         category: p.category,
         style: p.style,
         tags: p.tags,
