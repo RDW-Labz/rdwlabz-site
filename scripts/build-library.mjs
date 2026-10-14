@@ -5,8 +5,11 @@
 // Per pack (models/<id>/):
 //   name, counts   manifests/<id>.json when present, else the latest commit message touching the
 //                  folder ("batchNNN: Name (N models, N textures)"), else the folder name
-//   copy           optional manifest "tagline", "description", "highlights", "updated" (plain
-//                  text only, see docs/LIBRARY.md); description falls back to one built from counts
+//   quality        measured: texture px (PNG headers), preview/turntable px (JPG/GIF headers),
+//                  bytes, triangles min/avg/max, watertight vs open (manifest "mesh")
+//   changes        "What's new": quality diffed against the previous library.json (last 3 kept)
+//   copy           description generated from quality only; optional manifest "tagline",
+//                  "description", "highlights", "updated" win (plain text, see docs/LIBRARY.md)
 //   card media     "render": packs with texture sets or an offline viewer get a real render of
 //                  their hero models (800×600 WebP + 3 s turntable, scripts/library/render.mjs)
 //                  "concept": other packs use previews/<id>/*.jpg (the images the models were made
@@ -28,7 +31,15 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { optimizeGlb } from './library/optimize.mjs';
 import { RENDER_VERSION, THUMB, VIDEO_MAX_BYTES, createRenderer } from './library/render.mjs';
-import { ASSET_ID, SLUG, manifestCopy } from './library/validate.mjs';
+import { ASSET_ID, SLUG, isDate, manifestCopy } from './library/validate.mjs';
+import {
+  addChanges,
+  describeQuality,
+  diffQuality,
+  meshType,
+  pxRange,
+  readImageSize,
+} from './library/quality.mjs';
 
 const run = promisify(execFile);
 const FFMPEG = process.env.FFMPEG ?? 'ffmpeg';
@@ -108,7 +119,6 @@ async function webGlb(source) {
 
 const mb = (n) => `${(n / MiB).toFixed(1)} MB`;
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
-const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
 export function slugify(s) {
   const words = s
@@ -218,21 +228,6 @@ export function glbGeometryProblem(buf) {
   return null;
 }
 
-export function describe(assets, textures) {
-  const by = (k) => assets.filter((a) => a.kind === k).length;
-  const parts = [
-    by('character') && plural(by('character'), 'character'),
-    by('creature') && plural(by('creature'), 'creature'),
-    by('prop') && plural(by('prop'), 'prop'),
-  ].filter(Boolean);
-  const list = parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}` : parts[0];
-  let s = `${plural(assets.length, 'claymation-style 3D model')} (${list})`;
-  if (textures.length) {
-    s += `, plus ${plural(textures.length, 'tileable 1024 px texture')} (albedo, normal and roughness maps)`;
-  }
-  return `${s}.`;
-}
-
 async function listFiles(dir) {
   try {
     return (await readdir(dir, { withFileTypes: true }))
@@ -325,6 +320,7 @@ export async function readPacks(src) {
     const texRoot = join(src, 'textures', id);
     const textures = [];
     const texFiles = [];
+    const texSizes = [];
     if (existsSync(texRoot)) {
       for (const set of (await readdir(texRoot, { withFileTypes: true })).filter((d) =>
         d.isDirectory(),
@@ -338,7 +334,11 @@ export async function readPacks(src) {
           name: humanize(set.name),
           maps: pngs.map((f) => f.replace(/_\d+\.png$/, '').replace(/\.png$/, '')),
         });
-        for (const f of pngs) texFiles.push(statSync(join(texRoot, set.name, f)).size);
+        for (const f of pngs) {
+          const path = join(texRoot, set.name, f);
+          texFiles.push(statSync(path).size);
+          texSizes.push(await readImageSize(path).catch(() => null));
+        }
       }
     }
     const category = themeOf(title);
@@ -354,12 +354,54 @@ export async function readPacks(src) {
     }
     const counted = assets.map((a) => a.triangles).filter(Number.isInteger);
     const hasViewer = viewers.has(`viewers/${id}.html`);
+    const totalBytes =
+      assets.reduce((s, a) => s + a.bytes, 0) + texFiles.reduce((s, n) => s + n, 0);
+    const sizes = async (key) =>
+      Promise.all(assets.filter((a) => a[key]).map((a) => readImageSize(a[key]).catch(() => null)));
+    const kindCount = (k) => assets.filter((a) => a.kind === k).length;
+    const previewPx = pxRange(await sizes('preview'));
+    const turntablePx = pxRange(await sizes('gif'));
+    const texturePx = pxRange(texSizes);
+    const quality = {
+      models: {
+        total: assets.length,
+        character: kindCount('character'),
+        creature: kindCount('creature'),
+        prop: kindCount('prop'),
+      },
+      triangles: counted.length
+        ? {
+            min: Math.min(...counted),
+            avg: Math.round(counted.reduce((s, n) => s + n, 0) / counted.length),
+            max: Math.max(...counted),
+          }
+        : null,
+      mesh: meshType(assets.map((a) => a.watertight)),
+      textures: textures.length
+        ? {
+            sets: textures.length,
+            maps: [...new Set(textures.flatMap((t) => t.maps))].sort(),
+            px: texturePx && { min: texturePx.min, max: texturePx.max },
+          }
+        : null,
+      previews: previewPx && {
+        count: previewPx.count,
+        px: { min: previewPx.min, max: previewPx.max },
+      },
+      turntables: turntablePx && {
+        count: turntablePx.count,
+        px: { min: turntablePx.min, max: turntablePx.max },
+      },
+      bytes: totalBytes,
+      files: assets.length + texFiles.length,
+    };
     packs.push({
       id,
       slug: slugify(title.split(/[:(]/)[0]) || slugify(id),
       name: title,
+      quality,
       tagline: copy.tagline,
-      description: copy.description ?? describe(assets, textures),
+      description: copy.description ?? describeQuality(quality),
       highlights: copy.highlights,
       updated: copy.updated,
       category,
@@ -386,7 +428,7 @@ export async function readPacks(src) {
             average: Math.round(counted.reduce((s, n) => s + n, 0) / counted.length),
           }
         : null,
-      totalBytes: assets.reduce((s, a) => s + a.bytes, 0) + texFiles.reduce((s, n) => s + n, 0),
+      totalBytes,
       fileCount: assets.length + texFiles.length,
       accent: THEME_ACCENT[category] ?? '#b04cf0',
       hero,
@@ -483,8 +525,19 @@ async function main() {
   const force = process.argv.includes('--force');
   const prev = existsSync(DATA) ? JSON.parse(await readFile(DATA, 'utf8')) : { packs: [] };
   const prevBySlug = new Map(prev.packs.map((p) => [p.slug, p]));
+  const prevById = new Map(prev.packs.map((p) => [p.id, p]));
+  const today = process.env.LIBRARY_TODAY ?? new Date().toISOString().slice(0, 10);
+  if (!isDate(today)) throw new Error('LIBRARY_TODAY must be YYYY-MM-DD');
   const { packs, warnings, skipped } = await readPacks(src);
-  const changes = { added: [], updated: [], removed: [], rendered: [], decimated: [], skipped };
+  const changes = {
+    added: [],
+    updated: [],
+    removed: [],
+    rendered: [],
+    decimated: [],
+    news: [],
+    skipped,
+  };
   let renderer = null;
   const result = [];
 
@@ -632,10 +685,15 @@ async function main() {
         }
         changes.rendered.push(p.name);
       }
+      const before = old ?? prevById.get(p.id);
+      const news = diffQuality(before?.quality, p.quality);
+      if (news.length) changes.news.push(`${p.name}: ${news.join('; ')}`);
       const entry = {
         slug: p.slug,
         id: p.id,
         name: p.name,
+        quality: p.quality,
+        changes: addChanges(before?.changes, news, today),
         tagline: p.tagline,
         description: p.description,
         highlights: p.highlights,
@@ -706,6 +764,7 @@ async function main() {
   lines.push(`${result.length} packs, ${models} models. Downloads are off for every pack.`);
   const section = (title, xs) =>
     xs.length && lines.push('', `**${title}**`, ...xs.map((x) => `- ${x}`));
+  section(`What's new (shown on the pack pages, dated ${today})`, changes.news);
   section('Decimated for the web (preview GLB was too big)', changes.decimated);
   section('Skipped or broken files', changes.skipped);
   section('Warnings', warnings);

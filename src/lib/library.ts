@@ -21,10 +21,34 @@ export interface LibraryAsset {
   thumb: string | null;
 }
 
+type PxRange = { min: number; max: number };
+
+/** Measured from the clay-asset-packs files on every sync (scripts/library/quality.mjs). */
+export interface PackQuality {
+  models: { total: number; character: number; creature: number; prop: number };
+  triangles: { min: number; avg: number; max: number } | null;
+  mesh: { type: 'watertight' | 'open' | 'mixed' | null; watertight: number };
+  textures: { sets: number; maps: string[]; px: PxRange | null } | null;
+  previews: { count: number; px: PxRange } | null;
+  turntables: { count: number; px: PxRange } | null;
+  bytes: number;
+  files: number;
+}
+
+/** One sync's measured quality changes ("Textures upgraded to 2048 px"). */
+export interface PackChange {
+  date: string;
+  items: string[];
+}
+
 export interface LibraryPack {
   slug: string;
   id: string;
   name: string;
+  /** null in library.json files written before quality was measured. */
+  quality: PackQuality | null;
+  /** Newest first, at most 3. */
+  changes: PackChange[];
   /** One line from the manifest; null when upstream has none. */
   tagline: string | null;
   /** The manifest's paragraph, else generated from the counts. */
@@ -97,8 +121,21 @@ export function validateLibrary(raw: { packs: unknown[] }): LibraryPack[] {
     if (raw.updated != null && !isDate(raw.updated))
       fail('has an "updated" that is not YYYY-MM-DD');
     if (raw.highlights != null && !Array.isArray(raw.highlights)) fail('has non-list highlights');
+    if (raw.changes != null && !Array.isArray(raw.changes)) fail('has non-list changes');
+    const changes = ((raw.changes as PackChange[] | undefined) ?? []).slice(0, 3).map((c) => {
+      if (!isDate(c?.date)) fail('has a change without a YYYY-MM-DD date');
+      if (!Array.isArray(c.items)) fail('has a change without items');
+      return {
+        date: c.date,
+        items: c.items
+          .map((i) => plainText(i, COPY_LIMITS.description))
+          .filter((i): i is string => Boolean(i)),
+      };
+    });
     return {
       ...p,
+      quality: (raw.quality as PackQuality | undefined) ?? null,
+      changes: changes.filter((c) => c.items.length > 0),
       tagline: plainText(p.tagline, COPY_LIMITS.tagline),
       description: description!,
       highlights: ((raw.highlights as unknown[] | undefined) ?? [])
@@ -119,6 +156,12 @@ export function recentlyUpdated(updated: string | null, now: Date = new Date()):
   if (!updated || !isDate(updated)) return false;
   const age = (now.getTime() - Date.parse(`${updated}T00:00:00Z`)) / DAY;
   return age >= -1 && age < UPDATED_BADGE_DAYS + 1;
+}
+
+/** The badge date: the newest measured change, or the manifest's `updated`, whichever is later. */
+export function lastUpdated(p: Pick<LibraryPack, 'changes' | 'updated'>): string | null {
+  const dates = [p.changes[0]?.date, p.updated].filter((d): d is string => Boolean(d)).sort();
+  return dates.at(-1) ?? null;
 }
 
 /** "2026-10-14" -> "Oct 14, 2026" (UTC, so the build machine's zone never shifts the day). */

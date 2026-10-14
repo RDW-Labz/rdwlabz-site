@@ -4,6 +4,7 @@ import Icon from '../Icon.astro';
 import {
   formatCount,
   formatDate,
+  lastUpdated,
   kindCounts,
   plural,
   recentlyUpdated,
@@ -33,7 +34,8 @@ const parts = [
   k.creature && plural(k.creature, 'creature'),
   k.prop && plural(k.prop, 'prop'),
 ].filter(Boolean);
-const fresh = recentlyUpdated(p.updated);
+const updated = lastUpdated(p);
+const fresh = recentlyUpdated(updated);
 ---
 
 <article
@@ -71,7 +73,7 @@ const fresh = recentlyUpdated(p.updated);
       <Chip kind="tag">Preview only</Chip>
       {fresh && (
         <Chip kind="tag" icon="clock" class="chip--updated">
-          Updated <time datetime={p.updated}>{formatDate(p.updated!)}</time>
+          Updated <time datetime={updated}>{formatDate(updated!)}</time>
         </Chip>
       )}
     </div>

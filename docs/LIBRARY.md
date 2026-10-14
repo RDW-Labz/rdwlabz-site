@@ -34,8 +34,8 @@ viewers/<batch>.html (only checked for presence) .github/workflows/sync-library.
   exists; otherwise from the latest commit that touched the folder, in the form
   `batchNNN: Name (N models, N textures)`; otherwise from the folder name ("Batch 060"). Model
   counts are the GLBs actually in the folder.
-- **Pack copy (optional):** see [Manifest copy fields](#manifest-copy-fields). Without it, the
-  description is built from the counts, as before.
+- **Pack copy is automatic:** measured on every sync, with "What's new" and an "Updated" badge
+  when the measurements change. See [Pack quality and copy](#pack-quality-and-copy).
 - **Themes (filter chips):** era themes from the title (Prehistoric, Ancient world, Medieval,
   Feudal Asia, Age of Sail, Wild West, Modern day, Arctic), and for the crew packs: **Heroes &
   Gods** (gods, heroes, idols), **Trend Toys** (trend, toys, gaming, YouTuber, dance,
@@ -66,11 +66,55 @@ viewers/<batch>.html (only checked for presence) .github/workflows/sync-library.
   `textures`, plus history for the commit-message fallback. A full re-render of the 22 render
   packs takes about 8 minutes; the concept packs take seconds.
 
-## Manifest copy fields
+## Pack quality and copy
 
-Use these to show a quality upgrade on the site. Add any of them to
-`clay-asset-packs/manifests/batchNNN.json` next to `title` and `models`, and push to main. The
-next sync copies them into `src/data/library.json`.
+Nothing to write by hand, and no paid APIs. Each sync measures every pack from the
+clay-asset-packs files (`scripts/library/quality.mjs`) and stores the result as `pack.quality`
+in `src/data/library.json`:
+
+| Field                      | Measured from                                                                    |
+| -------------------------- | -------------------------------------------------------------------------------- |
+| `models`                   | GLBs in `models/<batch>/`, by file prefix (`char_`, `mob_`, `prop_`)             |
+| `triangles` `min/avg/max`  | each GLB's mesh data (broken GLBs are left out)                                  |
+| `mesh.type`                | manifest `models[].mesh`: `closed…` = watertight, anything else = open; `watertight` if all are, `open` if none are, `mixed`, or `null` when the manifest doesn't say for every model |
+| `textures` `sets/maps/px`  | `textures/<batch>/<set>/*.png` headers (no decoding)                             |
+| `previews.px`              | `previews/<batch>/*.jpg` headers                                                 |
+| `turntables.px`            | `previews/<batch>/*.gif` headers                                                 |
+| `bytes`, `files`           | GLBs + texture PNGs (what a buyer would get)                                     |
+
+`px` is `{ min, max }` of each image's short side, so 1920×1080 counts as 1080 px. Phrases use
+`min`: "2048 px" means every file is at least that.
+
+**Description.** Built from `quality` only, for example: "24 models (6 characters, 12 creatures
+and 6 props), about 7,100 triangles each on average (818 to 10,000). Every mesh is watertight and
+rig-ready. 8 texture sets at 1024 px (albedo, normal and roughness maps). 1024 px preview images
+and 512 px turntables. 102 MB in 48 files." It says "watertight and rig-ready" only when every
+mesh is watertight, "N of M meshes are watertight" when some are, and nothing about meshes
+otherwise.
+
+**What's new.** Before writing `library.json`, the sync diffs each pack's new `quality` with the
+previous file's. Any change adds `{ "date": "<today, UTC>", "items": [...] }` to `pack.changes`
+(newest first, last 3 kept; a second sync on the same day adds to that day's entry). Phrases:
+
+- "Textures upgraded to 2048 px", or "Textures now 512 px (was 1024 px)"
+- "Turntables now 1080 px", "Preview images now 1024 px" (and "(was …)" when lower)
+- "Higher-detail models (avg 9,800 triangles, was 6,400)", or "Lighter models (…)"
+- "Pack size 103 MB (was 51 MB)", "30 models (was 24)", "10 texture sets (was 8)"
+- "Every mesh is now watertight and rig-ready", or "Meshes are now open, no longer rig-ready"
+- "Now includes turntables at 512 px", "Textures removed"
+
+Triangle and size changes under 5% are ignored. A pack with no previous `quality` (the first
+measured sync) gets no entry; that sync is the baseline. The sync PR lists every new entry under
+"What's new". `LIBRARY_TODAY=YYYY-MM-DD` overrides the date (tests).
+
+**On the site.** The pack page shows the description and a "What's new" list above the stats.
+The pack page and the pack card (on `/library`, Home and "More packs") show an "Updated
+<date>" badge for 30 days after the newest change.
+
+### Optional manifest overrides
+
+To word it yourself, add any of these to `clay-asset-packs/manifests/batchNNN.json` next to
+`title` and `models`. They win over the generated text; the measured "What's new" still shows.
 
 ```json
 {
@@ -86,9 +130,9 @@ next sync copies them into `src/data/library.json`.
 | Field         | Type                         | Limit                       | Where it shows                                                                     | When missing                    |
 | ------------- | ---------------------------- | --------------------------- | ---------------------------------------------------------------------------------- | ------------------------------- |
 | `tagline`     | string, one line             | 120 characters              | Pack page under the title; pack card under the title                               | Nothing shown                   |
-| `description` | string, short paragraph      | 400 characters              | Pack page above the stats (replaces the generated text); page meta description     | Generated from the counts       |
+| `description` | string, short paragraph      | 400 characters              | Pack page above the stats (replaces the generated text); page meta description     | Generated from `quality`        |
 | `highlights`  | array of short strings       | 6 items, 40 characters each | Pack page, chips between the description and the stats                             | Nothing shown                   |
-| `updated`     | `YYYY-MM-DD` (calendar date) | a real date                 | "Updated Oct 14, 2026" badge on the pack page and card for 30 days after that date | No badge                        |
+| `updated`     | `YYYY-MM-DD` (calendar date) | a real date                 | "Updated" badge for 30 days, if later than the newest measured change              | Badge from `changes` only       |
 
 - **Plain text only.** HTML tags, comments, `<script>`/`<style>` blocks and control characters
   are removed, entities are decoded (`&amp;` → `&`), and whitespace is collapsed. Longer text is
@@ -99,8 +143,8 @@ next sync copies them into `src/data/library.json`.
   (`manifests/batchNNN.json: "updated" is not a YYYY-MM-DD date; ignored`).
 - **The 30 days count from the site build**, not from the visitor's clock. The site is static, so
   the badge stays up until the next deploy after day 30; any sync or push to main rebuilds it.
-- These fields don't change the previews, so editing them doesn't re-render anything. The sync
-  lists the pack under "Updated" in the PR.
+- None of this changes the previews, so new copy or a new measurement doesn't re-render
+  anything. The sync lists the pack under "Updated" in the PR.
 
 ## Safety model (same as the project sync)
 

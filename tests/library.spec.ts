@@ -24,8 +24,16 @@ import {
 import { checkPagesLimits } from '../scripts/pages-limits.mjs';
 import { manifestCopy, plainText } from '../scripts/library/validate.mjs';
 import {
+  addChanges,
+  describeQuality,
+  diffQuality,
+  imageSize,
+  meshType,
+} from '../scripts/library/quality.mjs';
+import {
   facets,
   formatDate,
+  lastUpdated,
   modelCount,
   packs,
   recentlyUpdated,
@@ -119,8 +127,8 @@ async function corruptGlb(): Promise<Buffer> {
   return glb;
 }
 
-const jpg = (color: string) =>
-  sharp({ create: { width: 64, height: 64, channels: 3, background: color } })
+const jpg = (color: string, size = 64) =>
+  sharp({ create: { width: size, height: size, channels: 3, background: color } })
     .jpeg()
     .toBuffer();
 
@@ -224,6 +232,118 @@ test.describe('library sync', () => {
     expect(recentlyUpdated(null, now)).toBe(false);
     expect(recentlyUpdated('Oct 1', now)).toBe(false);
     expect(formatDate('2026-10-01')).toBe('Oct 1, 2026');
+    const changes = [{ date: '2026-10-10', items: ['Textures upgraded to 2048 px'] }];
+    expect(lastUpdated({ changes, updated: null })).toBe('2026-10-10');
+    expect(lastUpdated({ changes, updated: '2026-10-12' })).toBe('2026-10-12');
+    expect(lastUpdated({ changes: [], updated: null })).toBeNull();
+  });
+
+  test('image sizes come from PNG, JPEG and GIF headers', async () => {
+    const img = (w: number, h: number) =>
+      sharp({ create: { width: w, height: h, channels: 3, background: '#c86' } });
+    expect(imageSize(await img(2048, 1024).png().toBuffer())).toEqual({
+      width: 2048,
+      height: 1024,
+    });
+    expect(imageSize(await img(640, 480).gif().toBuffer())).toEqual({ width: 640, height: 480 });
+    const exif = await img(1920, 1080)
+      .withMetadata({ exif: { IFD0: { ImageDescription: 'x'.repeat(5000) } } })
+      .jpeg()
+      .toBuffer();
+    expect(imageSize(exif)).toEqual({ width: 1920, height: 1080 });
+    expect(imageSize(Buffer.from('not an image'))).toBeNull();
+    expect(meshType([true, true])).toEqual({ type: 'watertight', watertight: 2 });
+    expect(meshType([true, false])).toEqual({ type: 'mixed', watertight: 1 });
+    expect(meshType([false])).toEqual({ type: 'open', watertight: 0 });
+    expect(meshType([true, null])).toEqual({ type: null, watertight: 1 });
+  });
+
+  /** Measured quality of a typical textured pack. */
+  const quality = () => ({
+    models: { total: 24, character: 6, creature: 12, prop: 6 },
+    triangles: { min: 818, avg: 6400, max: 10_000 },
+    mesh: { type: 'watertight' as string | null, watertight: 24 },
+    textures: { sets: 8, maps: ['albedo', 'normal', 'roughness'], px: { min: 1024, max: 1024 } },
+    previews: { count: 24, px: { min: 1024, max: 1024 } },
+    turntables: { count: 24, px: { min: 512, max: 512 } },
+    bytes: 51_000_000,
+    files: 48,
+  });
+
+  test('quality diff: no change means no entry; the first measurement is a baseline', () => {
+    expect(diffQuality(quality(), quality())).toEqual([]);
+    expect(diffQuality(undefined, quality())).toEqual([]);
+    expect(addChanges([], [], '2026-10-14')).toEqual([]);
+    const tiny = quality();
+    tiny.triangles.avg = 6450;
+    tiny.bytes = 51_200_000;
+    expect(diffQuality(quality(), tiny)).toEqual([]);
+  });
+
+  test('quality diff: texture 1024 → 2048 px and other upgrades become factual phrases', () => {
+    const next = quality();
+    next.textures.px = { min: 2048, max: 2048 };
+    expect(diffQuality(quality(), next)).toEqual(['Textures upgraded to 2048 px']);
+    Object.assign(next, {
+      triangles: { min: 900, avg: 9800, max: 14_000 },
+      turntables: { count: 24, px: { min: 1080, max: 1080 } },
+      bytes: 103_000_000,
+    });
+    expect(diffQuality(quality(), next)).toEqual([
+      'Higher-detail models (avg 9,800 triangles, was 6,400)',
+      'Textures upgraded to 2048 px',
+      'Turntables now 1080 px',
+      'Pack size 103 MB (was 51 MB)',
+    ]);
+    const worse = quality();
+    worse.textures.px = { min: 512, max: 1024 };
+    expect(diffQuality(quality(), worse)).toEqual(['Textures now 512 px (was 1024 px)']);
+  });
+
+  test('quality diff: watertight → open drops "rig-ready" from the description', () => {
+    const was = quality();
+    expect(describeQuality(was)).toContain('watertight and rig-ready');
+    const open = quality();
+    open.mesh = { type: 'open', watertight: 0 };
+    expect(diffQuality(was, open)).toEqual(['Meshes are now open, no longer rig-ready']);
+    expect(describeQuality(open)).not.toMatch(/rig-ready|watertight/);
+    const mixed = quality();
+    mixed.mesh = { type: 'mixed', watertight: 20 };
+    expect(describeQuality(mixed)).toContain('20 of 24 meshes are watertight.');
+    expect(describeQuality(mixed)).not.toContain('rig-ready');
+    expect(diffQuality(open, was)).toEqual(['Every mesh is now watertight and rig-ready']);
+    const unknown = quality();
+    unknown.mesh = { type: null, watertight: 0 };
+    expect(describeQuality(unknown)).not.toMatch(/rig-ready|watertight/);
+  });
+
+  test('generated description says only what was measured', () => {
+    expect(describeQuality(quality())).toBe(
+      '24 models (6 characters, 12 creatures and 6 props), about 6,400 triangles each on average (818 to 10,000). ' +
+        'Every mesh is watertight and rig-ready. ' +
+        '8 texture sets at 1024 px (albedo, normal and roughness maps). ' +
+        '1024 px preview images and 512 px turntables. 51 MB in 48 files.',
+    );
+    const bare = Object.assign(quality(), {
+      triangles: null,
+      mesh: { type: null, watertight: 0 },
+      textures: null,
+      previews: null,
+      turntables: null,
+      models: { total: 1, character: 0, creature: 0, prop: 1 },
+      files: 1,
+      bytes: 400_000,
+    });
+    expect(describeQuality(bare)).toBe('1 model (1 prop). 400 KB in 1 file.');
+  });
+
+  test('change entries: newest first, merged within a day, last 3 kept', () => {
+    let c = addChanges([], ['A'], '2026-10-01');
+    c = addChanges(c, ['B'], '2026-10-01');
+    expect(c).toEqual([{ date: '2026-10-01', items: ['A', 'B'] }]);
+    for (const d of ['2026-10-02', '2026-10-03', '2026-10-04']) c = addChanges(c, [d], d);
+    expect(c.map((e) => e.date)).toEqual(['2026-10-04', '2026-10-03', '2026-10-02']);
+    expect(addChanges(c, [], '2026-10-05')).toBe(c);
   });
 
   test('corrupt GLBs are caught by their vertex data', async () => {
@@ -286,9 +406,20 @@ test.describe('library sync', () => {
       expect(crew.assets.find((a) => a.id === 'char_clay_broken')!.triangles).toBeNull();
       expect(crew.viewer.map((v) => v.id).sort()).toEqual(['char_clay_hero', 'char_clay_robot']);
       expect(summary).toContain('char_clay_broken.glb: vertex positions are corrupt');
-      // No manifest copy: generated description, no tagline, highlights or date.
-      expect(crew.description).toMatch(/^3 claymation-style 3D models \(3 characters\)\.$/);
-      expect(crew).toMatchObject({ tagline: null, highlights: [], updated: null });
+      // No manifest copy: description generated from measured quality only; first sync = baseline.
+      expect(crew.quality).toMatchObject({
+        models: { total: 3, character: 3 },
+        triangles: { min: 12, avg: 12, max: 12 },
+        mesh: { type: null },
+        textures: null,
+        previews: { count: 2, px: { min: 64, max: 64 } },
+        turntables: { count: 1, px: { min: 8, max: 8 } },
+        files: 3,
+      });
+      expect(crew.description).toMatch(
+        /^3 models \(3 characters\), 12 triangles each\. 64 px preview images and 8 px turntables\. \d+ KB in 3 files\.$/,
+      );
+      expect(crew).toMatchObject({ tagline: null, highlights: [], updated: null, changes: [] });
       const arctic = data.packs[1];
       expect(arctic.name).toBe('Arctic Test Pack');
       expect(arctic.category).toBe('Arctic');
@@ -322,6 +453,20 @@ test.describe('library sync', () => {
       ]);
       expect(summary).toMatch(/\*\*Added:\*\* Clay Space Toys/);
       expect(summary).not.toMatch(/Previews built:.*Clay Robot Crew/);
+      expect(data.packs.every((p) => p.changes.length === 0)).toBe(true);
+      expect(summary).not.toContain("What's new");
+
+      // Sharper preview images upstream: measured, dated, listed in the PR and on the page.
+      put(src, 'previews/batch061/mob_polar_bear.jpg', await jpg('#8ac', 128));
+      ({ data, summary } = sync(src, out, { LIBRARY_TODAY: '2026-10-14' }));
+      const upgraded = data.packs.find((p) => p.slug === 'arctic-test-pack')!;
+      expect(upgraded.changes).toEqual([
+        { date: '2026-10-14', items: ['Preview images now 128 px'] },
+      ]);
+      expect(upgraded.description).toBe('Re-sculpted with sharper fur & claws.');
+      expect(summary).toContain("What's new");
+      expect(summary).toContain('Arctic Test Pack: Preview images now 128 px');
+      expect(data.packs.find((p) => p.slug === 'clay-robot-crew')!.changes).toEqual([]);
 
       // Removed upstream: gone from the data and its previews deleted.
       rmSync(join(src, 'models/batch061'), { recursive: true });
@@ -411,6 +556,8 @@ test.describe('library.json validation', () => {
       [(p) => Object.assign(p, { updated: '14/10/2026' }), /not YYYY-MM-DD/],
       [(p) => Object.assign(p, { highlights: 'Sharper' }), /non-list highlights/],
       [(p) => Object.assign(p, { description: '<br>' }), /no description/],
+      [(p) => Object.assign(p, { changes: { date: '2026-10-14' } }), /non-list changes/],
+      [(p) => Object.assign(p, { changes: [{ date: 'today', items: ['x'] }] }), /YYYY-MM-DD/],
     ];
     for (const [mutate, re] of cases) {
       const p = base();
@@ -422,13 +569,13 @@ test.describe('library.json validation', () => {
 
   test('copy fields are optional and come out as plain text', () => {
     const old = base() as unknown as Record<string, unknown>;
-    delete old.tagline;
-    delete old.highlights;
-    delete old.updated;
+    for (const k of ['tagline', 'highlights', 'updated', 'quality', 'changes']) delete old[k];
     expect(validateLibrary({ packs: [old] })[0]).toMatchObject({
       tagline: null,
       highlights: [],
       updated: null,
+      quality: null,
+      changes: [],
     });
     const p = Object.assign(base(), {
       tagline: '<i>Fresh</i> clay',
@@ -506,7 +653,7 @@ test('build with 0 packs: no teaser, no library card or nav link, a friendly emp
   }
 });
 
-test('manifest copy on the pack page and card; "Updated" only within 30 days', () => {
+test('pack page and card: copy, "What\'s new", and "Updated" only within 30 days', () => {
   test.skip(realPacks.length < 2, 'needs two synced packs');
   test.slow();
   const day = (offset: number) =>
@@ -516,9 +663,18 @@ test('manifest copy on the pack page and card; "Updated" only within 30 days', (
     tagline: 'Remade with <b>sharper</b> clay',
     description: 'Every model re-sculpted <script>alert(1)</script>with finer detail.',
     highlights: ['Higher-res turntables', 'Sharper textures'],
-    updated: day(2),
+    updated: null,
+    changes: [
+      { date: day(2), items: ['Textures upgraded to 2048 px', 'Turntables now 1080 px'] },
+      { date: day(40), items: ['Pack size 103 MB (was 51 MB)'] },
+    ],
   });
-  Object.assign(stale, { tagline: null, highlights: [], updated: day(60) });
+  Object.assign(stale, {
+    tagline: null,
+    highlights: [],
+    updated: null,
+    changes: [{ date: day(60), items: ['<b>Higher-detail</b> models'] }],
+  });
   const b = buildWith({ packs: [fresh, stale] });
   try {
     const infoOf = (slug: string) => {
@@ -536,8 +692,15 @@ test('manifest copy on the pack page and card; "Updated" only within 30 days', (
       new RegExp(`Updated <time datetime="${day(2)}"[^>]*>${formatDate(day(2))}</time>`),
     );
     expect(info.indexOf('Remade with')).toBeLessThan(info.indexOf('Every model'));
+    expect(info).toMatch(
+      new RegExp(
+        `What’s new[\\s\\S]*${formatDate(day(2))}[\\s\\S]*Textures upgraded to 2048 px[\\s\\S]*` +
+          `Turntables now 1080 px[\\s\\S]*${formatDate(day(40))}[\\s\\S]*Pack size 103 MB`,
+      ),
+    );
 
     const other = infoOf(stale.slug);
+    expect(other).toMatch(/What’s new[\s\S]*<li[^>]*>Higher-detail models<\/li>/);
     expect(other).not.toContain('chip--updated');
     expect(other).not.toContain('aria-label="Highlights"');
     expect(other).not.toContain('pack-info__tagline');

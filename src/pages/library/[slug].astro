@@ -10,6 +10,7 @@ import {
   formatBytes,
   formatCount,
   formatDate,
+  lastUpdated,
   kindCounts,
   licenseText,
   packs,
@@ -29,7 +30,8 @@ interface Props {
 const { pack: p } = Astro.props;
 const k = kindCounts(p);
 const license = licenseText(p);
-const fresh = recentlyUpdated(p.updated);
+const updated = lastUpdated(p);
+const fresh = recentlyUpdated(updated);
 const concept = p.media.kind === 'concept';
 const posterAlt = concept
   ? p.viewer[0]
@@ -147,7 +149,7 @@ const more = [
           <Chip kind="tag">Preview only</Chip>
           {fresh && (
             <Chip kind="tag" icon="clock" class="chip--updated">
-              Updated <time datetime={p.updated}>{formatDate(p.updated!)}</time>
+              Updated <time datetime={updated}>{formatDate(updated!)}</time>
             </Chip>
           )}
         </div>
@@ -164,6 +166,25 @@ const more = [
               </li>
             ))}
           </ul>
+        )}
+        {p.changes.length > 0 && (
+          <section class="whats-new" aria-labelledby="whats-new-title">
+            <h2 id="whats-new-title" class="whats-new__title">
+              What’s new
+            </h2>
+            {p.changes.map((c) => (
+              <div class="whats-new__entry">
+                <p class="whats-new__date">
+                  <time datetime={c.date}>{formatDate(c.date)}</time>
+                </p>
+                <ul>
+                  {c.items.map((item) => (
+                    <li>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </section>
         )}
         <dl class="pack-stats">
           <div>
@@ -440,6 +461,32 @@ const more = [
   .pack-info__highlights :global(.chip) {
     max-width: 100%;
     white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .whats-new {
+    margin-top: 20px;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    background: color-mix(in oklab, var(--acc), #fff 82%);
+  }
+  .whats-new__title {
+    margin: 0 0 6px;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 800;
+  }
+  .whats-new__entry + .whats-new__entry {
+    margin-top: 10px;
+  }
+  .whats-new__date {
+    margin: 0;
+    color: var(--color-ink-soft);
+    font-size: var(--text-small);
+    font-weight: 700;
+  }
+  .whats-new ul {
+    margin: 2px 0 0;
+    padding-left: 1.2em;
     overflow-wrap: anywhere;
   }
   .pack-stats {
