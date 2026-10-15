@@ -134,6 +134,13 @@ images, hover-to-spin cards where a turntable exists, search and theme chips, an
 
 Setup, secrets, R2 steps and license notes: `docs/LIBRARY.md`.
 
+## Web projects showcase
+
+Sites live in `src/data/showcase.json`. `node scripts/capture-showcase.mjs` screenshots them
+(desktop + mobile, fold + full page, OG card) into `public/showcase/`; the "Refresh showcase"
+workflow does it weekly and auto-merges a PR only when the images changed visibly. Private builds:
+`node scripts/capture-private.mjs` against a local run with fake data. Details: `docs/SHOWCASE.md`.
+
 ## Analytics
 
 Cloudflare Web Analytics is on for the Pages project and Cloudflare injects the beacon automatically (cookie-free, aggregate page views). The privacy policy says so in "Website analytics". Leave `PUBLIC_CF_BEACON_TOKEN` unset while automatic injection is on, or every page view counts twice; it's only for hosting without auto-injection.
@@ -157,6 +164,7 @@ Cloudflare Web Analytics is on for the Pages project and Cloudflare injects the 
 - `docs/PATTERNS.md`: reusable patterns
 - `docs/ASSETS.md`: asset provenance
 - `docs/LIBRARY.md`: Clay Asset Library (data flow, sync, R2, license notes)
+- `docs/SHOWCASE.md`: Web projects showcase (data, screenshots, weekly refresh, private builds)
 - `docs/LIBRARY-VIDEOS.md`: Higgsfield prompts and specs for the library videos
 - `docs/PROGRESS.md`: milestone log
 - Screenshots: `docs/screenshots/`

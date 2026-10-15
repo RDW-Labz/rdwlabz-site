@@ -9,6 +9,7 @@ import LabBench from '../components/home/LabBench.astro';
 import LabActivity from '../components/home/LabActivity.astro';
 import PopHeading from '../components/PopHeading.astro';
 import LibraryTeaser from '../components/library/LibraryTeaser.astro';
+import WebProjects from '../components/showcase/WebProjects.astro';
 import { packs as libraryPacks } from '../lib/library';
 import {
   activeCategories,
@@ -215,6 +216,12 @@ const kinds = ['', 'One', 'Two', 'Three', 'Four'][activeCategories.length] ?? 'A
       <LabActivity items={activity} />
     </Section>
   )}
+
+  <!-- 3b. Web projects (only when showcase.json has entries) -->
+  <WebProjects
+    tone={spotlight ? 'mint' : 'peach'}
+    lead="Websites we’ve built, captured from the live sites."
+  />
 
   <!-- 4. Work with us -->
   <Section tone="paper" id="work-with-us" labelledby="wwu-title">

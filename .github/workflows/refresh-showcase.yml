@@ -1,0 +1,142 @@
+# Refresh showcase: re-captures the "Web projects" screenshots from the live sites listed in
+# src/data/showcase.json, weekly and on demand. scripts/capture-showcase.mjs only rewrites a site's
+# images when one of them changed visibly (perceptual diff over 2%), so a quiet week opens no PR.
+# Same safety model as sync-library.yml: the PR auto-merges only if the build and e2e tests pass,
+# every PR check is green, AND it touches nothing but src/data/showcase-shots.json and
+# public/showcase/*. Never pushes to main directly, never deploys.
+# A site that shows an error, a login wall or personal data fails this run loudly (red job, no PR)
+# and keeps its old images. Private builds are never captured here (see docs/SHOWCASE.md).
+#
+# Secrets (least access each):
+# - RDWLABZ_PR_TOKEN: rdwlabz-site only, Contents + Pull requests write (push bot branch, PR, merge).
+# - GITHUB_TOKEN: read-only; only reads the PR's checks before auto-merge (fine-grained PATs can't).
+name: Refresh showcase
+
+on:
+  schedule:
+    - cron: '17 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Replace every screenshot even if nothing changed visibly
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: refresh-showcase
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # GITHUB_TOKEN only reads the PR's checks before auto-merge (fine-grained PATs can't).
+    permissions:
+      contents: read
+      pull-requests: read
+      checks: read
+      statuses: read
+    env:
+      BRANCH: bot/refresh-showcase
+      ASTRO_TELEMETRY_DISABLED: '1'
+      ALLOWED: '^(src/data/showcase-shots\.json|public/showcase/.+)$'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Capture screenshots
+        env:
+          FORCE: ${{ inputs.force && '--force' || '' }}
+        run: |
+          status=0
+          node scripts/capture-showcase.mjs $FORCE --summary "$RUNNER_TEMP/summary.md" || status=$?
+          cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY" || true
+          exit $status
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if [ -z "$(git status --porcelain -- src/data/showcase-shots.json public/showcase)" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No visible changes; nothing to commit."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git status --porcelain -- src/data/showcase-shots.json public/showcase
+          fi
+
+      - name: Build
+        id: build
+        if: steps.diff.outputs.changed == 'true'
+        continue-on-error: true
+        run: npm run build
+
+      - name: E2E tests
+        id: test
+        if: steps.diff.outputs.changed == 'true' && steps.build.outcome == 'success'
+        continue-on-error: true
+        run: npx playwright test --project=e2e
+
+      - name: Open or update the refresh PR
+        id: pr
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          PR_TOKEN: ${{ secrets.RDWLABZ_PR_TOKEN }}
+          GH_TOKEN: ${{ secrets.RDWLABZ_PR_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$PR_TOKEN" ]; then
+            echo "::error::RDWLABZ_PR_TOKEN is not set (see docs/SHOWCASE.md)"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$BRANCH"
+          git add -A -- src/data/showcase-shots.json public/showcase
+          git commit -m "Refresh showcase screenshots"
+          git push --force "https://x-access-token:${PR_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            "HEAD:refs/heads/$BRANCH"
+          if [ "$(gh pr list --head "$BRANCH" --state open --json number --jq length)" = "0" ]; then
+            gh pr create --base main --head "$BRANCH" \
+              --title "Refresh showcase screenshots" --body-file "$RUNNER_TEMP/summary.md"
+          else
+            gh pr edit "$BRANCH" --body-file "$RUNNER_TEMP/summary.md"
+          fi
+
+      - name: Auto-merge when green and images-only
+        if: steps.pr.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.RDWLABZ_PR_TOKEN }}
+          CHECKS_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUILD: ${{ steps.build.outcome }}
+          TESTS: ${{ steps.test.outcome }}
+        run: |
+          leave() {
+            echo "::warning::Left the showcase PR open for review: $1"
+            gh pr comment "$BRANCH" --body "Not auto-merged: $1. Review and merge by hand."
+            exit 0
+          }
+          [ "$BUILD" = "success" ] || leave "the build failed"
+          [ "$TESTS" = "success" ] || leave "the e2e tests failed"
+          other=$(gh pr diff "$BRANCH" --name-only | grep -Ev "$ALLOWED" || true)
+          [ -z "$other" ] || leave "it changes files other than showcase-shots.json and public/showcase/* ($(echo $other))"
+          failed_file="$RUNNER_TEMP/failed-checks.txt"
+          if ! node scripts/wait-pr-checks.mjs "$BRANCH" "$failed_file"; then
+            leave "a PR check failed ($(cat "$failed_file" 2>/dev/null || echo "see the run log"))"
+          fi
+          gh pr merge "$BRANCH" --squash --delete-branch || leave "GitHub refused the merge (branch protection?)"

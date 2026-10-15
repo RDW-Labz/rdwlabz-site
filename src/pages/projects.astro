@@ -6,6 +6,7 @@ import ProjectCard from '../components/ProjectCard.astro';
 import ContactButton from '../components/ContactButton.astro';
 import Icon from '../components/Icon.astro';
 import PopHeading from '../components/PopHeading.astro';
+import WebProjects from '../components/showcase/WebProjects.astro';
 import {
   activeCategories,
   allProjects,
@@ -87,6 +88,11 @@ const phrase = buildPhrase.charAt(0).toUpperCase() + buildPhrase.slice(1);
       </ul>
     )}
   </Section>
+
+  <WebProjects
+    tone="peach"
+    lead="Websites we’ve built. Screenshots refresh every week from the live sites."
+  />
 </BaseLayout>
 
 <script>

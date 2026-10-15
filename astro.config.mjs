@@ -98,7 +98,8 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
-    // RDWLABZ_DATA / RDWLABZ_LIBRARY=<abs path> build from another projects.json / library.json
+    // RDWLABZ_DATA / RDWLABZ_LIBRARY / RDWLABZ_SHOWCASE=<abs path> build from another
+    // projects.json / library.json / showcase.json
     // (tests build an empty shelf or fixture packs this way without touching the real files).
     resolve: {
       alias: [
@@ -107,6 +108,9 @@ export default defineConfig({
           : []),
         ...(process.env.RDWLABZ_LIBRARY
           ? [{ find: /^\.\.\/data\/library\.json$/, replacement: process.env.RDWLABZ_LIBRARY }]
+          : []),
+        ...(process.env.RDWLABZ_SHOWCASE
+          ? [{ find: /^\.\.\/data\/showcase\.json$/, replacement: process.env.RDWLABZ_SHOWCASE }]
           : []),
       ],
     },

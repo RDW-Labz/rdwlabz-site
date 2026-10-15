@@ -151,7 +151,8 @@ function sync(src: string, out: string, env: Record<string, string> = {}) {
       ...['--src', src, '--data', join(out, 'library.json'), '--out', join(out, 'packs')],
       ...['--summary', join(out, 'summary.md')],
     ],
-    { stdio: 'pipe', env: { ...process.env, ...env } },
+    // Blocks the worker (Playwright can't time it out), so it gets its own hard limit.
+    { stdio: 'pipe', env: { ...process.env, ...env }, timeout: 150_000, killSignal: 'SIGKILL' },
   );
   return {
     data: JSON.parse(readFileSync(join(out, 'library.json'), 'utf8')) as { packs: LibraryPack[] },

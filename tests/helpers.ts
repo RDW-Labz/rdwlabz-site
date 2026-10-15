@@ -51,6 +51,9 @@ export function astroBuild(outDir: string, env: Record<string, string>) {
     execFileSync('npx', ['astro', 'build', '--outDir', outDir], {
       env: { ...process.env, ASTRO_TELEMETRY_DISABLED: '1', ...env },
       stdio: 'pipe',
+      // execFileSync blocks the worker, so Playwright's own timeouts can't stop a stuck build.
+      timeout: 150_000,
+      killSignal: 'SIGKILL',
     });
   } finally {
     rmSync(lock, { recursive: true, force: true });

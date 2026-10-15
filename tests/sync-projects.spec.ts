@@ -825,10 +825,10 @@ test.describe('sync auto-merge: waiting for PR checks', () => {
     expect(checksEnv({ GH_TOKEN: 'pat' })).toEqual({ GH_TOKEN: 'pat' });
   });
 
-  for (const wf of ['sync-projects.yml', 'sync-library.yml']) {
+  for (const wf of ['sync-projects.yml', 'sync-library.yml', 'refresh-showcase.yml']) {
     test(`${wf}: GITHUB_TOKEN reads checks, RDWLABZ_PR_TOKEN creates and merges`, () => {
       const text = readFileSync(join('.github/workflows', wf), 'utf8');
-      const job = text.slice(text.indexOf('\n  sync:\n'));
+      const job = text.slice(text.indexOf('\njobs:\n'));
       const perms = job.match(/\n {4}permissions:\n((?: {6}.+\n)+)/)?.[1] ?? '';
       expect(
         perms

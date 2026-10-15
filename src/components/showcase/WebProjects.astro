@@ -1,0 +1,56 @@
+---
+import Section from '../Section.astro';
+import PopHeading from '../PopHeading.astro';
+import ShowcaseCard from './ShowcaseCard.astro';
+import { showcase } from '../../lib/showcase';
+
+/** "Web projects": sites we built, with screenshots refreshed weekly (docs/SHOWCASE.md). */
+interface Props {
+  tone: 'paper' | 'peach' | 'mint';
+  /** Home shows a teaser lead; /projects the full one. */
+  lead: string;
+}
+
+const { tone, lead } = Astro.props;
+---
+
+{showcase.length > 0 && (
+  <Section tone={tone} id="web-projects" labelledby="web-projects-title">
+    <div class="web-head" data-reveal>
+      <PopHeading id="web-projects-title" class="text-h2" text="Web projects" />
+      <p class="web-head__lead">{lead}</p>
+    </div>
+    <ul class="web-grid" data-showcase-grid>
+      {showcase.map((s, i) => (
+        <li data-reveal="rise" style={`--reveal-i:${i % 3}`}>
+          <ShowcaseCard item={s} />
+        </li>
+      ))}
+    </ul>
+  </Section>
+)}
+
+<style>
+  .web-head {
+    max-width: 46rem;
+    margin-bottom: clamp(28px, 4vw, 44px);
+  }
+  .web-head__lead {
+    margin: 12px 0 0;
+    font-size: 1.1875rem;
+    color: var(--color-ink-soft);
+  }
+  .web-grid {
+    display: grid;
+    gap: 24px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 40rem) {
+    .web-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

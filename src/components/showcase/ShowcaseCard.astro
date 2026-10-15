@@ -1,0 +1,194 @@
+---
+import Icon from '../Icon.astro';
+import Chip from '../Chip.astro';
+import type { ShowcaseItem } from '../../lib/showcase';
+
+/**
+ * Web project card: screenshot, name, blurb, tags. The name is the one link (live site, new tab);
+ * its ::after stretches over the card so the whole card is clickable without nesting links.
+ * Private builds have no link and say so.
+ */
+interface Props {
+  item: ShowcaseItem;
+  headingLevel?: 'h2' | 'h3';
+  /** Home page cards sit below the fold. */
+  lazy?: boolean;
+}
+
+const { item: s, headingLevel = 'h3', lazy = true } = Astro.props;
+const H = headingLevel;
+const titleId = `web-${s.slug}-title`;
+---
+
+<article
+  class:list={['web-card', s.href && 'web-card--linked']}
+  aria-labelledby={titleId}
+  data-showcase={s.slug}
+  data-private={s.private ? 'true' : undefined}
+>
+  <div class="web-card__shot">
+    {s.image ? (
+      <img
+        src={s.image.src}
+        srcset={s.image.srcset}
+        sizes="(min-width: 64rem) 40vw, (min-width: 40rem) 50vw, 100vw"
+        width={s.image.width}
+        height={s.image.height}
+        alt={s.image.alt}
+        loading={lazy ? 'lazy' : 'eager'}
+        decoding="async"
+      />
+    ) : (
+      <div class="web-card__placeholder" aria-hidden="true">
+        <Icon name="software" size={48} strokeWidth={1.6} />
+      </div>
+    )}
+  </div>
+  <div class="web-card__body">
+    <H id={titleId} class="web-card__title">
+      {s.href ? (
+        <a class="web-card__link" href={s.href} target="_blank" rel="noopener noreferrer">
+          {s.name}
+          <span class="sr-only"> (opens external site in a new tab)</span>
+        </a>
+      ) : (
+        s.name
+      )}
+    </H>
+    <p class="web-card__blurb">{s.blurb}</p>
+    {s.tags.length > 0 && (
+      <ul class="web-card__tags" aria-label="Tags">
+        {s.tags.map((t) => (
+          <li>
+            <Chip kind="tag">{t}</Chip>
+          </li>
+        ))}
+      </ul>
+    )}
+    <p class="web-card__foot">
+      {s.href ? (
+        <span class="web-card__host">
+          {s.host} <Icon name="arrow-up-right" size={16} />
+        </span>
+      ) : (
+        <span class="web-card__private">
+          <Icon name="flask" size={16} /> Private build: demo on request
+        </span>
+      )}
+    </p>
+  </div>
+</article>
+
+<style>
+  .web-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 10px;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: 0 6px 0 var(--color-ink);
+    transition:
+      transform 160ms var(--ease-spring),
+      box-shadow 160ms var(--ease-out-soft);
+  }
+  .web-card--linked:hover,
+  .web-card--linked:focus-within {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 0 var(--color-tomato);
+  }
+  .web-card__shot {
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    border-radius: calc(var(--radius-lg) - 8px);
+    border: 2px solid var(--color-ink);
+    background: var(--color-cream);
+  }
+  .web-card__shot img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+  .web-card__placeholder {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    color: var(--color-ink-soft);
+  }
+  .web-card__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    padding: 16px 12px 12px;
+  }
+  .web-card__title {
+    margin: 0 0 6px;
+    font-size: var(--text-h3);
+    line-height: var(--text-h3--line-height);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .web-card__link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    text-decoration-color: color-mix(in oklab, var(--color-ink), transparent 70%);
+  }
+  .web-card__link:hover {
+    text-decoration-color: var(--color-tomato);
+  }
+  /* The whole card is the link's hit area. */
+  .web-card__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+  }
+  .web-card__blurb {
+    margin: 0;
+    color: var(--color-ink-soft);
+    overflow-wrap: anywhere;
+  }
+  .web-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+  }
+  .web-card__foot {
+    margin: auto 0 0;
+    padding-top: 16px;
+    font-weight: 700;
+    font-size: 0.9375rem;
+  }
+  .web-card__host {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    overflow-wrap: anywhere;
+  }
+  .web-card__private {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: var(--radius-pill);
+    border: 2px dashed color-mix(in oklab, var(--color-ink), transparent 55%);
+    color: var(--color-ink-soft);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .web-card--linked:hover,
+    .web-card--linked:focus-within {
+      transform: none;
+    }
+  }
+</style>

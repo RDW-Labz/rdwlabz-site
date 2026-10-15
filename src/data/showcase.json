@@ -1,0 +1,21 @@
+[
+  {
+    "slug": "yottaify",
+    "name": "Yottaify",
+    "url": "https://yottaify.com/",
+    "kind": "web",
+    "blurb": "B300 capacity in days, not months: forty-eight NVIDIA B300 GPUs in six 8-GPU NVLink nodes, bare metal and single tenant, in a privately owned Arkansas warehouse.",
+    "tags": ["GPU cloud", "Landing page"],
+    "private": false
+  },
+  {
+    "slug": "forge-pizza-co",
+    "name": "Forge Pizza Co",
+    "url": "https://forgepizzaco.com/",
+    "kind": "web",
+    "blurb": "Good things take fire. Slow-fermented dough and woodfired character from Forge Pizza Co. in Harrison, Arkansas, with a menu to find your next favorite pie.",
+    "tags": ["Restaurant", "Menu"],
+    "private": false,
+    "publicContact": ["(870) 517-5028"]
+  }
+]
