@@ -1,121 +1,81 @@
 {
   "forge-pizza-co": {
-    "captured": "2026-10-15",
+    "captured": "2026-10-19",
     "files": {
       "desktop": {
         "width": 2880,
         "height": 1800,
-        "bytes": 158952
+        "bytes": 164630
       },
       "desktop-full": {
         "width": 2080,
         "height": 8425,
-        "bytes": 384970
+        "bytes": 399442
       },
       "mobile": {
         "width": 1170,
         "height": 2532,
-        "bytes": 95878
+        "bytes": 99558
       },
       "mobile-full": {
-        "width": 994,
-        "height": 13776,
-        "bytes": 401604
+        "width": 844,
+        "height": 11697,
+        "bytes": 382026
       },
       "card-640": {
         "width": 640,
         "height": 400,
-        "bytes": 19056
+        "bytes": 19730
       },
       "card-1280": {
         "width": 1280,
         "height": 800,
-        "bytes": 49986
+        "bytes": 52386
       },
       "og": {
         "width": 1200,
         "height": 630,
-        "bytes": 32948
-      }
-    }
-  },
-  "probe-yottaify": {
-    "captured": "2026-10-15",
-    "files": {
-      "desktop": {
-        "width": 2880,
-        "height": 1800,
-        "bytes": 127170
-      },
-      "desktop-full": {
-        "width": 1892,
-        "height": 11825,
-        "bytes": 399670
-      },
-      "mobile": {
-        "width": 1170,
-        "height": 2532,
-        "bytes": 116248
-      },
-      "mobile-full": {
-        "width": 709,
-        "height": 16362,
-        "bytes": 359814
-      },
-      "card-640": {
-        "width": 640,
-        "height": 400,
-        "bytes": 14382
-      },
-      "card-1280": {
-        "width": 1280,
-        "height": 800,
-        "bytes": 39682
-      },
-      "og": {
-        "width": 1200,
-        "height": 630,
-        "bytes": 25408
+        "bytes": 34242
       }
     }
   },
   "yottaify": {
-    "captured": "2026-10-15",
+    "captured": "2026-10-19",
     "files": {
       "desktop": {
         "width": 2880,
         "height": 1800,
-        "bytes": 129946
+        "bytes": 131050
       },
       "desktop-full": {
         "width": 1892,
         "height": 11825,
-        "bytes": 399654
+        "bytes": 407866
       },
       "mobile": {
         "width": 1170,
         "height": 2532,
-        "bytes": 116248
+        "bytes": 113776
       },
       "mobile-full": {
         "width": 709,
         "height": 16362,
-        "bytes": 359814
+        "bytes": 359580
       },
       "card-640": {
         "width": 640,
         "height": 400,
-        "bytes": 14788
+        "bytes": 14820
       },
       "card-1280": {
         "width": 1280,
         "height": 800,
-        "bytes": 40706
+        "bytes": 41630
       },
       "og": {
         "width": 1200,
         "height": 630,
-        "bytes": 29608
+        "bytes": 30756
       }
     }
   }
