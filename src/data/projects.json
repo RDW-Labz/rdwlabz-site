@@ -71,10 +71,10 @@
       "name": "Putt Drop",
       "oneLiner": "A cozy one-thumb mini golf park for phones: drag back to aim, release to putt. Hand-made holes with water, sand, slopes, bumpers and moving gates.",
       "category": "games",
-      "status": "released",
-      "statusLabel": "Available on Google Play",
+      "status": "coming-soon",
+      "statusLabel": "Coming soon to Google Play",
       "platforms": ["Android"],
-      "url": "https://play.google.com/store/apps/details?id=com.rdwlabz.puttdrop",
+      "url": null,
       "accentColor": "#687a5b",
       "image": null,
       "icon": "/projects/putt-drop-icon.webp",
@@ -93,7 +93,6 @@
         }
       ],
       "featured": true,
-      "releasedAt": "2026-10-26",
       "addedAt": "2026-10-12",
       "sync": {
         "id": "gh-9f23b4a2d3c3",
@@ -102,16 +101,15 @@
           "name": "231940df",
           "oneLiner": "19c33dcb",
           "category": "e69443fd",
-          "status": "4281d8b5",
-          "statusLabel": "a90f03de",
+          "status": "853495a5",
+          "statusLabel": "1d302231",
           "platforms": "5b45ac66",
-          "url": "8ee9d880",
+          "url": "74234e98",
           "accentColor": "33cd0f11",
           "image": "74234e98",
           "icon": "e8f88bc8",
           "screenshots": "f38ffd49",
-          "featured": "b5bea41b",
-          "releasedAt": "dca4a87c"
+          "featured": "b5bea41b"
         }
       }
     }
