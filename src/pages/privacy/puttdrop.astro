@@ -1,0 +1,151 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { site } from '../../lib/projects';
+
+const EFFECTIVE_DATE = '2026-10-30';
+const effective = new Date(`${EFFECTIVE_DATE}T00:00:00Z`).toLocaleDateString('en-US', {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+const email = site.contactEmail;
+const mailto = `mailto:${email}`;
+const [street, ...rest] = site.address.split(', ');
+const cityLine = rest.join(', ');
+---
+
+<BaseLayout
+  title="Putt Drop Privacy Policy"
+  description="How RDW, LLC handles information in Putt Drop for Android."
+  current="privacy"
+>
+  <article class="policy container-lab" aria-labelledby="privacy-title">
+    <p class="policy__back">
+      <a href="/privacy">← Privacy</a>
+    </p>
+    <h1 id="privacy-title" class="policy__title">
+      Putt Drop Privacy Policy
+    </h1>
+    <p class="policy__date">
+      <strong>Effective date:</strong> {effective}
+    </p>
+
+    <p>
+      Putt Drop is a game for Android made by {site.company}. This page explains what the game does
+      with information. It is a game-specific supplement to our
+      <a href="/privacy">general privacy policy</a>.
+    </p>
+
+    <h2>The short version</h2>
+    <ul>
+      <li>No account, sign-up, ads, analytics or crash-reporting service.</li>
+      <li>Your progress, settings and full-game unlock stay on your device.</li>
+      <li>One optional Google Play purchase unlocks the full game. Google handles the payment.</li>
+      <li>The game has no developer server and makes no requests to us.</li>
+    </ul>
+
+    <h2>Information stored on your device</h2>
+    <p>
+      Putt Drop saves your hole progress, stars, settings and whether the full game is unlocked in
+      local app storage. This information is not sent to us. Clearing the app’s data or uninstalling
+      the app deletes it. The full-game unlock is restored from Google Play when you reinstall and
+      sign in with the same Google account.
+    </p>
+
+    <h2>Purchases</h2>
+    <p>
+      The optional “Unlock full game” purchase is processed by Google Play. We receive the
+      entitlement that tells the game you own the product; we do not receive your card details.
+      Google’s Play Billing Library may send basic app and billing diagnostics to Google. Those
+      diagnostics go to Google, not to us, and are used to operate and improve Google Play Billing.
+      The game itself does not contain analytics or advertising SDKs.
+    </p>
+
+    <h2>Permissions and network access</h2>
+    <p>
+      The game uses vibration for haptics. It also includes the permissions required by Google Play
+      Billing: internet and network state, used by Google’s billing library for diagnostics and
+      purchase processing. The game’s own code does not send your progress or gameplay to a server.
+    </p>
+
+    <h2>Children</h2>
+    <p>
+      Putt Drop is not directed to children under 13. We do not knowingly collect personal
+      information from children. If you believe a child has provided personal information, email
+      <a href={mailto}>{email}</a> and we will delete it.
+    </p>
+
+    <h2>Your choices</h2>
+    <p>
+      You can clear local progress in the game’s Settings. To ask about or request deletion of
+      information associated with a support message or purchase, email
+      <a href={mailto}>{email}</a>. You can also uninstall the app to remove local data.
+    </p>
+
+    <h2>Changes and contact</h2>
+    <p>
+      If this policy changes, we will update the effective date on this page. Questions:
+      <a href={mailto}>{email}</a>.
+    </p>
+    <address>
+      {site.company}
+      <br />
+      {street}
+      <br />
+      {cityLine}, United States
+    </address>
+  </article>
+</BaseLayout>
+
+<style>
+  .policy {
+    max-width: 46rem;
+    padding-top: clamp(40px, 6vw, 72px);
+    padding-bottom: clamp(56px, 8vw, 96px);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+  .policy__back {
+    margin: 0 0 1.25rem;
+    font-size: 0.9375rem;
+  }
+  .policy__title {
+    margin: 0;
+    font-size: clamp(2.25rem, 1.4rem + 3vw, 3.5rem);
+    line-height: 1.05;
+  }
+  .policy__date {
+    margin: 12px 0 0;
+    color: var(--color-ink-soft);
+  }
+  .policy h2 {
+    margin: 2.25em 0 0.5em;
+    font-family: var(--font-sans);
+    font-size: 1.375rem;
+    font-weight: 800;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  .policy p,
+  .policy address {
+    margin: 0.85em 0 0;
+  }
+  .policy address {
+    font-style: normal;
+  }
+  .policy ul {
+    margin: 0.85em 0 0;
+    padding-left: 1.25em;
+  }
+  .policy li + li {
+    margin-top: 0.5em;
+  }
+  .policy a {
+    color: var(--color-ink);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+  }
+</style>
