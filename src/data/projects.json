@@ -24,6 +24,38 @@
   ],
   "projects": [
     {
+      "slug": "bingo-auctions",
+      "name": "BinGo Auctions",
+      "oneLiner": "TODO: one line",
+      "category": "software",
+      "status": "released",
+      "platforms": ["Android", "iOS"],
+      "url": "https://play.google.com/store/apps/details?id=com.bingoauctions.bidder",
+      "accentColor": "#131c2d",
+      "image": null,
+      "icon": "/projects/bingo-auctions-icon.webp",
+      "featured": false,
+      "releasedAt": "2026-08-05",
+      "addedAt": "2026-11-02",
+      "sync": {
+        "id": "gh-c4c9d71e90d1",
+        "written": {
+          "slug": "bc39a00a",
+          "name": "e336cd39",
+          "oneLiner": "a42c954f",
+          "category": "857502ef",
+          "status": "4281d8b5",
+          "platforms": "a8ff7201",
+          "url": "a7132005",
+          "accentColor": "b9d54380",
+          "image": "74234e98",
+          "icon": "75a928ec",
+          "featured": "fcbcf165",
+          "releasedAt": "3e1caae9"
+        }
+      }
+    },
+    {
       "slug": "dormant-red",
       "name": "Dormant Red",
       "oneLiner": "Restore a dead space station's power, comms and airlock before your 100 seconds of oxygen run out. Something red sits dormant in a corner; get too close and it hunts you down.",
