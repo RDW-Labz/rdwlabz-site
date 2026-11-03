@@ -34,16 +34,17 @@ the hero monitor slideshow and the film playback all advance with wall-clock tim
 
 ## Differences from the prototype
 
-- **Phone default:** phones get the approved static workbench (the prototype's own no-WebGL
-  fallback) with an "Open the 3D workbench" button; the 3D phone layout is still one tap away and
-  `?quality=high` forces it. This is the only way the mobile Lighthouse budget stayed above 70 on
-  the throttled profile.
+- **Phone default:** phones get the approved static workbench on `/` and the plain paper version on
+  `/about`, each with an opt-in button ("Open the 3D workbench" / "Open the paper walk"); the full
+  3D layouts are one tap away and `?quality=high` / `?walk=1` force them. This keeps the mobile
+  Lighthouse budget above 70 on the throttled profile while the full scenes stay available.
 - **Legacy hash links:** `/#about` and `/#about-rest` redirect to `/about` and `/about#about-rest`.
 - **Deep link:** `/about#about-rest` renders the plain paper version immediately, without waiting for
   the diorama to build.
-- **Small performance adaptations on low-power phones:** 512/256 px pre-baked maps, no shadow pass,
-  no post chain at the lowest preset, and the screen world builds on the dive rather than at load.
-  These do not affect the forced `?quality=high` screenshots.
+- **Small performance adaptations:** the auto quality path uses 1024 px pre-baked maps on desktop and
+  256 px on phones, no shadow pass on auto phones, no post chain at the lowest preset, and the screen
+  world builds on the dive rather than at load. `?quality=high` still uses the full maps, so the
+  screenshots above are unchanged.
 - **Fonts** are self-hosted Latin subsets of the same families (Caveat, Instrument Sans, Instrument
   Serif, JetBrains Mono, Patrick Hand, VT323) instead of the prototype's Google Fonts request.
 
@@ -53,6 +54,7 @@ the hero monitor slideshow and the film playback all advance with wall-clock tim
 - `npm run lint`: pass.
 - `npm test`: 183 passed, 9 skipped (the old library-portal entry point and the desktop 3D home
   review shot; the latter is covered by this screenshot set).
-- Lighthouse CI mobile (3 runs, median): `/` 99 performance / 100 accessibility / 100 best
-  practices / 100 SEO; `/projects` 100 / 100 / 100 / 100; `/library` 99 / 100 / 100 / 100; a pack
-  page 100 / 100 / 100 / 100. `/` uses the phone static fallback in that profile.
+- Lighthouse CI mobile (median): `/` 95 performance / 100 accessibility / 100 best practices / 100
+  SEO; `/about` 98 / 100 / 100 / 100; `/projects` 100 / 100 / 100 / 100; `/library` 99 / 100 / 100 /
+  100; a pack page 100 / 100 / 100 / 100. Desktop Lighthouse: `/` 74–82 (TBT ≈ 0.4 s, 2.0 MB,
+  down from 63 and 4.3 MB) and `/about` 99.

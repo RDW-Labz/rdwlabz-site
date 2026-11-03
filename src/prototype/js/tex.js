@@ -15,9 +15,11 @@ export function rng(seed = 1) {
 // fallback if a file is missing. In bake mode (window.__BAKE) the generators run and their canvases
 // are handed to the bake script.
 export const BAKED = ['wenv_rgb.png', 'wenv_m.png', 'plastic_albedo', 'plastic_rough', 'plastic_normal', 'keycap_normal', 'wood_albedo', 'wood_rough', 'wood_normal', 'detail_normal', 'wall_1536x768_3', 'env_rgb.png', 'env_m.png', 'lightbake.png'];
+const WORLD_BAKED = ['wenv_rgb.png', 'wenv_m.png'];
+const HERO_BAKED = BAKED.filter((n) => !WORLD_BAKED.includes(n));
 const BAKE = typeof window !== 'undefined' && window.__BAKE ? (window.__bakeOut = window.__bakeOut || {}) : null;
 const cache = {};
-let preloading = null;
+let preloading = null, worldPreloading = null;
 export const bakeMode = !!BAKE;
 // bytes packed into a lossless PNG's RGB channels (first 4 bytes = length, little endian)
 export function bakedBin(name) {
@@ -35,16 +37,26 @@ function fit(im) {
   if (!liteMax || !im || !(im.width > liteMax)) return im;
   const k = liteMax / im.width, c = makeCanvas(liteMax, Math.round(im.height * k)); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); return c;
 }
-export function preloadBaked(capMs = 12000, mobile = false) {
+function preloadSet(list, capMs, dir) {
   if (BAKE) return Promise.resolve();
-  if (preloading) return preloading;
   const one = (f) => new Promise((res) => {
     const n = f.replace(/\.png$/, ''), im = new Image(); im.decoding = 'async';
     im.onload = () => { (im.decode ? im.decode() : Promise.resolve()).catch(() => {}).then(() => { cache[n] = im; res(); }); };
-    im.onerror = () => res(); im.src = `${mobile ? 'tex/m/' : 'tex/'}${/\.png$/.test(f) ? f : f + '.webp'}`;
+    im.onerror = () => res(); im.src = `${dir}${/\.png$/.test(f) ? f : f + '.webp'}`;
   });
-  preloading = Promise.race([Promise.all(BAKED.map(one)), new Promise((r) => setTimeout(r, capMs))]);
+  return Promise.race([Promise.all(list.map(one)), new Promise((r) => setTimeout(r, capMs))]);
+}
+/** Textures the workbench hero needs now. `dir` picks the full or the pre-sized sets. */
+export function preloadBaked(capMs = 12000, dir = 'tex/') {
+  if (preloading) return preloading;
+  preloading = preloadSet(HERO_BAKED, capMs, dir);
   return preloading;
+}
+/** The screen-world environment. Loaded after the first frame so it never blocks the hero. */
+export function preloadWorld(capMs = 9000, dir = 'tex/') {
+  if (worldPreloading) return worldPreloading;
+  worldPreloading = preloadSet(WORLD_BAKED, capMs, dir);
+  return worldPreloading;
 }
 // keys -> canvas-or-image. Uses the baked files when every one is present, else runs gen() once.
 export function bakedMany(prefix, keys, gen) {

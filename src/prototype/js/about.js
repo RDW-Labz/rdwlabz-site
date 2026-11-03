@@ -486,11 +486,11 @@ export async function startAbout({ canvas, reduced }) {
     hopper.setAttribute('transform', `translate(${p.x},${p.y - 4})`);
     hopBody.setAttribute('transform', `translate(0,${-hop}) rotate(${reduced ? 0 : Math.sin(t * 7) * 6})`);
     pctEl.textContent = Math.round(loadShown * 100) + '%';
-    if (loadShown >= 1 && !loaderDone) { loaderDone = true; setTimeout(hideLoader, reduced ? 300 : 1500); }
+    if (loadShown >= 1 && !loaderDone) { loaderDone = true; const ph = M0 || matchMedia('(hover: none)').matches; setTimeout(hideLoader, reduced ? 300 : ph ? 250 : 1500); }
     requestAnimationFrame(loaderTick);
   }
   requestAnimationFrame(loaderTick);
-  function hideLoader() { loader.classList.add('out'); setTimeout(() => { loaderAlive = false; loader.hidden = true; }, 1000); }
+  function hideLoader() { loader.classList.add('out'); setTimeout(() => { loaderAlive = false; loader.hidden = true; }, matchMedia('(hover: none)').matches ? 450 : 1000); }
   const onSkip = (e) => { e.preventDefault(); e.stopPropagation(); loadTarget = 1; loadShown = 1; if (!loaderDone) { loaderDone = true; hideLoader(); } };
   const onPlain = (e) => { onSkip(e); setTimeout(() => goRest(), 50); };
   document.getElementById('aSkip').addEventListener('click', onSkip);

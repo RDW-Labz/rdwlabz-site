@@ -100,9 +100,11 @@ async function go(route) {
 
 function applyAnchor() {
   const h = location.hash;
+  if (h === '#main') { const m = document.getElementById('main'); if (m) { m.focus({ preventScroll: true }); m.scrollIntoView(); } return; }
   if (current && current.anchor) return current.anchor(h);
   // Static fallback pages still honour the nav landmarks.
   if (h === '' || h === '#top') { window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); return; }
+  if (h === '#about-rest') { document.getElementById('about-rest')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }); return; }
   const target = h === '#work' || h === '#bench' ? document.getElementById('bench') : h === '#contact' ? document.getElementById('contact') : null;
   if (target) target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
 }
@@ -114,6 +116,16 @@ function add3DLink() {
   a.href = '/?quality=high';
   a.textContent = 'Open the 3D workbench';
   a.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:60;padding:10px 14px;border-radius:999px;border:1px solid rgba(255,240,235,.35);background:rgba(20,15,13,.9);color:#F3E9D8;font:500 13px "Instrument Sans",system-ui,sans-serif;text-decoration:none';
+  document.body.appendChild(a);
+}
+
+function addWalkLink() {
+  if (document.getElementById('openwalk')) return;
+  const a = document.createElement('a');
+  a.id = 'openwalk';
+  a.href = '/about?walk=1';
+  a.textContent = 'Open the paper walk';
+  a.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:60;padding:10px 14px;border-radius:999px;border:1px solid rgba(60,45,30,.3);background:rgba(243,241,234,.94);color:#2b2b2b;font:600 13px "Patrick Hand",cursive;text-decoration:none';
   document.body.appendChild(a);
 }
 
@@ -154,11 +166,15 @@ window.addEventListener('hashchange', applyAnchor);
     return;
   }
   if (route === 'about') {
-    // A deep link to the plain paper version must not wait for the diorama to build.
-    if (location.hash === '#about-rest' && aboutEl) {
+    const phone = matchMedia('(hover: none)').matches || window.innerWidth < 800;
+    const forceWalk = new URLSearchParams(location.search).has('walk');
+    // Phones (and any ?plain deep link) get the paper version immediately; the walk is one tap away.
+    if (aboutEl && (location.hash === '#about-rest' || (phone && !forceWalk))) {
       site.classList.add('nogl');
       aboutEl.classList.add('plain');
       hideBoot();
+      if (phone && !forceWalk) addWalkLink();
+      applyAnchor();
       return;
     }
     await go('about');

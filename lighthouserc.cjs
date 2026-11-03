@@ -29,6 +29,7 @@ module.exports = {
         // The real 404 response can't be audited (LH refuses non-2xx documents), so the page is
         // audited at /404. It is noindex on purpose, so SEO is reported but not gated there.
         'http://localhost:4393/404',
+        'http://localhost:4393/about',
         'http://localhost:4393/library',
         ...(firstPack ? [`http://localhost:4393/library/${firstPack}`] : []),
       ],
@@ -41,7 +42,7 @@ module.exports = {
           assertions: { ...home, 'categories:seo': median(0.9) },
         },
         {
-          matchingUrlPattern: 'localhost:4393/(projects|library(/[a-z0-9-]+)?)$',
+          matchingUrlPattern: 'localhost:4393/(projects|about|library(/[a-z0-9-]+)?)$',
           assertions: { ...core, 'categories:seo': median(0.9) },
         },
         { matchingUrlPattern: 'localhost:4393/404$', assertions: core },

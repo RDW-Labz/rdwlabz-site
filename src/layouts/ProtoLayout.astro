@@ -50,36 +50,76 @@ const isAbout = route === 'about';
     <meta property="og:image:alt" content={og?.alt ?? 'RDW Labz wordmark'} />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <link
-      rel="preload"
-      href="/fonts/proto/instrument-sans.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/proto/instrument-serif.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/proto/instrument-serif-italic.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/proto/jetbrains-mono.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link rel="preload" href="/fonts/proto/vt323.woff2" as="font" type="font/woff2" crossorigin />
+    {route === 'home' ? (
+      <>
+        <link
+          rel="preload"
+          href="/fonts/proto/instrument-sans.woff2"
+          as="font"
+          type="font/woff2"
+          crossorigin
+        />
+        <link
+          rel="preload"
+          href="/fonts/proto/instrument-serif.woff2"
+          as="font"
+          type="font/woff2"
+          crossorigin
+        />
+        <link
+          rel="preload"
+          href="/fonts/proto/instrument-serif-italic.woff2"
+          as="font"
+          type="font/woff2"
+          crossorigin
+        />
+        <link
+          rel="preload"
+          href="/fonts/proto/jetbrains-mono.woff2"
+          as="font"
+          type="font/woff2"
+          crossorigin
+        />
+        <link
+          rel="preload"
+          href="/fonts/proto/vt323.woff2"
+          as="font"
+          type="font/woff2"
+          crossorigin
+        />
+      </>
+    ) : (
+      <>
+        <link
+          rel="preload"
+          href="/fonts/proto/caveat.woff2"
+          as="font"
+          type="font/woff2"
+          crossorigin
+        />
+        <link
+          rel="preload"
+          href="/fonts/proto/patrick-hand.woff2"
+          as="font"
+          type="font/woff2"
+          crossorigin
+        />
+      </>
+    )}
+    {route === 'home' ? <link rel="prefetch" href="/about" /> : <link rel="prefetch" href="/" />}
 
+    <script is:inline>
+      (() => {
+        const phone = matchMedia('(hover: none)').matches || window.innerWidth < 800;
+        const params = new URLSearchParams(location.search);
+        if (
+          location.pathname.endsWith('/about') &&
+          (location.hash === '#about-rest' || (phone && !params.has('walk')))
+        ) {
+          document.documentElement.classList.add('proto-about-static');
+        }
+      })();
+    </script>
     {cfBeaconToken && (
       <script
         is:inline
@@ -230,6 +270,22 @@ const isAbout = route === 'about';
       <div id="nogl" hidden></div>
     </div>
 
+    <script is:inline>
+      (() => {
+        const site = document.getElementById('site');
+        if (!site) return;
+        const phone = matchMedia('(hover: none)').matches || window.innerWidth < 800;
+        const params = new URLSearchParams(location.search);
+        if (site.dataset.route === 'home' && phone && !params.has('quality'))
+          site.classList.add('nogl');
+        if (site.dataset.route !== 'about') return;
+        const plain = location.hash === '#about-rest' || (phone && !params.has('walk'));
+        if (plain) {
+          site.classList.add('nogl');
+          document.getElementById('about')?.classList.add('plain');
+        }
+      })();
+    </script>
     <script>
       import '../prototype/js/main.js';
     </script>
@@ -263,5 +319,10 @@ const isAbout = route === 'about';
   .skip-link:focus {
     outline: 3px solid #ffb45e;
     outline-offset: 3px;
+  }
+  /* Hide the diorama before first paint when the plain page is the target. */
+  html.proto-about-static #aLoader,
+  html.proto-about-static #walk {
+    display: none !important;
   }
 </style>

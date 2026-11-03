@@ -59,8 +59,8 @@ export async function startHome({ canvas, reduced, lenis }) {
   const QS = { high: 2, mid: 1, low: 0 }[new URLSearchParams(location.search).get('quality')];
   const isPhone = matchMedia('(hover: none)').matches || window.innerWidth < 800;
   const autoPhone = isPhone && QS === undefined;   // untouched query: the auto quality scaler is in charge
-  const mobileTex = isPhone && QS !== 2;   // phones on the auto scaler use the 512 px pre-baked set
-  const bakedTex = TX.preloadBaked(mobileTex ? 7000 : 12000, mobileTex);   /* [startup] pre-baked maps download + decode off the main thread, in parallel with fonts */
+  const texDir = QS === 2 ? 'tex/' : isPhone ? 'tex/m/' : 'tex/l/';   // auto: phones 256 px, desktop 1024 px
+  const bakedTex = TX.preloadBaked(isPhone ? 7000 : 12000, texDir);   /* [startup] pre-baked maps download + decode off the main thread, in parallel with fonts */
   try {
     await Promise.race([
       Promise.all(['italic 120px "Instrument Serif"', '120px "Instrument Serif"', '40px VT323', '500 20px "JetBrains Mono"', '30px "Instrument Sans"', '600 30px "Instrument Sans"'].map((f) => document.fonts.load(f))),
@@ -1200,6 +1200,7 @@ export async function startHome({ canvas, reduced, lenis }) {
   if (lite) { key.shadow.mapSize.set(512, 512); lampLight.shadow.mapSize.set(256, 256); }   /* software GL: small shadow maps */
   frame();
   (async () => {
+    const worldTex = TX.preloadWorld(isPhone ? 7000 : 9000, texDir);   // the dive environment, off the hero's critical path
     if (lite) { postWarm = true; return; }   /* software GL: nothing heavy to warm; the screen world builds + compiles on the dive */
     if (Q.level === 0) return;   /* lowest preset: no post chain to link or run */
     const quad = new THREE.PlaneGeometry(2, 2), oc = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), empty = new THREE.Scene(), mats = new Set();
@@ -1214,7 +1215,7 @@ export async function startHome({ canvas, reduced, lenis }) {
     for (const q of qs) await warm([q], empty, oc, lastMats.has(q.material) ? null : composer.renderTarget1);
     postWarm = true; smaa.enabled = Q.level >= 1; qm.t0 = performance.now();
     await new Promise((r) => setTimeout(r, 400));
-    try { if (world.preload && !L.mobile) { world.preload(); await gpuIdle();
+    try { if (world.preload && !L.mobile) { await worldTex; world.preload(); await gpuIdle();
       const b0 = world.beats && world.beats[0] && world.beats[0].inst; if (b0) await compileAsyncish(b0.scene, b0.cam, insideRT);
       await compileAsyncish(world.display.scene, world.display.cam, insideRT); } } catch (e) { /* built + compiled on the dive instead */ }   /* phones: the screen world builds on the dive, not during load */
   })();

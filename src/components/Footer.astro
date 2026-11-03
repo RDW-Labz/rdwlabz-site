@@ -20,29 +20,29 @@ const blurb = `We build ${buildPhrase}.`;
     <nav aria-label="Footer">
       <ul>
         <li>
-          <a class="link" href="/">
+          <a class="link" href="/" data-astro-prefetch="tap">
             Home
           </a>
         </li>
         <li>
-          <a class="link" href="/projects">
+          <a class="link" href="/projects" data-astro-prefetch="tap">
             Projects
           </a>
         </li>
         {packs.length > 0 && (
           <li>
-            <a class="link" href="/library">
+            <a class="link" href="/library" data-astro-prefetch="tap">
               Library
             </a>
           </li>
         )}
         <li>
-          <a class="link" href="/about">
+          <a class="link" href="/about" data-astro-prefetch="tap">
             About
           </a>
         </li>
         <li>
-          <a class="link" href="/privacy">
+          <a class="link" href="/privacy" data-astro-prefetch="tap">
             Privacy Policy
           </a>
         </li>
