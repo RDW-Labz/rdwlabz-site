@@ -5,9 +5,9 @@ Usage:
   python3 tools/shoot_test.py --base http://localhost:8080 --out docs/redesign/before
   python3 tools/shoot_test.py --base http://localhost:4392 --out docs/redesign/after --about /about
 
-Run the prototype with `python3 -m http.server 8080` inside
-rdwlabz-redesign-prototype/ (the handoff's test hooks are used below).
-The Astro port is expected to serve the same visuals on `/` and `/about`.
+Run the approved prototype export with `python3 -m http.server 8080` for a baseline, or point
+--base at the Astro preview for the port. The prototype's test hooks (`window.__world`,
+`window.__about`) are used below; the Astro port exposes the same hooks on `/` and `/about`.
 
 Screens: home hero, the dive, every screen-world beat, the Dormant Red
 project page, the PS5 full-video player, the About walk, plus the phone

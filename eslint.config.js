@@ -10,7 +10,6 @@ export default [
       'test-results/',
       'playwright-report/',
       '.lighthouseci/',
-      'rdwlabz-redesign-prototype/',
       'src/prototype/',
       'src/components/proto/',
     ],

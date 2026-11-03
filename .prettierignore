@@ -13,7 +13,6 @@ src/data/library.json
 .tmp/
 
 # Vendored approved prototype (kept verbatim)
-rdwlabz-redesign-prototype/
 src/prototype/
 src/components/proto/
 
