@@ -1,0 +1,130 @@
+---
+// Approved prototype About walk markup, ported 1:1.
+---
+<!-- ================= ABOUT ================= -->
+<div id="about">
+  <h1 class="sr">About RDW Labz</h1>
+  <div id="aLoader" role="status" aria-live="polite">
+    <svg viewBox="0 0 640 200" aria-hidden="true">
+      <g opacity=".45" fill="none" stroke="#56704A" stroke-width="5" stroke-linecap="round">
+        <path d="M520 40c-8-26 30-34 40-14 18-10 38 4 30 20 14 6 8 22-6 22h-58c-18 0-20-22-6-28z" fill="#CFE0C0"/>
+        <path d="M470 160h110M486 160v-26M570 160v-26M478 132h104"/><rect x="510" y="104" width="34" height="28" rx="6" fill="#8FA884" stroke="none"/>
+        <path d="M70 80c0-14 22-14 22 0 0 10-11 14-11 22" /><rect x="74" y="104" width="14" height="8" fill="#8FA884" stroke="none"/>
+      </g>
+      <path id="pencilPath" d="M40 160 C 160 150, 260 166, 380 158 S 520 160, 600 158" fill="none" stroke="#2E3A26" stroke-opacity=".25" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 10"/>
+      <path id="pencilInk" d="M40 160 C 160 150, 260 166, 380 158 S 520 160, 600 158" fill="none" stroke="#2E3A26" stroke-width="7" stroke-linecap="round"/>
+      <g fill="none" stroke="#3A5030" stroke-width="5" stroke-linecap="round"><path d="M46 150l8-26M62 152l8-24M230 150l8-24M246 152l8-26M262 152l6-20"/></g>
+      <g id="hopper">
+        <ellipse cx="0" cy="2" rx="26" ry="6" fill="#2E3A26" opacity=".18"/>
+        <g id="hopBody"><path d="M-26 0c-4-34 2-62 26-80 24 16 32 46 26 80z" fill="#EF8A5C" stroke="#2E3A26" stroke-width="5" stroke-linejoin="round"/><circle cx="-8" cy="-44" r="4.5" fill="#2E3A26"/><circle cx="8" cy="-44" r="4.5" fill="#2E3A26"/><path d="M-8-32c5 5 11 5 16 0" stroke="#2E3A26" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M-36-50h-8M-38-38h-10M-36-26h-8" stroke="#2E3A26" stroke-width="3.5" stroke-linecap="round"/></g>
+      </g>
+    </svg>
+    <p class="pct" id="aPct">0%</p>
+    <p class="msg">scroll or drag to walk with Lumpy →</p>
+    <div class="lk"><a href="#about" id="aSkip">skip ahead</a><a href="#about-rest" id="aPlain">read the plain version</a></div>
+  </div>
+
+  <section id="walk" aria-label="Walk through the RDW Labz diorama">
+    <div class="walklight" aria-hidden="true"></div>
+    <div id="walkLabels"></div>
+    <div class="walkbar" aria-hidden="true"><i id="walkBar"></i></div>
+    <div class="pill" id="walkPill">← scroll or drag to walk →</div>
+    <a class="skiprest" href="#about-rest" id="skipRest">skip to the rest ↓</a>
+  </section>
+
+  <div id="aboutRest">
+    <span id="about-rest"></span>
+    <section aria-label="Two benches, one workshop">
+      <div class="wall"><div class="torn" aria-hidden="true"></div><div class="shade" style="background:radial-gradient(ellipse 60% 80% at 15% 0%,rgba(255,250,235,.6),rgba(255,250,235,0) 60%),linear-gradient(180deg,rgba(0,0,0,0) 70%,rgba(70,55,40,.22) 100%)"></div>
+        <div class="pad"><div style="position:relative;max-width:1150px">
+          <h2 class="h2a">Two benches, one workshop</h2>
+          <div class="cards2">
+            <div class="cut lift note" style="background:#FFF2A6;transform:rotate(-2deg)"><span class="tape" aria-hidden="true" style="transform:rotate(3deg)"></span>
+              <h3 style="color:#C2412E">RDW Labz</h3>
+              <ul><li>Custom software and websites</li><li>Games: Dormant Red and Putt Drop</li><li>48 packs of clay-style 3D models</li></ul></div>
+            <div class="cut lift note" style="background:#DDE9FB;transform:rotate(1.5deg)"><span class="tape tan" aria-hidden="true" style="left:40%;transform:rotate(-3deg)"></span>
+              <h3 style="color:#2F5BD3">Verrow AI <span class="ourp" style="font-size:26px;color:#5E5E58">(our partner)</span></h3>
+              <ul><li>Custom software for crews in the field</li><li>AI automation and AI agent systems</li><li>Creators of Project Swarm</li></ul></div>
+          </div></div>
+          <span class="propshadow" aria-hidden="true" style="right:26px;bottom:-52px;width:96px"></span>
+          <svg class="cut prop" aria-hidden="true" width="116" height="100" viewBox="0 0 240 200" fill="none" style="right:16px;bottom:-48px"><path d="M60 190c-8-54 0-108 44-134 36 20 52 76 44 134z" fill="#EF8A5C" stroke="#3A3A36" stroke-width="5" stroke-linejoin="round"/><circle cx="94" cy="96" r="7" fill="#3A3A36"/><circle cx="120" cy="96" r="7" fill="#3A3A36"/><path d="M96 118c7 7 18 7 25 0" stroke="#3A3A36" stroke-width="5" stroke-linecap="round"/><path d="M148 120l40-30" stroke="#3A3A36" stroke-width="5" stroke-linecap="round"/><rect x="180" y="70" width="40" height="30" rx="4" fill="#DDE9FB" stroke="#3A3A36" stroke-width="5"/></svg>
+        </div></div>
+      <div class="seam"></div><div class="floor" aria-hidden="true"><div></div></div><div class="lip" aria-hidden="true"></div>
+    </section>
+
+    <section aria-label="How a build goes">
+      <div class="wall"><div class="shade"></div>
+        <div class="pad" style="padding-bottom:26px"><div style="position:relative;max-width:1150px">
+          <h2 class="h2a">How a build goes</h2>
+          <ol class="cards3">
+            <li class="cut lift step" style="transform:rotate(-1.5deg)"><span class="tape" aria-hidden="true" style="width:80px;height:22px;left:40%;transform:rotate(-3deg)"></span>
+              <svg width="70" height="52" viewBox="0 0 70 52" fill="none" aria-hidden="true"><rect x="4" y="6" width="62" height="40" rx="5" fill="#FFF2A6" stroke="#3A3A36" stroke-width="3"/><path d="M6 9l29 22 29-22" stroke="#3A3A36" stroke-width="3" stroke-linejoin="round"/></svg>
+              <p class="t">1. tell us</p><p>Email us the idea, some links that show the vibe, and rough timing.</p></li>
+            <li class="cut lift step" style="transform:rotate(1deg)"><span class="tape tan" aria-hidden="true" style="width:80px;height:22px;left:40%;transform:rotate(3deg)"></span>
+              <svg width="80" height="52" viewBox="0 0 80 52" fill="none" aria-hidden="true"><rect x="4" y="24" width="72" height="8" rx="2" fill="#C9A27C" stroke="#3A3A36" stroke-width="3"/><path d="M12 32v18M68 32v18" stroke="#3A3A36" stroke-width="3" stroke-linecap="round"/><rect x="26" y="4" width="28" height="20" rx="5" fill="#E9C89E" stroke="#3A3A36" stroke-width="3"/></svg>
+              <p class="t">2. we build</p><p>We plan it with you and build it, bringing in Verrow AI when a build needs extra hands.</p></li>
+            <li class="cut lift step" style="transform:rotate(-.5deg)"><span class="tape" aria-hidden="true" style="width:80px;height:22px;left:40%;transform:rotate(-2deg)"></span>
+              <svg width="56" height="56" viewBox="0 0 56 56" fill="none" aria-hidden="true"><path d="M28 4c10 8 14 20 12 32H16C14 24 18 12 28 4z" fill="#DDE9FB" stroke="#3A3A36" stroke-width="3" stroke-linejoin="round"/><circle cx="28" cy="22" r="5" fill="#EF8A5C" stroke="#3A3A36" stroke-width="3"/><path d="M16 36l-6 10 10-4M40 36l6 10-10-4M24 42l4 10 4-10" stroke="#3A3A36" stroke-width="3" stroke-linejoin="round"/></svg>
+              <p class="t">3. it ships</p><p>Through Project Swarm: nothing merges until the checks pass.</p></li>
+          </ol></div>
+          <span class="propshadow" aria-hidden="true" style="left:30px;bottom:-52px;width:90px"></span>
+          <svg class="cut prop" data-par="1.08" aria-hidden="true" width="80" height="120" viewBox="0 0 80 120" fill="none" style="left:34px;bottom:-48px"><rect x="24" y="0" width="7" height="60" rx="2" fill="#F2C94C" stroke="#3A3A36" stroke-width="2.5" transform="rotate(-10 27 60)"/><rect x="38" y="4" width="7" height="56" rx="2" fill="#2F5BD3" stroke="#3A3A36" stroke-width="2.5"/><rect x="50" y="2" width="7" height="58" rx="2" fill="#C2412E" stroke="#3A3A36" stroke-width="2.5" transform="rotate(9 53 60)"/><path d="M12 50h56l-5 64a5 5 0 01-5 4H22a5 5 0 01-5-4z" fill="#B7D3A8" stroke="#3A3A36" stroke-width="3" stroke-linejoin="round"/><path d="M18 66h44" stroke="#3A3A36" stroke-width="2" opacity=".35"/></svg>
+        </div></div>
+      <div class="seam"></div><div class="floor" aria-hidden="true" style="height:52px"><div style="background-color:#C29A70"></div></div><div class="lip" aria-hidden="true" style="height:12px;background:linear-gradient(180deg,#A67D55,#7E5C3B)"></div>
+    </section>
+
+    <section aria-label="Built together">
+      <div class="wall"><div class="shade"></div>
+        <div class="pad" style="padding-bottom:60px"><div style="position:relative;max-width:1150px;display:flex;flex-wrap:wrap;gap:56px;align-items:center">
+          <figure class="cut" style="position:relative;flex:1 1 520px;min-width:0;max-width:640px;margin:0;background:#fff;padding:14px 14px 18px;transform:rotate(-2.5deg)">
+            <span aria-hidden="true" style="position:absolute;top:-12px;left:46%;width:20px;height:20px;border-radius:50%;background:#E2533B;box-shadow:inset -3px -3px 0 rgba(0,0,0,.2)"></span>
+            <img src="img/showcase_forge-pizza-co_card-1280.webp" alt="Forge Pizza Co home page" loading="lazy" style="display:block;width:100%;aspect-ratio:16/10;object-fit:cover">
+            <figcaption style="margin-top:10px;font-family:'Caveat',cursive;font-size:30px">Forge Pizza Co, made together</figcaption>
+          </figure>
+          <div style="flex:1 1 320px;min-width:0">
+            <h2 class="h2a" style="font-size:60px">Built together</h2>
+            <p style="margin:14px 0 0">A menu-first website for a woodfired pizza place right here in Harrison. Verrow AI built it with us.</p>
+            <a href="https://forgepizzaco.com/" target="_blank" rel="noopener" style="display:inline-block;margin-top:10px;padding:8px 0">forgepizzaco.com ↗</a>
+          </div></div>
+          <span class="propshadow" aria-hidden="true" style="right:40px;bottom:-52px;width:170px"></span>
+          <svg class="cut prop" aria-hidden="true" width="170" height="90" viewBox="0 0 170 90" fill="none" style="right:40px;bottom:-46px"><rect x="8" y="34" width="154" height="14" rx="3" fill="#C9A27C" stroke="#3A3A36" stroke-width="3"/><path d="M24 48v38M146 48v38" stroke="#3A3A36" stroke-width="5" stroke-linecap="round"/><rect x="20" y="4" width="130" height="24" rx="3" fill="#FFF8E8" stroke="#3A3A36" stroke-width="3"/><text x="85" y="22" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="18" fill="#C2412E">RDW</text><path d="M40 28v6M130 28v6" stroke="#3A3A36" stroke-width="3"/></svg>
+        </div></div>
+      <div class="seam"></div><div class="floor" aria-hidden="true" style="height:76px"><div style="background-color:#D2B48C"></div></div><div class="lip" aria-hidden="true" style="height:20px"></div>
+    </section>
+
+    <section aria-label="Our partner">
+      <div class="wall"><div class="shade"></div>
+        <div class="pad" style="padding-top:100px;padding-bottom:70px">
+          <div class="cut" style="position:relative;max-width:1080px;transform:rotate(-1deg)">
+            <div style="background:#DDE9FB;padding:46px clamp(22px,4vw,48px) 54px;clip-path:polygon(0 3%,4% 0,12% 2%,22% 0,35% 2%,48% 0,60% 2%,74% 0,86% 2%,96% 0,100% 3%,99% 30%,100% 62%,99% 97%,92% 100%,80% 98%,66% 100%,52% 98%,38% 100%,24% 98%,10% 100%,0 97%,1% 60%,0 30%);display:flex;flex-wrap:wrap;gap:32px;align-items:center;justify-content:space-between">
+              <div style="flex:1 1 420px;min-width:0">
+                <h2 class="h2a" style="font-size:62px;color:#2F5BD3">Meet our partner</h2>
+                <p style="margin:12px 0 0">Verrow AI is a software and AI automation studio here in Harrison. We build together, and you're welcome to say hi to them too.</p>
+              </div>
+              <a href="https://verrow.ai/" target="_blank" rel="noopener" class="lift" style="position:relative;display:inline-flex;align-items:center;gap:12px;min-height:58px;padding:0 28px 0 40px;background:#FFF8E8;color:#2F5BD3;text-decoration:none;font-family:'Caveat',cursive;font-weight:700;font-size:32px;clip-path:polygon(16px 0,100% 0,100% 100%,16px 100%,0 50%);transform:rotate(2deg)"><span aria-hidden="true" style="position:absolute;left:18px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:#DDE9FB;box-shadow:inset 0 0 0 2px #3A3A36"></span>see Verrow AI ↗</a>
+            </div>
+            <span aria-hidden="true" style="position:absolute;top:-14px;left:8%;width:120px;height:28px;background:rgba(238,214,190,.9);transform:rotate(-5deg)"></span>
+            <span aria-hidden="true" style="position:absolute;top:-12px;right:10%;width:110px;height:26px;background:rgba(238,214,190,.9);transform:rotate(4deg)"></span>
+          </div>
+        </div></div>
+      <div aria-hidden="true" class="wall" style="position:relative;height:40px"><span style="position:absolute;left:min(150px,10vw);right:22%;top:6px;height:26px;clip-path:polygon(0 8%,2% 0,100% 0,99% 50%,100% 100%,1% 100%,0 60%);background:repeating-linear-gradient(45deg,rgba(239,138,92,.75) 0 14px,rgba(255,226,196,.75) 14px 28px);transform:rotate(-.6deg);box-shadow:0 2px 4px rgba(60,45,30,.15)"></span></div>
+    </section>
+
+    <section aria-label="Say hi">
+      <div class="wall"><div class="shade" style="background:linear-gradient(180deg,rgba(0,0,0,0) 60%,rgba(120,90,60,.08) 100%)"></div>
+        <div class="pad" style="padding-top:80px;padding-bottom:30px"><div style="position:relative;max-width:1150px;display:flex;flex-wrap:wrap;gap:40px;align-items:flex-end;justify-content:space-between">
+          <div>
+            <h2 class="h2a">Say hi to the lab!</h2>
+            <p style="margin:10px 0 0">Software, a website, a game or an asset pack: tell us about it.</p>
+            <a href="mailto:devops@therdw.com" class="cut lift" style="display:inline-flex;align-items:center;gap:12px;margin-top:22px;min-height:56px;padding:0 28px;background:#EF8A5C;color:#2B2B2B;text-decoration:none;font-family:'Caveat',cursive;font-weight:700;font-size:32px;transform:rotate(-1.5deg)">email us →</a>
+            <p style="margin:14px 0 0;font-size:19px">devops@therdw.com</p>
+          </div>
+          <div aria-hidden="true" style="display:flex;align-items:flex-end;gap:10px">
+            <svg class="cut" data-par="0.95" width="170" height="150" viewBox="0 0 240 210" fill="none"><path d="M60 200c-8-54 0-108 44-134 36 20 52 76 44 134z" fill="#EF8A5C" stroke="#3A3A36" stroke-width="5" stroke-linejoin="round"/><circle cx="94" cy="104" r="7" fill="#3A3A36"/><circle cx="120" cy="104" r="7" fill="#3A3A36"/><path d="M94 124c8 9 20 9 28 0" stroke="#3A3A36" stroke-width="5" stroke-linecap="round"/><g class="waveArm"><path d="M146 120l34-50" stroke="#3A3A36" stroke-width="5" stroke-linecap="round"/><path d="M172 58l18-6M184 76l18 2M168 44l4-16" stroke="#3A3A36" stroke-width="4" stroke-linecap="round"/></g></svg>
+            <svg class="cut" width="120" height="90" viewBox="0 0 120 90" fill="none" style="transform:rotate(8deg)"><rect x="6" y="10" width="108" height="72" rx="6" fill="#FFF8E8" stroke="#3A3A36" stroke-width="4"/><path d="M8 14l52 38 52-38" stroke="#3A3A36" stroke-width="4" stroke-linejoin="round"/><circle cx="60" cy="52" r="9" fill="#E2533B"/></svg>
+          </div></div></div></div>
+      <div class="seam"></div><div class="floor" aria-hidden="true" style="height:60px"><div></div></div>
+      <footer class="afoot"><span>© 2026 RDW, LLC</span><i>·</i><span>1301 N Main St, Harrison, AR 72601</span><i>·</i><span>devops@therdw.com</span><i>·</i><a href="/">home</a><i>·</i><a href="mailto:devops@therdw.com">email</a></footer>
+    </section>
+  </div>
+</div>

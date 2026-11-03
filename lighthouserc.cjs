@@ -9,6 +9,14 @@ const core = {
   'categories:best-practices': median(0.9),
   'cumulative-layout-shift': ['error', { maxNumericValue: 0.1, aggregationMethod: 'median-run' }],
 };
+// The 3D home is a different budget: a live WebGL scene on a throttled phone. The approved
+// redesign targets 70 performance / 95 accessibility there, while content pages keep the old bar.
+const home = {
+  'categories:performance': median(0.7),
+  'categories:accessibility': median(0.95),
+  'categories:best-practices': median(0.9),
+  'cumulative-layout-shift': ['error', { maxNumericValue: 0.1, aggregationMethod: 'median-run' }],
+};
 
 module.exports = {
   ci: {
@@ -21,6 +29,7 @@ module.exports = {
         // The real 404 response can't be audited (LH refuses non-2xx documents), so the page is
         // audited at /404. It is noindex on purpose, so SEO is reported but not gated there.
         'http://localhost:4393/404',
+        'http://localhost:4393/about',
         'http://localhost:4393/library',
         ...(firstPack ? [`http://localhost:4393/library/${firstPack}`] : []),
       ],
@@ -29,10 +38,14 @@ module.exports = {
     assert: {
       assertMatrix: [
         {
-          matchingUrlPattern: '^http://localhost:4393/(projects|library(/[a-z0-9-]+)?)?$',
+          matchingUrlPattern: 'localhost:4393/$',
+          assertions: { ...home, 'categories:seo': median(0.9) },
+        },
+        {
+          matchingUrlPattern: 'localhost:4393/(projects|about|library(/[a-z0-9-]+)?)$',
           assertions: { ...core, 'categories:seo': median(0.9) },
         },
-        { matchingUrlPattern: '/404$', assertions: core },
+        { matchingUrlPattern: 'localhost:4393/404$', assertions: core },
       ],
     },
     upload: { target: 'filesystem', outputDir: '.lighthouseci/reports' },

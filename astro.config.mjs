@@ -103,6 +103,12 @@ export default defineConfig({
     // (tests build an empty shelf or fixture packs this way without touching the real files).
     resolve: {
       alias: [
+        // model-viewer 4.4 imports the r183 name for a three utility; three@0.169 (pinned for
+        // the approved prototype) exports the same helper as TextureUtils.js.
+        {
+          find: /^three\/examples\/jsm\/utils\/WebGLTextureUtils\.js$/,
+          replacement: 'three/examples/jsm/utils/TextureUtils.js',
+        },
         ...(process.env.RDWLABZ_DATA
           ? [{ find: /^\.\.\/data\/projects\.json$/, replacement: process.env.RDWLABZ_DATA }]
           : []),

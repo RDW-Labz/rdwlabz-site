@@ -17,6 +17,10 @@ const PAGES = [
   ...(packs[0] ? [`/library/${packs[0].slug}`] : []),
 ];
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+/** `/` and `/about` use the approved 3D/paper prototype layout, not the content-page shell. */
+const PROTO_PAGES = new Set(['/', '/about']);
+/** The prototype pages are heavy WebGL by default; static HTML is enough for shell checks. */
+const protoTestPath = (path: string) => (PROTO_PAGES.has(path) ? `${path}?nogl` : path);
 
 function trackErrors(page: Page) {
   const errors: string[] = [];
@@ -33,7 +37,7 @@ function trackErrors(page: Page) {
 for (const path of PAGES) {
   test(`${path}: no axe violations, no console/network errors`, async ({ page }) => {
     const errors = trackErrors(page);
-    await page.goto(path);
+    await page.goto(protoTestPath(path));
     await settleMotion(page);
     const results = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
     expect(results.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([]);
@@ -41,7 +45,7 @@ for (const path of PAGES) {
   });
 
   test(`${path}: one h1, skip link, landmarks, title + description`, async ({ page }) => {
-    await page.goto(path);
+    await page.goto(protoTestPath(path));
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('header')).toHaveCount(1);
     await expect(page.locator('main#main')).toHaveCount(1);
@@ -70,60 +74,31 @@ test('categories: empty ones stay hidden and come back once they have a project'
   expect(listPhrase(['software', 'games', 'mods'])).toBe('software, games and mods');
 });
 
-test('home: hero states who we are and links to projects', async ({ page }) => {
+test('home: the 3D workbench states who we are and links to work/about', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('RDW Labz');
-  await expect(
-    page.getByRole('heading', { level: 1 }).getByText(`We build ${shelf.phrase}.`),
-  ).toBeVisible();
-  const cta = page.getByRole('main').getByRole('link', { name: 'See our projects' });
-  await expect(cta).toHaveAttribute('href', '/projects');
+  const h1 = page.getByRole('heading', { level: 1 });
+  await expect(h1).toContainText('We build software');
+  await expect(h1).toContainText('clay 3D');
+  await expect(page.locator('#nav a[href="/#work"]')).toHaveText('Work');
+  await expect(page.locator('#nav a[href="/about"]')).toHaveText('About');
 });
 
-test('home: only categories with projects appear (tiles, tokens, links)', async ({ page }) => {
-  await page.goto('/');
-  for (const c of shelf.hidden) {
-    await expect(page.locator(`a[href="/projects?c=${c}"]`), c).toHaveCount(0);
-  }
-  await expect(page.locator('.token')).toHaveCount(shelf.active.length);
-  if (shelf.active.length > 1) {
-    await expect(page.locator('#what-we-build .tile')).toHaveCount(shelf.active.length);
-    for (const c of shelf.active) {
-      await expect(page.locator(`#what-we-build a[href="/projects?c=${c}"]`)).toHaveCount(1);
-    }
-  }
+test('home: the no-WebGL fallback still shows every project', async ({ page }) => {
+  await page.goto('/?nogl');
+  await expect(page.locator('#bench')).toBeVisible();
+  await expect(page.locator('#bench .pol')).toHaveCount(13);
+  await expect(page.locator('#bench')).toContainText('Dormant Red');
+  await expect(page.locator('#bench')).toContainText('Verrow AI');
 });
 
-test('home: a single active category becomes the main section, with all its projects', async ({
-  page,
-}) => {
-  test.skip(shelf.active.length !== 1, 'more than one category has projects');
-  const [id] = shelf.active;
+test('journey: home → about (real route) → browser back', async ({ page }) => {
   await page.goto('/');
-  const section = page.locator('#what-we-build');
-  await expect(section.getByRole('heading', { level: 2 })).toHaveText(shelf.activeLabels[0]);
-  await expect(section.locator('.tile')).toHaveCount(0);
-  await expect(section.locator('.project-card')).toHaveCount(
-    shelf.projects.filter((p) => p.category === id).length,
-  );
-  await expect(section.locator(`a[href="/projects?c=${id}"]`).first()).toBeVisible();
-  // Its projects are already shown, so the separate featured section is dropped.
-  await expect(page.locator('#featured')).toHaveCount(0);
-});
-
-test('journey: home → filtered projects (client-side nav)', async ({ page }) => {
-  test.skip(shelf.active.length === 0, 'no categories have projects');
-  const [id] = shelf.active;
-  const label = shelf.activeLabels[0];
-  await page.goto('/');
-  await page.locator(`#what-we-build a[href="/projects?c=${id}"]`).first().click();
-  await expect(page).toHaveURL(new RegExp(`/projects\\?c=${id}$`));
-  await expect(page.locator(`[data-filter="${id}"]`)).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('[data-project-grid] > li:not([hidden])')).toHaveCount(
-    await page.locator(`[data-project-grid] > li[data-category="${id}"]`).count(),
-  );
-  await expect(page.locator('[data-filter-status]')).toContainText(`in ${label}`);
-  await expect(page.locator('a[aria-current="page"]').first()).toHaveText(/Projects/);
+  await page.locator('#nav a[href="/about"]').click();
+  await expect(page).toHaveURL(/\/about$/);
+  await expect(page.locator('#about')).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator('#home')).toBeVisible();
 });
 
 test('projects: filter chips exist only for categories with projects', async ({ page }) => {
@@ -207,7 +182,6 @@ test('empty states are in the built HTML when there are no projects', () => {
     for (const s of EMPTY_SHELF) expect(has(projects, s), String(s)).toBe(true);
     for (const s of EMPTY_FILTER) expect(has(projects, s), String(s)).toBe(false);
     expect(has(projects, GRID)).toBe(false);
-    expect(readFileSync(join(outDir, 'index.html'), 'utf8')).toContain(EMPTY_FEATURED);
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }
@@ -284,7 +258,7 @@ test('projects: synced store labels, buttons and real screenshots render', async
 
 test('mobile menu: opens, traps focus, Esc closes and restores focus', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await page.goto('/projects');
   const toggle = page.locator('[data-menu-toggle]');
   await expect(toggle).toBeVisible();
   await toggle.click();
@@ -305,7 +279,7 @@ test('mobile menu: opens, traps focus, Esc closes and restores focus', async ({ 
 
 test('mobile menu: link navigates and menu closes', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await page.goto('/privacy');
   await page.locator('[data-menu-toggle]').click();
   await page.locator('#mobile-menu').getByRole('link', { name: 'Projects' }).click();
   await expect(page).toHaveURL(/\/projects$/);
@@ -324,21 +298,30 @@ const MAILTO = 'mailto:devops@therdw.com';
 
 for (const path of PAGES) {
   test(`${path}: every contact spot is a real mailto, no "Email coming soon"`, async ({ page }) => {
-    await page.goto(path);
+    await page.goto(protoTestPath(path));
     await expect(page.getByText(/email (address )?coming soon/i)).toHaveCount(0);
     const mailtos = page.locator('a[href^="mailto:"]');
     expect(await mailtos.count()).toBeGreaterThan(0);
     for (const a of await mailtos.all()) await expect(a).toHaveAttribute('href', MAILTO);
-    await expect(page.locator(`header a[href="${MAILTO}"]`).first()).toHaveText(/Contact/);
-    for (const a of await page.locator(`footer a[href="${MAILTO}"]`).all()) {
-      await expect(a).toHaveText(/devops@therdw\.com/);
+    if (!PROTO_PAGES.has(path)) {
+      await expect(page.locator(`header a[href="${MAILTO}"]`).first()).toHaveText(/Contact/);
+      for (const a of await page.locator(`footer a[href="${MAILTO}"]`).all()) {
+        await expect(a).toHaveText(/devops@therdw\.com/);
+      }
     }
   });
 
-  test(`${path}: footer names the company, address and email, with About + Privacy links`, async ({
-    page,
-  }) => {
-    await page.goto(path);
+  test(`${path}: footer names the company, address and email`, async ({ page }) => {
+    await page.goto(path === '/about' ? '/about?nogl#about-rest' : protoTestPath(path));
+    if (PROTO_PAGES.has(path)) {
+      if (path === '/about') await expect(page.locator('#aboutRest')).toBeVisible();
+      const footer = page.locator('footer');
+      await expect(footer).toContainText('© 2026 RDW, LLC');
+      await expect(footer).toContainText('1301 N Main St, Harrison, AR 72601');
+      await expect(footer).toContainText('devops@therdw.com');
+      await expect(footer.locator(`a[href="${MAILTO}"]`).first()).toBeVisible();
+      return;
+    }
     const year = new Date().getFullYear();
     await expect(page.locator('[data-legal]')).toHaveText(
       `© ${year} RDW, LLC. RDW Labz is a brand of RDW, LLC · 1301 N Main St, Harrison, AR 72601 · devops@therdw.com`,
@@ -355,20 +338,24 @@ for (const path of PAGES) {
 
 test('footer year follows the visitor’s clock, not only the build', async ({ page }) => {
   await page.clock.setFixedTime(new Date('2031-03-01T12:00:00Z'));
-  await page.goto('/');
+  await page.goto('/projects');
   await expect(page.locator('[data-year]')).toHaveText('2031');
 });
 
-test('about: who we are, where, and how to reach us (real facts only)', async ({ page }) => {
-  await page.goto('/about');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('About us');
+test('about: the paper walk keeps the real facts and the partner offer', async ({ page }) => {
+  await page.goto('/about#about-rest');
+  await expect(page.locator('#aboutRest')).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('About RDW Labz');
   const main = page.locator('main');
-  await expect(main).toContainText('RDW Labz is the dev studio brand of RDW, LLC');
-  await expect(main).toContainText('Harrison, Arkansas');
-  await expect(main.locator('address')).toContainText('1301 N Main St');
-  await expect(main.locator('address')).toContainText('Harrison, AR 72601');
+  await expect(main).toContainText('Two benches, one workshop');
+  await expect(main).toContainText('Harrison');
+  await expect(main).toContainText('1301 N Main St');
+  await expect(main).toContainText('Harrison, AR 72601');
   await expect(main.locator(`a[href="${MAILTO}"]`).first()).toBeVisible();
-  for (const p of shelf.projects) await expect(main).toContainText(p.title);
+  await expect(main).toContainText('Verrow AI');
+  await expect(main.locator('a[href="https://verrow.ai/"]').first()).toBeVisible();
+  await expect(main).toContainText('Dormant Red');
+  await expect(main).toContainText('Putt Drop');
   await expect(page.locator('header a[aria-current="page"]').first()).toHaveText(/About/);
 });
 
@@ -404,9 +391,20 @@ test('privacy: RDW, LLC policy with the right contact, no leftovers, no motion',
   }
 });
 
-test('mobile menu lists About and the Privacy Policy', async ({ page }) => {
+test('mobile nav: Work, About and Contact are real routes', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await page.goto('/?nogl');
+  const nav = page.locator('#nav');
+  await expect(nav.getByRole('link', { name: 'Work' })).toHaveAttribute('href', '/#work');
+  await expect(nav.getByRole('link', { name: 'About' })).toHaveAttribute('href', '/about');
+  await expect(nav.getByRole('link', { name: 'Contact' })).toHaveAttribute('href', '/#contact');
+  await nav.getByRole('link', { name: 'About' }).click();
+  await expect(page).toHaveURL(/\/about$/);
+});
+
+test('content pages: mobile menu lists About and the Privacy Policy', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/projects');
   await page.locator('[data-menu-toggle]').click();
   const menu = page.locator('#mobile-menu');
   await expect(menu.getByRole('link', { name: 'About' })).toHaveAttribute('href', '/about');
@@ -416,11 +414,10 @@ test('mobile menu lists About and the Privacy Policy', async ({ page }) => {
   );
 });
 
-test('home: hero, Work with us and CTA band all link to the contact email', async ({ page }) => {
+test('home: the contact dialog and footer link the lab email', async ({ page }) => {
   await page.goto('/');
-  for (const scope of ['[data-hero]', '.wwu', '.cta']) {
-    await expect(page.locator(`${scope} a[href="${MAILTO}"]`), scope).toHaveCount(1);
-  }
+  await expect(page.locator(`#dlgWrap a[href="${MAILTO}"]`)).toHaveCount(1);
+  await expect(page.locator(`footer a[href="${MAILTO}"]`)).toHaveCount(1);
 });
 
 test('404: offers a way to email the lab', async ({ page }) => {
@@ -458,7 +455,7 @@ test('SEO: canonical, OG tags, sitemap, robots, favicons', async ({ page, reques
 for (const path of PAGES) {
   test(`${path}: reflows at 320px with no horizontal scrolling (WCAG 1.4.10)`, async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 640 });
-    await page.goto(path);
+    await page.goto(protoTestPath(path));
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
@@ -466,7 +463,7 @@ for (const path of PAGES) {
   });
 
   test(`${path}: every tab stop shows a visible focus indicator`, async ({ page }) => {
-    await page.goto(path);
+    await page.goto(protoTestPath(path));
     const seen = new Set<string>();
     for (let i = 0; i < 40; i++) {
       await page.keyboard.press('Tab');
@@ -500,101 +497,59 @@ test.describe('no JavaScript', () => {
         'href',
         `/projects?c=${id}`,
       );
-      await page.goto('/');
-      await expect(page.locator('#what-we-build :is(.tile, .project-card)').first()).toBeVisible();
     }
   });
 });
 
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' });
-  test('reveals are visible immediately and hero tokens are static', async ({ page }) => {
-    await page.goto('/');
-    const tile = page.locator('#what-we-build [data-reveal]').first();
-    await expect(tile).toHaveCSS('opacity', '1');
-    const anim = await page
-      .locator('.token')
-      .first()
-      .evaluate((el) => getComputedStyle(el).animationName);
-    expect(anim).toBe('none');
+
+  test('home still renders the workbench', async ({ page }) => {
+    await page.goto('/?quality=low');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('We build software');
+    await expect.poll(() => page.evaluate('!!window.__world'), { timeout: 30000 }).toBe(true);
   });
 
-  test('hero shows the full static sentence, no cycler, no pause button', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('.hero__tag-static')).toBeVisible();
-    await expect(page.locator('.hero__tag-cycle')).toBeHidden();
-    await expect(page.locator('[data-motion-toggle]')).toBeHidden();
+  test('about can skip straight to the plain paper version', async ({ page }) => {
+    await page.goto('/about#about-rest');
+    await expect(page.locator('#aboutRest')).toBeVisible();
+    await expect(page.locator('#aboutRest')).toContainText('Two benches, one workshop');
+    await expect(page.locator('#aboutRest')).toContainText('Say hi to the lab!');
   });
 });
 
-test.describe('round 2 motion', () => {
+test.describe('screen world', () => {
   test.use({ reducedMotion: 'no-preference' });
 
-  test('hero cycler swaps the category word (only with 2+ active categories)', async ({ page }) => {
-    await page.goto('/');
-    // The cycle is decorative; the h1's accessible name keeps the full sentence.
-    await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName(
-      new RegExp(`RDW Labz.*We build ${escapeRe(shelf.phrase)}\\.`),
-    );
-    if (shelf.active.length < 2) {
-      await expect(page.locator('.hero__tag-cycle')).toBeHidden();
-      await expect(page.locator('.hero__tag-static')).toBeVisible();
-      return;
-    }
-    const on = page.locator('.cycler__word.is-on');
-    await expect(on).toHaveCount(1);
-    const first = await on.textContent();
-    await expect.poll(() => on.textContent(), { timeout: 6000 }).not.toBe(first);
+  test('home exposes every screen-world beat', async ({ page }) => {
+    await page.goto('/?quality=low');
+    await expect
+      .poll(() => page.evaluate('window.__world?.beats?.length ?? 0'), { timeout: 90000 })
+      .toBe(11);
+    expect(await page.evaluate('window.__world.beats.map((b) => b.id)')).toEqual([
+      'ring',
+      'build',
+      'studio',
+      'arcade',
+      'putt',
+      'library',
+      'numbers',
+      'process',
+      'friends',
+      'touch',
+      'harrison',
+    ]);
   });
 
-  test('pause toggle stops the cycler and persists across reloads', async ({ page }) => {
-    await page.goto('/');
-    const toggle = page.locator('[data-motion-toggle]');
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
-    await expect(toggle).toContainText('Play animations');
-    await expect(page.locator('html')).toHaveAttribute('data-motion', 'paused');
-    await expect(page.locator('.hero__tag-static')).toBeVisible();
-    await page.reload();
-    await expect(page.locator('html')).toHaveAttribute('data-motion', 'paused');
-    await expect(page.locator('[data-motion-toggle]')).toHaveAttribute('aria-pressed', 'true');
-    await page.locator('[data-motion-toggle]').click();
-    await expect(page.locator('html')).not.toHaveAttribute('data-motion', 'paused');
-  });
-
-  test('pop headings keep their accessible names', async ({ page }) => {
-    await page.goto('/');
-    const sections =
-      shelf.active.length === 1
-        ? [shelf.activeLabels[0], 'Work with us']
-        : ['What we build', 'Fresh from the lab', 'Work with us'];
-    for (const name of sections) {
-      await expect(page.getByRole('heading', { level: 2, name })).toHaveCount(1);
-    }
+  test('the chapter rail lists all beats and the ring carries every project', async ({ page }) => {
+    await page.goto('/?quality=low');
+    await expect
+      .poll(() => page.locator('#worldUI .wr-rail button').count(), { timeout: 90000 })
+      .toBe(11);
+    await expect
+      .poll(() => page.evaluate('window.__world?.projects?.length ?? 0'), { timeout: 90000 })
+      .toBe(15);
     await page.goto('/projects');
     await expect(page.getByRole('heading', { level: 1, name: 'Projects' })).toHaveCount(1);
-  });
-
-  test('lab activity lists build-time updates linking to the shelf', async ({ page }) => {
-    await page.goto('/');
-    const items = page.locator('.activity li');
-    // Built from real projects only: no projects, no strip.
-    if ((await items.count()) === 0) {
-      await expect(page.locator('.activity')).toHaveCount(0);
-      return;
-    }
-    expect(await items.count()).toBeLessThanOrEqual(3);
-    await expect(items.first().locator('a')).toHaveAttribute('href', /^\/projects\?c=/);
-    await expect(items.first().locator('time')).toHaveAttribute('datetime', /^\d{4}-\d{2}-\d{2}$/);
-  });
-
-  test('scroll progress is decorative and fills as you scroll', async ({ page }) => {
-    await page.goto('/');
-    const bar = page.locator('[data-scroll-progress]');
-    await expect(bar).toHaveAttribute('aria-hidden', 'true');
-    const scaleAt = () => bar.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).a);
-    const top = await scaleAt();
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    await expect.poll(scaleAt).toBeGreaterThan(top + 0.2);
   });
 });

@@ -10,6 +10,8 @@ export default [
       'test-results/',
       'playwright-report/',
       '.lighthouseci/',
+      'src/prototype/',
+      'src/components/proto/',
     ],
   },
   ...tseslint.configs.recommended,

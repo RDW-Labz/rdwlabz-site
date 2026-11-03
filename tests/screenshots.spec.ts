@@ -41,6 +41,9 @@ if (mode === 'site') {
   for (const path of pages) {
     for (const vp of Object.keys(widths) as (keyof typeof widths)[]) {
       test(`page ${path} ${vp}`, async ({ page }) => {
+        // The live 3D desktop home is covered by tools/shoot_test.py; a full-page capture of it
+        // would wait on a continuously rendering canvas.
+        test.skip(path === '/' && vp === 'desktop', '3D home is captured by tools/shoot_test.py');
         await page.setViewportSize(widths[vp]);
         await page.goto(path);
         await page.evaluate(() => document.fonts.ready);

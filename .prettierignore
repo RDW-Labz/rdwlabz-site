@@ -11,3 +11,11 @@ tests/fixtures/
 # Written by scripts/build-library.mjs (and the library sync bot)
 src/data/library.json
 .tmp/
+
+# Vendored approved prototype (kept verbatim)
+src/prototype/
+src/components/proto/
+
+# Vendored prototype CSS/data, kept verbatim
+src/styles/prototype.css
+public/img/g/sizes.json

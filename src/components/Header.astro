@@ -37,6 +37,7 @@ const links = [
               <a
                 href={l.href}
                 class="nav-link"
+                data-astro-prefetch="tap"
                 aria-current={current === l.id ? 'page' : undefined}
               >
                 {current === l.id && <span class="nav-link__pill" aria-hidden="true" />}
@@ -75,6 +76,7 @@ const links = [
               <a
                 href={l.href}
                 class="mobile-menu__link"
+                data-astro-prefetch="tap"
                 aria-current={current === l.id ? 'page' : undefined}
               >
                 {l.label}
