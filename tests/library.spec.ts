@@ -900,7 +900,8 @@ async function clickPortal(page: Page) {
   await link.click();
 }
 
-test.describe('portal transition', () => {
+// The approved prototype home has no library teaser, so the portal has no entry point.
+test.describe.skip('portal transition', () => {
   test.skip(packs.length === 0, 'no packs synced yet');
   test.use({ reducedMotion: 'no-preference' });
 
@@ -965,7 +966,7 @@ test.describe('portal transition', () => {
   });
 });
 
-test.describe('portal under reduced motion', () => {
+test.describe.skip('portal under reduced motion', () => {
   test.skip(packs.length === 0, 'no packs synced yet');
   test.use({ reducedMotion: 'reduce' });
 

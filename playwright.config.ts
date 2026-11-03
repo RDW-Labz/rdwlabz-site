@@ -13,6 +13,8 @@ export default defineConfig({
   timeout: 60_000,
   globalTimeout: 15 * 60_000,
   fullyParallel: true,
+  // The home/about 3D scenes are heavy; cap workers so unrelated pages do not time out.
+  workers: 2,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: [['list']],

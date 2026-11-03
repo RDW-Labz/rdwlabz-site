@@ -1,0 +1,378 @@
+{
+"yot-pricing": [
+1280,
+800,
+64144
+],
+"yot-power": [
+1280,
+800,
+44178
+],
+"yot-building": [
+1280,
+800,
+64590
+],
+"yot-steps": [
+1280,
+800,
+68786
+],
+"yot-cta": [
+1280,
+800,
+33438
+],
+"yot-m-rates": [
+600,
+1000,
+41362
+],
+"bingo-lots": [
+1280,
+800,
+78000
+],
+"bingo-cats": [
+1280,
+800,
+83290
+],
+"bingo-browse": [
+1280,
+800,
+80266
+],
+"bingo-auctions": [
+1280,
+800,
+79278
+],
+"bingo-closed": [
+1280,
+800,
+63848
+],
+"bingo-m-cats": [
+600,
+1000,
+53390
+],
+"forge-wild": [
+1280,
+800,
+82294
+],
+"forge-menu": [
+1280,
+800,
+81880
+],
+"forge-build": [
+1280,
+800,
+59048
+],
+"forge-loc": [
+1280,
+800,
+36694
+],
+"forge-m-fav": [
+600,
+1000,
+49234
+],
+"verrow-tapes": [
+1280,
+800,
+41746
+],
+"verrow-swarm": [
+1280,
+800,
+46418
+],
+"verrow-auction": [
+1280,
+800,
+46164
+],
+"verrow-m-home": [
+600,
+1000,
+34742
+],
+"bookbay-card": [
+1280,
+801,
+11010
+],
+"bookbay-m-signin": [
+760,
+864,
+10894
+],
+"swarm-card": [
+1280,
+800,
+56320
+],
+"swarm-ledger": [
+1280,
+475,
+36912
+],
+"swarm-narrow": [
+800,
+1024,
+52498
+],
+"dormant-card": [
+960,
+540,
+14966
+],
+"dormant-start": [
+1280,
+720,
+10440
+],
+"dormant-run": [
+1280,
+720,
+11710
+],
+"dormant-over": [
+1280,
+720,
+12168
+],
+"putt-card": [
+540,
+960,
+17752
+],
+"putt-dewdrop": [
+600,
+1067,
+22550
+],
+"putt-moonpool": [
+600,
+1067,
+22396
+],
+"putt-undertow": [
+600,
+1067,
+20228
+],
+"putt-hio": [
+600,
+1067,
+20442
+],
+"putt-holes": [
+600,
+1067,
+23948
+],
+"putt-icon": [
+384,
+384,
+5464
+],
+"vikings-and-dark-ages-inside": [
+1280,
+776,
+58202
+],
+"vikings-and-dark-ages-chars": [
+554,
+554,
+16658,
+[
+"char_monk_scribe",
+"char_saxon_thane",
+"char_shieldmaiden",
+"char_skald_bard"
+]
+],
+"vikings-and-dark-ages-mobs": [
+554,
+554,
+15918,
+[
+"mob_brown_bear",
+"mob_draugr",
+"mob_fenrir",
+"mob_frost_giant"
+]
+],
+"vikings-and-dark-ages-one": [
+256,
+256,
+4142,
+"vikings-and-dark-ages__char_viking_jarl.webp"
+],
+"vikings-and-dark-ages-box": [
+256,
+256,
+4182,
+"vikings-and-dark-ages__char_viking_raider.webp"
+],
+"prehistoric-inside": [
+1280,
+776,
+57396
+],
+"prehistoric-chars": [
+554,
+554,
+17614,
+[
+"char_cave_child",
+"char_chief_elder",
+"char_hero_caveman",
+"char_hunter_spear"
+]
+],
+"prehistoric-mobs": [
+554,
+554,
+12804,
+[
+"mob_ankylosaurus",
+"mob_dire_wolf",
+"mob_giant_croc",
+"mob_giant_sloth"
+]
+],
+"prehistoric-one": [
+256,
+256,
+4882,
+"prehistoric__char_rival_brute.webp"
+],
+"prehistoric-box": [
+256,
+256,
+4448,
+"prehistoric__char_shaman_cavewoman.webp"
+],
+"egypt-and-bronze-age-inside": [
+1280,
+776,
+56966
+],
+"egypt-and-bronze-age-chars": [
+554,
+554,
+15774,
+[
+"char_bronze_smith",
+"char_bronze_warrior",
+"char_pharaoh",
+"char_priestess"
+]
+],
+"egypt-and-bronze-age-mobs": [
+554,
+554,
+16516,
+[
+"mob_anubis_guard",
+"mob_bronze_golem",
+"mob_camel",
+"mob_cobra"
+]
+],
+"egypt-and-bronze-age-one": [
+256,
+256,
+4484,
+"egypt-and-bronze-age__char_royal_guard.webp"
+],
+"egypt-and-bronze-age-box": [
+256,
+256,
+3718,
+"egypt-and-bronze-age__char_scribe.webp"
+],
+"modern-ii-inside": [
+1280,
+776,
+48496
+],
+"modern-ii-chars": [
+554,
+554,
+17478,
+[
+"char_construction_worker",
+"char_food_truck_vendor",
+"char_hospital_nurse",
+"char_school_teacher"
+]
+],
+"modern-ii-mobs": [
+554,
+554,
+14888,
+[
+"mob_alley_cat",
+"mob_capybara",
+"mob_city_seagull",
+"mob_cute_kaiju"
+]
+],
+"modern-ii-one": [
+256,
+256,
+4068,
+"modern-ii__char_soccer_player.webp"
+],
+"modern-ii-box": [
+256,
+256,
+3674,
+"modern-ii__char_street_musician.webp"
+],
+"ps5-fleet": [
+720,
+213,
+18756
+],
+"ps5-rack2": [
+720,
+860,
+29200
+],
+"ps5-poster": [
+720,
+1280,
+52870
+],
+"ps5-loop": [
+960,
+622,
+31968
+],
+"recipes-card": [
+1280,
+800,
+19724
+],
+"recipes-m-signin": [
+600,
+1000,
+25842
+],
+"cluer-card": [
+1280,
+800,
+37894
+]
+}

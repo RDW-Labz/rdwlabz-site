@@ -180,7 +180,8 @@ test.describe('web projects on the site', () => {
     expect(external, 'requests to external sites').toEqual([]);
   });
 
-  for (const path of ['/', '/projects']) {
+  // The approved prototype home has no "Web projects" section; /projects still does.
+  for (const path of ['/projects']) {
     test(`${path}: cards link out safely with labelled screenshots`, async ({ page }) => {
       await page.goto(path);
       const section = page.locator('#web-projects');

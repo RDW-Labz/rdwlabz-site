@@ -7,7 +7,7 @@ test('home renders with a heading and no console errors', async ({ page }) => {
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('RDW Labz');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('We build software');
   expect(errors).toEqual([]);
 });
 
